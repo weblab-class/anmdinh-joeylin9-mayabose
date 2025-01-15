@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./components/App";
 import Skeleton from "./components/pages/Skeleton";
 import NotFound from "./components/pages/NotFound";
+import Tree from "./components/pages/Tree";
 
 import {
   createBrowserRouter,
@@ -20,6 +21,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
       <Route path="/" element={<Skeleton />}/>
+      <Route path='/tree' element={<Tree />}/>
     </Route>
   )
 )
