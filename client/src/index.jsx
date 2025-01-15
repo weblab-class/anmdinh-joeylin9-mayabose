@@ -3,7 +3,9 @@ import ReactDOM from "react-dom/client";
 import App from "./components/App";
 import Skeleton from "./components/pages/Skeleton";
 import NotFound from "./components/pages/NotFound";
+import TreePage from "./components/pages/TreePage";
 import Tree from "./components/pages/Tree";
+import Monkey from "./components/pages/Monkey";
 
 import {
   createBrowserRouter,
@@ -21,7 +23,9 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route errorElement={<NotFound />} element={<App />}>
       <Route path="/" element={<Skeleton />}/>
-      <Route path='/tree' element={<Tree />}/>
+      <Route path="/treepage" element={<TreePage />} />
+      <Route path="/tree" element={<Tree />} />
+      <Route path="/monkey" element={<Monkey />} />
     </Route>
   )
 )
