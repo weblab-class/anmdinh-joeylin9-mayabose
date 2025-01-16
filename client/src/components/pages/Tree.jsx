@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Phaser from "phaser";
 import monkeyImg from "../../assets/monkey.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
+import Shop from './Shop'; // Import Shop scene
 
 const Tree = () => {
   const [game, setGame] = useState(null);
@@ -11,25 +12,23 @@ const Tree = () => {
   const [taskName, setTaskName] = useState(""); // Store task name
 
   useEffect(() => {
-    // Phaser game configuration
     const config = {
       type: Phaser.AUTO,
       width: window.innerWidth,
       height: window.innerHeight,
-      parent: "phaser-game",
-      backgroundColor: "#ADD8E6",
+      parent: 'phaser-game',
+      backgroundColor: '#ADD8E6',
       physics: {
-        default: "arcade",
+        default: 'arcade',
         arcade: {
-          gravity: { y: 300 }, // Apply gravity to pull the monkey down
-          debug: false, // Disable physics debugging
+          gravity: { y: 0},
+          debug: false,
         },
       },
-      scene: {
-        preload,
-        create,
-        update,
-      },
+      scene: [
+        { key: 'Tree', preload, create, update }, // Tree scene
+        Shop, // Shop scene is part of the same game
+      ],
     };
 
     const newGame = new Phaser.Game(config);
@@ -47,8 +46,8 @@ const Tree = () => {
       this.load.image("monkey", monkeyImg);
     }
 
-    function create() {
-      // Create the tree trunk
+    function create(data) {
+      // Create the tree as a vertical rectangle
       tree = this.add.rectangle(
         window.innerWidth / 2,
         window.innerHeight - 60,
@@ -58,6 +57,12 @@ const Tree = () => {
       );
       tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
 
+      // Create the monkey sprite with physics
+      const startY = data && data.y ? data.y : window.innerHeight - 100; // Use passed y position or default
+      monkey = this.physics.add.image(window.innerWidth*.94, startY, "monkey"); // Initial position
+      monkey.setDisplaySize(100, 80);
+      monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
+      
       // Create the ground as a green rectangle
       ground = this.add.rectangle(
         window.innerWidth / 2,
@@ -90,23 +95,26 @@ const Tree = () => {
     }
 
     function update() {
-      // Ensure the monkey stays at the ground level
-      if (monkey.y !== window.innerHeight - 60) {
-        monkey.y = window.innerHeight - 60;
-      }
-
-      // Monkey movement logic
+      // Move the monkey left or right
       if (cursors.left.isDown || keys.A.isDown) {
-        monkey.setVelocityX(-500);
+        monkey.setVelocityX(-750);
       } else if (cursors.right.isDown || keys.D.isDown) {
-        monkey.setVelocityX(500);
+        monkey.setVelocityX(750);
       } else {
-        monkey.setVelocityX(0);
+        monkey.setVelocityX(0); // Stop horizontal movement
       }
 
-      if ((cursors.up.isDown || keys.W.isDown) && monkey.body.touching.down) {
-        monkey.body.setAllowGravity(true); // Enable gravity for jumping
-        monkey.setVelocityY(-500); // Jump only if the monkey is touching the ground
+      // Move the monkey up or down
+      if (cursors.up.isDown || keys.W.isDown) {
+        monkey.setVelocityY(-750); // Move up
+      } else if (cursors.down.isDown || keys.S.isDown) {
+        monkey.setVelocityY(750); // Move down
+      } else {
+        monkey.setVelocityY(0); // Stop vertical movement
+      }
+
+      if (monkey.x >= (window.innerWidth*0.95)) { 
+        this.scene.start('Shop', { x: monkey.x, y: monkey.y }); // Pass monkey's position to Shop scene
       }
 
       // Disable gravity once the monkey lands back on the ground
