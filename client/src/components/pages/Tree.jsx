@@ -7,7 +7,7 @@ const Tree = () => {
   const [scene, setScene] = useState(null); // state to hold the active Phaser scene
 
   useEffect(() => {
-    // Phaser game configuration
+    // Phaser game configurationaaa]]
     const config = {
       type: Phaser.AUTO, // Automatically choose the rendering type (WebGL or Canvas)
       width: window.innerWidth, // Set game width to the full window width
@@ -17,7 +17,7 @@ const Tree = () => {
       physics: {
         default: "arcade", // Use arcade physics for simple 2D interactions
         arcade: {
-          gravity: { y: 0 }, // Disable gravity
+          gravity: { y: 300 }, // Apply gravity to pull the monkey down
           debug: false, // Disable physics debugging
         },
       },
@@ -37,6 +37,7 @@ const Tree = () => {
     let monkey; // Variable for the monkey sprite
     let cursors; // Cursor keys for keyboard input
     let keys; // WASD keys for keyboard input
+    let ground; // Variable for the ground
 
     function preload() {
       this.load.image("monkey", monkeyImg); // Preload the monkey image
@@ -48,13 +49,13 @@ const Tree = () => {
         window.innerWidth / 2, // Center of the screen (x-axis)
         window.innerHeight - 60, // Near the bottom (y-axis)
         50, // Width of the tree
-        150, // Increased height of the tree for a more noticeable growth
+        150, // Height of the tree
         0x4a3d36 // Brown color for the tree (same color for branches)
       );
       tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
 
       // Create the ground as a green rectangle
-      this.add.rectangle(
+      ground = this.add.rectangle(
         window.innerWidth / 2, // Center of the screen (x-axis)
         window.innerHeight - 10, // Bottom of the screen (y-axis)
         window.innerWidth, // Full screen width
@@ -62,15 +63,22 @@ const Tree = () => {
         0x228b22 // Green color for the ground
       ).setOrigin(0.5, 1);
 
-      // Create the monkey sprite with physics
-      monkey = this.physics.add.image(400, 300, "monkey"); // Initial position
-      monkey.setScale(0.1); // Scale down the monkey size
+      // Create the monkey sprite with physics, positioned just above the ground
+      monkey = this.physics.add.image(window.innerWidth / 2, window.innerHeight - 60, "monkey"); // Initial position
+      monkey.setScale(0.075); // Scale down the monkey size
+      monkey.setOrigin(0.5, 1); // Set origin to bottom, so feet are aligned with the ground
       monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
+
+      // Set gravity to pull the monkey down (it will be handled manually)
+      monkey.body.setAllowGravity(false); // Disable gravity for the monkey initially
+
+      // Add a collider for the monkey and ground
+      this.physics.add.collider(monkey, ground);
 
       // Set the monkey's depth to ensure it's on top of the tree and branches
       monkey.setDepth(1);
 
-      // Set up keyboard input
+      // Set up keyboard input for monkey movement
       cursors = this.input.keyboard.createCursorKeys(); // Arrow keys
       keys = this.input.keyboard.addKeys("W,S,A,D"); // WASD keys
 
@@ -83,7 +91,12 @@ const Tree = () => {
     }
 
     function update() {
-      // Move the monkey left or right
+      // Ensure the monkey stays at the ground level (fixed y-position)
+      if (monkey.y !== window.innerHeight - 60) {
+        monkey.y = window.innerHeight - 60; // Reset monkey's y-position to the ground level
+      }
+
+      // Monkey movement logic
       if (cursors.left.isDown || keys.A.isDown) {
         monkey.setVelocityX(-500); // Move left
       } else if (cursors.right.isDown || keys.D.isDown) {
@@ -92,13 +105,15 @@ const Tree = () => {
         monkey.setVelocityX(0); // Stop horizontal movement
       }
 
-      // Move the monkey up or down
-      if (cursors.up.isDown || keys.W.isDown) {
-        monkey.setVelocityY(-500); // Move up
-      } else if (cursors.down.isDown || keys.S.isDown) {
-        monkey.setVelocityY(500); // Move down
-      } else {
-        monkey.setVelocityY(0); // Stop vertical movement
+      // Jumping logic
+      if ((cursors.up.isDown || keys.W.isDown) && monkey.body.touching.down) {
+        monkey.body.setAllowGravity(true); // Enable gravity for jumping
+        monkey.setVelocityY(-500); // Jump only if the monkey is touching the ground
+      }
+
+      // Disable gravity once the monkey lands back on the ground
+      if (monkey.body.touching.down && monkey.body.velocity.y === 0) {
+        monkey.body.setAllowGravity(false); // Disable gravity when on the ground
       }
     }
 
