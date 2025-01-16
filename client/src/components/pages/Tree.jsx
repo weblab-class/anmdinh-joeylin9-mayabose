@@ -72,19 +72,19 @@ const Tree = () => {
         0x228b22
       ).setOrigin(0.5, 1);
 
-      // Create the monkey sprite with physics
-      monkey = this.physics.add
-        .image(window.innerWidth / 2, window.innerHeight - 60, "monkey")
-        .setScale(0.075)
-        .setOrigin(0.5, 1)
-        .setCollideWorldBounds(true);
+      // // Create the monkey sprite with physics
+      // monkey = this.physics.add
+      //   .image(window.innerWidth / 2, window.innerHeight - 60, "monkey")
+      //   .setScale(0.075)
+      //   .setOrigin(0.5, 1)
+      //   .setCollideWorldBounds(true);
 
-      monkey.body.setAllowGravity(false); // Disable gravity for the monkey initially
-      this.physics.add.collider(monkey, ground);
+      // monkey.body.setAllowGravity(false); // Disable gravity for the monkey initially
+      // this.physics.add.collider(monkey, ground);
 
       // Set up keyboard input for monkey movement
       cursors = this.input.keyboard.createCursorKeys();
-      keys = this.input.keyboard.addKeys("W,S,A,D");
+      // keys = this.input.keyboard.addKeys("W,S,A,D");
 
       // Save references for use in growTree
       this.tree = tree;
@@ -96,18 +96,18 @@ const Tree = () => {
 
     function update() {
       // Move the monkey left or right
-      if (cursors.left.isDown || keys.A.isDown) {
+      if (cursors.left.isDown) {
         monkey.setVelocityX(-750);
-      } else if (cursors.right.isDown || keys.D.isDown) {
+      } else if (cursors.right.isDown) {
         monkey.setVelocityX(750);
       } else {
         monkey.setVelocityX(0); // Stop horizontal movement
       }
 
       // Move the monkey up or down
-      if (cursors.up.isDown || keys.W.isDown) {
+      if (cursors.up.isDown) {
         monkey.setVelocityY(-750); // Move up
-      } else if (cursors.down.isDown || keys.S.isDown) {
+      } else if (cursors.down.isDown) {
         monkey.setVelocityY(750); // Move down
       } else {
         monkey.setVelocityY(0); // Stop vertical movement
@@ -115,11 +115,6 @@ const Tree = () => {
 
       if (monkey.x >= (window.innerWidth*0.95)) { 
         this.scene.start('Shop', { x: monkey.x, y: monkey.y }); // Pass monkey's position to Shop scene
-      }
-
-      // Disable gravity once the monkey lands back on the ground
-      if (monkey.body.touching.down && monkey.body.velocity.y === 0) {
-        monkey.body.setAllowGravity(false);
       }
     }
 
