@@ -4,10 +4,12 @@ import monkeyImg from "../../assets/monkey.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 
 const Tree = () => {
-  const [game, setGame] = useState(null); // State to hold the Phaser game instance
-  const [scene, setScene] = useState(null); // State to hold the active Phaser scene
-  const [showTaskManager, setShowTaskManager] = useState(false); // State to toggle TaskManager visibility
-  const [tasks, setTasks] = useState([]); // State to hold tasks
+  const [game, setGame] = useState(null);
+  const [scene, setScene] = useState(null);
+  const [showTaskManager, setShowTaskManager] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState(""); // Store task name
+
 
   useEffect(() => {
     const config = {
@@ -46,15 +48,14 @@ const Tree = () => {
 
     function create() {
       tree = this.add.rectangle(
-        window.innerWidth / 2, // Center of the screen (x-axis)
-        window.innerHeight - 60, // Near the bottom (y-axis)
-        50, // Width of the tree
-        150, // Increased height of the tree for a more noticeable growth
-        0x4a3d36 // Brown color for the tree (same color for branches)
+        window.innerWidth / 2,
+        window.innerHeight - 60,
+        50,
+        50,
+        0x4a3d36
       );
-      tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
+      tree.setOrigin(0.5, 1);
 
-      // Create the ground as a green rectangle
       this.add.rectangle(
         window.innerWidth / 2,
         window.innerHeight - 10,
@@ -63,22 +64,16 @@ const Tree = () => {
         0x228b22
       ).setOrigin(0.5, 1);
 
-      // Create the monkey sprite with physics
-      monkey = this.physics.add.image(400, 300, "monkey"); // Initial position
-      monkey.setScale(0.1); // Scale down the monkey size
-      monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
+      monkey = this.physics.add.image(400, 300, "monkey");
+      monkey.setScale(0.1);
+      monkey.setCollideWorldBounds(true);
 
-      // Set the monkey's depth to ensure it's on top of the tree and branches
-      monkey.setDepth(1);
+      cursors = this.input.keyboard.createCursorKeys();
+      keys = this.input.keyboard.addKeys("W,S,A,D");
 
-      // Set up keyboard input
-      cursors = this.input.keyboard.createCursorKeys(); // Arrow keys
-      keys = this.input.keyboard.addKeys("W,S,A,D"); // WASD keys
-
-      // Save references for use in growTree
-      this.tree = tree; // Save the tree object in the scene
-      this.branches = branches; // Save the branches array
-      this.branchSide = branchSide; // Save the branch side tracker
+      this.tree = tree;
+      this.branches = branches;
+      this.branchSide = branchSide;
 
       setScene(this);
     }
@@ -106,52 +101,74 @@ const Tree = () => {
     };
   }, []);
 
+  const handleAddTask = (task) => {
+    if (task) {
+        setTaskName(task);
+        setTasks([...tasks, task]); // Add the task
+        growTree(); // Grow the tree
+    }
+    setShowTaskManager(false); // Close TaskManager
+  };
+
+  const handleCancel = () => {
+    setShowTaskManager(false); // Close the TaskManager without adding a task
+  };
+
+
   const growTree = () => {
     if (scene && scene.tree) {
-      const treeObj = scene.tree; // Access the tree object from the scene
-      const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
-
+      const treeObj = scene.tree;
+      const newHeight = treeObj.height + 50;
+  
       scene.tweens.add({
         targets: treeObj,
         height: newHeight,
         duration: 500,
         ease: "Linear",
         onUpdate: () => {
-          // Ensure the tree's width stays constant
-          treeObj.setSize(50, treeObj.height); // Keep the tree's width at 50
+          treeObj.setSize(50, treeObj.height);
         },
         onComplete: () => {
           const branchY = treeObj.y - treeObj.height + 10;
           const branchX =
-            scene.branchSide === "left"
-              ? treeObj.x - 50 // Move the branch further out to the left
-              : treeObj.x + 50; // Move the branch further out to the right
+            scene.branchSide === "left" ? treeObj.x - 20 : treeObj.x + 20;
           scene.branchSide =
             scene.branchSide === "left" ? "right" : "left";
-
-          // Create a new branch with a thickness of 25 (same color as the tree)
-          const branch = scene.add.rectangle(
-            branchX,
-            branchY,
-            50, // Set the width (thickness) of the branch to 25
-            15, // Height of the branch
-            0x4a3d36 // Same brown color for the branch as the tree
-          );
+  
+          // Create the branch
+          const branch = scene.add.rectangle(branchX, branchY, 30, 5, 0x8b4513);
           scene.branches.push(branch);
+  
+          // Safely use taskName
+          const taskLabel = taskName;
+          console.log("Adding branch with task:", taskLabel);
+  
+          // Add text above the branch
+          scene.add.text(branchX, branchY - 20, String(taskLabel), {
+            font: "16px Arial",
+            fill: "#000",
+            align: "center",
+          });
+        //   if (taskName) {
+        //     scene.add.text(
+        //       branchX,
+        //       branchY - 20, // Place the text above the branch
+        //       taskName,
+        //       {
+        //         font: "16px Arial",
+        //         fill: "#000",
+        //         align: "center",
+        //       }
+        //     );
+        //   }
         },
       });
     }
   };
 
-  const handleAddTask = (task) => {
-    setTasks([...tasks, task]); // Add the task to the list
-    setShowTaskManager(false); // Close the TaskManager window
-  };
-
   return (
     <div>
       <button onClick={() => setShowTaskManager(true)}>Add Task</button>
-      <button onClick={growTree}>Grow Tree</button>
       <div
         id="phaser-game"
         style={{
@@ -161,9 +178,22 @@ const Tree = () => {
           position: "relative",
         }}
       />
-      {/* Conditionally render TaskManager */}
       {showTaskManager && (
-        <TaskManager onAddTask={handleAddTask} />
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 999,
+            }}
+            onClick={handleCancel} // Close the popup when clicking outside
+          />
+          <TaskManager onAddTask={handleAddTask} onCancel={handleCancel} />
+        </>
       )}
     </div>
   );

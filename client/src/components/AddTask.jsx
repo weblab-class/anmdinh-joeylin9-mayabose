@@ -1,75 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-function TaskManager() {
-  const [showInput, setShowInput] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState("");
+const TaskManager = ({ onAddTask, onCancel }) => {
+  const [taskName, setTaskName] = useState(""); // State for task name
+  const [taskDifficulty, setTaskDifficulty] = useState(""); // State for task difficulty
 
-  const handleAddTaskClick = () => {
-    setShowInput(true); // Show the input window
-  };
-
-  const handleSaveTask = () => {
-    if (newTask.trim() !== "") {
-      setTasks([...tasks, newTask]); // Add the task to the list
-      setNewTask(""); // Clear the input field
-      setShowInput(false); // Close the input window
+  const handleSubmit = () => {
+    if (taskName && taskDifficulty) {
+      onAddTask({ name: taskName, difficulty: taskDifficulty }); // Call the parent's handler
+      setTaskName(""); // Reset the input fields
+      setTaskDifficulty("");
+    } else {
+      alert("Please fill out both fields.");
     }
   };
 
-  const handleCancel = () => {
-    setNewTask(""); // Clear the input field
-    setShowInput(false); // Close the input window
-  };
-
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-      <h1>Task Manager</h1>
-      <button onClick={handleAddTaskClick}>Add Task</button>
-      <ul>
-        {tasks.map((task, index) => (
-          <li key={index}>{task}</li>
-        ))}
-      </ul>
-
-      {/* Conditional rendering for the input window */}
-      {showInput && (
-        <div
+    <div
+      style={{
+        position: "fixed",
+        top: "10%",
+        left: "5%",
+        transform: "translate(-10%, -5%)",
+        backgroundColor: "white",
+        padding: "12px",
+        border: "1px solid dark green",
+        borderRadius: "8px",
+        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.4)",
+        zIndex: 1000,
+        width: "300px",
+      }}
+    >
+      <h3>Add a New Task</h3>
+      <label>
+        Task Name:
+        <input
+          type="text"
+          value={taskName}
+          onChange={(e) => setTaskName(e.target.value)}
           style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            backgroundColor: 'white',
-            padding: '20px',
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
-            zIndex: 1000,
+            width: "100%",
+            padding: "8px",
+            margin: "10px 0",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            font: 'Courier New',
+          }}
+        />
+      </label>
+      <label>
+        Task Difficulty:
+        <select
+          value={taskDifficulty}
+          onChange={(e) => setTaskDifficulty(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "8px",
+            margin: "10px 0",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
           }}
         >
-          <h3>Add New Task</h3>
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="Enter your task"
-            style={{
-              width: '100%',
-              padding: '8px',
-              marginBottom: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-            }}
-          />
-          <button onClick={handleSaveTask} style={{ marginRight: '10px' }}>
-            Save
-          </button>
-          <button onClick={handleCancel}>Cancel</button>
-        </div>
-      )}
+          <option value="">Select Difficulty</option>
+          <option value="Easy">Easy</option>
+          <option value="Medium">Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </label>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "15px" }}>
+        <button
+          onClick={handleSubmit}
+          style={{
+            padding: "10px",
+            backgroundColor: "#4CAF50",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Submit
+        </button>
+        <button
+          onClick={onCancel}
+          style={{
+            padding: "10px",
+            backgroundColor: "#f44336",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
-}
+};
 
 export default TaskManager;
