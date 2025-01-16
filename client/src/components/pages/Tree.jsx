@@ -1,31 +1,30 @@
 import React, { useEffect, useState } from "react";
 import Phaser from "phaser";
 import monkeyImg from "../../assets/monkey.png";
+import Shop from './Shop'; // Import Shop scene
 
 const Tree = () => {
   const [game, setGame] = useState(null); // state to hold the Phaser game instance
   const [scene, setScene] = useState(null); // state to hold the active Phaser scene
 
   useEffect(() => {
-    // Phaser game configuration
     const config = {
-      type: Phaser.AUTO, // Automatically choose the rendering type (WebGL or Canvas)
-      width: window.innerWidth, // Set game width to the full window width
-      height: window.innerHeight, // Set game height to the full window height
-      parent: "phaser-game", // Attach the game canvas to the div with ID "phaser-game"
-      backgroundColor: "#ADD8E6", // Set a light blue background
+      type: Phaser.AUTO,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      parent: 'phaser-game',
+      backgroundColor: '#ADD8E6',
       physics: {
-        default: "arcade", // Use arcade physics for simple 2D interactions
+        default: 'arcade',
         arcade: {
-          gravity: { y: 0 }, // Disable gravity
-          debug: false, // Disable physics debugging
+          gravity: { y: 0},
+          debug: false,
         },
       },
-      scene: {
-        preload, // Preload game assets
-        create, // Set up the game scene
-        update, // Game update logic (runs continuously)
-      },
+      scene: [
+        { key: 'Tree', preload, create, update }, // Tree scene
+        Shop, // Shop scene is part of the same game
+      ],
     };
 
     const newGame = new Phaser.Game(config); // Create a new Phaser game with the above configuration
@@ -42,7 +41,7 @@ const Tree = () => {
       this.load.image("monkey", monkeyImg); // Preload the monkey image
     }
 
-    function create() {
+    function create(data) {
       // Create the tree as a vertical rectangle
       tree = this.add.rectangle(
         window.innerWidth / 2, // Center of the screen (x-axis)
@@ -53,6 +52,12 @@ const Tree = () => {
       );
       tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
 
+      // Create the monkey sprite with physics
+      const startY = data && data.y ? data.y : window.innerHeight - 100; // Use passed y position or default
+      monkey = this.physics.add.image(window.innerWidth*.94, startY, "monkey"); // Initial position
+      monkey.setDisplaySize(100, 80);
+      monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
+      
       // Create the ground as a green rectangle
       this.add.rectangle(
         window.innerWidth / 2, // Center of the screen (x-axis)
@@ -61,11 +66,6 @@ const Tree = () => {
         50, // Height of the ground
         0x228b22 // Green color for the ground
       ).setOrigin(0.5, 1);
-
-      // Create the monkey sprite with physics
-      monkey = this.physics.add.image(400, 300, "monkey"); // Initial position
-      monkey.setScale(0.1); // Scale down the monkey size
-      monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
 
       // Set up keyboard input
       cursors = this.input.keyboard.createCursorKeys(); // Arrow keys
@@ -82,20 +82,24 @@ const Tree = () => {
     function update() {
       // Move the monkey left or right
       if (cursors.left.isDown || keys.A.isDown) {
-        monkey.setVelocityX(-500); // Move left
+        monkey.setVelocityX(-750); // Move left
       } else if (cursors.right.isDown || keys.D.isDown) {
-        monkey.setVelocityX(500); // Move right
+        monkey.setVelocityX(750); // Move right
       } else {
         monkey.setVelocityX(0); // Stop horizontal movement
       }
 
       // Move the monkey up or down
       if (cursors.up.isDown || keys.W.isDown) {
-        monkey.setVelocityY(-500); // Move up
+        monkey.setVelocityY(-750); // Move up
       } else if (cursors.down.isDown || keys.S.isDown) {
-        monkey.setVelocityY(500); // Move down
+        monkey.setVelocityY(750); // Move down
       } else {
         monkey.setVelocityY(0); // Stop vertical movement
+      }
+
+      if (monkey.x >= (window.innerWidth*0.95)) { 
+        this.scene.start('Shop', { x: monkey.x, y: monkey.y }); // Pass monkey's position to Shop scene
       }
     }
 
