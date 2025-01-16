@@ -47,9 +47,9 @@ const Tree = () => {
       tree = this.add.rectangle(
         window.innerWidth / 2, // Center of the screen (x-axis)
         window.innerHeight - 60, // Near the bottom (y-axis)
-        50, // Width of the tree (updated from 10 to 50)
-        50, // Initial height of the tree
-        0x4a3d36 // Brown color for the tree
+        50, // Width of the tree
+        150, // Increased height of the tree for a more noticeable growth
+        0x4a3d36 // Brown color for the tree (same color for branches)
       );
       tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
 
@@ -66,6 +66,9 @@ const Tree = () => {
       monkey = this.physics.add.image(400, 300, "monkey"); // Initial position
       monkey.setScale(0.1); // Scale down the monkey size
       monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
+
+      // Set the monkey's depth to ensure it's on top of the tree and branches
+      monkey.setDepth(1);
 
       // Set up keyboard input
       cursors = this.input.keyboard.createCursorKeys(); // Arrow keys
@@ -108,7 +111,7 @@ const Tree = () => {
   const growTree = () => {
     if (scene && scene.tree) {
       const treeObj = scene.tree; // Access the tree object from the scene
-      const newHeight = treeObj.height + 50; // Increase the tree height by 50 pixels
+      const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
 
       // Create a tween animation for growing the tree
       scene.tweens.add({
@@ -117,25 +120,26 @@ const Tree = () => {
         duration: 500, // Animation duration in milliseconds
         ease: "Linear", // Linear easing for smooth animation
         onUpdate: () => {
-          treeObj.setSize(50, treeObj.height); // Keep the width at 50, update the height dynamically
+          // Ensure the tree's width stays constant
+          treeObj.setSize(50, treeObj.height); // Keep the tree's width at 50
         },
         onComplete: () => {
           // Add a new branch when the animation completes
           const branchY = treeObj.y - treeObj.height + 10; // Y-coordinate of the branch
           const branchX =
             scene.branchSide === "left"
-              ? treeObj.x - 20 // Branch on the left
-              : treeObj.x + 20; // Branch on the right
+              ? treeObj.x - 50 // Move the branch further out to the left
+              : treeObj.x + 50; // Move the branch further out to the right
           scene.branchSide =
             scene.branchSide === "left" ? "right" : "left"; // Alternate branch side
 
-          // Create a new branch as a brown rectangle
+          // Create a new branch with a thickness of 25 (same color as the tree)
           const branch = scene.add.rectangle(
             branchX,
             branchY,
-            30, // Width of the branch
-            5, // Height of the branch
-            0x8b4513 // Brown color for the branch
+            50, // Set the width (thickness) of the branch to 25
+            15, // Height of the branch
+            0x4a3d36 // Same brown color for the branch as the tree
           );
           scene.branches.push(branch); // Add the branch to the branches array
         },
