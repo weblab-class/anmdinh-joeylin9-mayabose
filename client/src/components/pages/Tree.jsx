@@ -10,9 +10,8 @@ const Tree = () => {
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
 
-
   useEffect(() => {
-    // Phaser game configurationaaa]]
+    // Phaser game configuration
     const config = {
       type: Phaser.AUTO,
       width: window.innerWidth,
@@ -49,69 +48,51 @@ const Tree = () => {
     }
 
     function create() {
+      // Create the tree trunk
       tree = this.add.rectangle(
         window.innerWidth / 2,
         window.innerHeight - 60,
         50,
-        50,
+        150,
         0x4a3d36
-      );
-      tree.setOrigin(0.5, 1);
-
-      this.add.rectangle(
-        window.innerWidth / 2,
-        window.innerHeight - 10,
-        window.innerWidth,
-        50,
-        0x228b22
-        window.innerWidth / 2, // Center of the screen (x-axis)
-        window.innerHeight - 60, // Near the bottom (y-axis)
-        50, // Width of the tree
-        150, // Height of the tree
-        0x4a3d36 // Brown color for the tree (same color for branches)
       );
       tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
 
       // Create the ground as a green rectangle
       ground = this.add.rectangle(
-        window.innerWidth / 2, // Center of the screen (x-axis)
-        window.innerHeight - 10, // Bottom of the screen (y-axis)
-        window.innerWidth, // Full screen width
-        50, // Height of the ground
-        0x228b22 // Green color for the ground
+        window.innerWidth / 2,
+        window.innerHeight - 10,
+        window.innerWidth,
+        50,
+        0x228b22
       ).setOrigin(0.5, 1);
 
-      // Create the monkey sprite with physics, positioned just above the ground
-      monkey = this.physics.add.image(window.innerWidth / 2, window.innerHeight - 60, "monkey"); // Initial position
-      monkey.setScale(0.075); // Scale down the monkey size
-      monkey.setOrigin(0.5, 1); // Set origin to bottom, so feet are aligned with the ground
-      monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
+      // Create the monkey sprite with physics
+      monkey = this.physics.add
+        .image(window.innerWidth / 2, window.innerHeight - 60, "monkey")
+        .setScale(0.075)
+        .setOrigin(0.5, 1)
+        .setCollideWorldBounds(true);
 
-      // Set gravity to pull the monkey down (it will be handled manually)
       monkey.body.setAllowGravity(false); // Disable gravity for the monkey initially
-
-      // Add a collider for the monkey and ground
       this.physics.add.collider(monkey, ground);
 
-      // Set the monkey's depth to ensure it's on top of the tree and branches
-      monkey.setDepth(1);
-
       // Set up keyboard input for monkey movement
-      cursors = this.input.keyboard.createCursorKeys(); // Arrow keys
-      keys = this.input.keyboard.addKeys("W,S,A,D"); // WASD keys
+      cursors = this.input.keyboard.createCursorKeys();
+      keys = this.input.keyboard.addKeys("W,S,A,D");
 
       // Save references for use in growTree
-      this.tree = tree; // Save the tree object in the scene
-      this.branches = branches; // Save the branches array
-      this.branchSide = branchSide; // Save the branch side tracker
+      this.tree = tree;
+      this.branches = branches;
+      this.branchSide = branchSide;
 
       setScene(this);
     }
 
     function update() {
-      // Ensure the monkey stays at the ground level (fixed y-position)
+      // Ensure the monkey stays at the ground level
       if (monkey.y !== window.innerHeight - 60) {
-        monkey.y = window.innerHeight - 60; // Reset monkey's y-position to the ground level
+        monkey.y = window.innerHeight - 60;
       }
 
       // Monkey movement logic
@@ -123,13 +104,6 @@ const Tree = () => {
         monkey.setVelocityX(0);
       }
 
-      if (cursors.up.isDown || keys.W.isDown) {
-        monkey.setVelocityY(-500);
-      } else if (cursors.down.isDown || keys.S.isDown) {
-        monkey.setVelocityY(500);
-      } else {
-        monkey.setVelocityY(0);
-      // Jumping logic
       if ((cursors.up.isDown || keys.W.isDown) && monkey.body.touching.down) {
         monkey.body.setAllowGravity(true); // Enable gravity for jumping
         monkey.setVelocityY(-500); // Jump only if the monkey is touching the ground
@@ -137,7 +111,7 @@ const Tree = () => {
 
       // Disable gravity once the monkey lands back on the ground
       if (monkey.body.touching.down && monkey.body.velocity.y === 0) {
-        monkey.body.setAllowGravity(false); // Disable gravity when on the ground
+        monkey.body.setAllowGravity(false);
       }
     }
 
@@ -148,9 +122,9 @@ const Tree = () => {
 
   const handleAddTask = (task) => {
     if (task) {
-        setTaskName(task);
-        setTasks([...tasks, task]); // Add the task
-        growTree(); // Grow the tree
+      setTaskName(task);
+      setTasks([...tasks, task]); // Add the task
+      growTree(); // Grow the tree
     }
     setShowTaskManager(false); // Close TaskManager
   };
@@ -159,10 +133,9 @@ const Tree = () => {
     setShowTaskManager(false); // Close the TaskManager without adding a task
   };
 
-
   const growTree = () => {
     if (scene && scene.tree) {
-      const treeObj = scene.tree; // Access the tree object from the scene
+      const treeObj = scene.tree;
       const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
 
       // Create a tween animation for growing the tree
@@ -181,13 +154,12 @@ const Tree = () => {
           scene.branchSide =
             scene.branchSide === "left" ? "right" : "left"; // Alternate branch side
 
-          // Create a new branch with a thickness of 25 (same color as the tree)
           const branch = scene.add.rectangle(
             branchX,
             branchY,
-            50, // Set the width (thickness) of the branch to 25
-            15, // Height of the branch
-            0x4a3d36 // Same brown color for the branch as the tree
+            50,
+            15,
+            0x4a3d36
           );
           scene.branches.push(branch); // Add the branch to the branches array
         },
@@ -219,7 +191,7 @@ const Tree = () => {
               backgroundColor: "rgba(0, 0, 0, 0.5)",
               zIndex: 999,
             }}
-            onClick={handleCancel} // Close the popup when clicking outside
+            onClick={handleCancel}
           />
           <TaskManager onAddTask={handleAddTask} onCancel={handleCancel} />
         </>
