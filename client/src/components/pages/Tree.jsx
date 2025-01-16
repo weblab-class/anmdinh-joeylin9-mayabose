@@ -1,35 +1,40 @@
 import React, { useEffect, useState } from "react";
 import Phaser from "phaser";
 import monkeyImg from "../../assets/monkey.png";
+import TaskManager from "../AddTask"; // Import TaskManager component
 
 const Tree = () => {
-  const [game, setGame] = useState(null); // state to hold the Phaser game instance
-  const [scene, setScene] = useState(null); // state to hold the active Phaser scene
+  const [game, setGame] = useState(null);
+  const [scene, setScene] = useState(null);
+  const [showTaskManager, setShowTaskManager] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState(""); // Store task name
+
 
   useEffect(() => {
     // Phaser game configurationaaa]]
     const config = {
-      type: Phaser.AUTO, // Automatically choose the rendering type (WebGL or Canvas)
-      width: window.innerWidth, // Set game width to the full window width
-      height: window.innerHeight, // Set game height to the full window height
-      parent: "phaser-game", // Attach the game canvas to the div with ID "phaser-game"
-      backgroundColor: "#ADD8E6", // Set a light blue background
+      type: Phaser.AUTO,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      parent: "phaser-game",
+      backgroundColor: "#ADD8E6",
       physics: {
-        default: "arcade", // Use arcade physics for simple 2D interactions
+        default: "arcade",
         arcade: {
           gravity: { y: 300 }, // Apply gravity to pull the monkey down
           debug: false, // Disable physics debugging
         },
       },
       scene: {
-        preload, // Preload game assets
-        create, // Set up the game scene
-        update, // Game update logic (runs continuously)
+        preload,
+        create,
+        update,
       },
     };
 
-    const newGame = new Phaser.Game(config); // Create a new Phaser game with the above configuration
-    setGame(newGame); // Save the game instance in the state
+    const newGame = new Phaser.Game(config);
+    setGame(newGame);
 
     let tree; // Variable to hold the tree object
     let branches = []; // Array to store branch objects
@@ -40,12 +45,25 @@ const Tree = () => {
     let ground; // Variable for the ground
 
     function preload() {
-      this.load.image("monkey", monkeyImg); // Preload the monkey image
+      this.load.image("monkey", monkeyImg);
     }
 
     function create() {
-      // Create the tree as a vertical rectangle
       tree = this.add.rectangle(
+        window.innerWidth / 2,
+        window.innerHeight - 60,
+        50,
+        50,
+        0x4a3d36
+      );
+      tree.setOrigin(0.5, 1);
+
+      this.add.rectangle(
+        window.innerWidth / 2,
+        window.innerHeight - 10,
+        window.innerWidth,
+        50,
+        0x228b22
         window.innerWidth / 2, // Center of the screen (x-axis)
         window.innerHeight - 60, // Near the bottom (y-axis)
         50, // Width of the tree
@@ -87,7 +105,7 @@ const Tree = () => {
       this.branches = branches; // Save the branches array
       this.branchSide = branchSide; // Save the branch side tracker
 
-      setScene(this); // Save the scene reference for use outside the Phaser game loop
+      setScene(this);
     }
 
     function update() {
@@ -98,13 +116,19 @@ const Tree = () => {
 
       // Monkey movement logic
       if (cursors.left.isDown || keys.A.isDown) {
-        monkey.setVelocityX(-500); // Move left
+        monkey.setVelocityX(-500);
       } else if (cursors.right.isDown || keys.D.isDown) {
-        monkey.setVelocityX(500); // Move right
+        monkey.setVelocityX(500);
       } else {
-        monkey.setVelocityX(0); // Stop horizontal movement
+        monkey.setVelocityX(0);
       }
 
+      if (cursors.up.isDown || keys.W.isDown) {
+        monkey.setVelocityY(-500);
+      } else if (cursors.down.isDown || keys.S.isDown) {
+        monkey.setVelocityY(500);
+      } else {
+        monkey.setVelocityY(0);
       // Jumping logic
       if ((cursors.up.isDown || keys.W.isDown) && monkey.body.touching.down) {
         monkey.body.setAllowGravity(true); // Enable gravity for jumping
@@ -117,11 +141,24 @@ const Tree = () => {
       }
     }
 
-    // Clean up the Phaser game when the component unmounts
     return () => {
       newGame.destroy(true);
     };
   }, []);
+
+  const handleAddTask = (task) => {
+    if (task) {
+        setTaskName(task);
+        setTasks([...tasks, task]); // Add the task
+        growTree(); // Grow the tree
+    }
+    setShowTaskManager(false); // Close TaskManager
+  };
+
+  const handleCancel = () => {
+    setShowTaskManager(false); // Close the TaskManager without adding a task
+  };
+
 
   const growTree = () => {
     if (scene && scene.tree) {
@@ -130,21 +167,17 @@ const Tree = () => {
 
       // Create a tween animation for growing the tree
       scene.tweens.add({
-        targets: treeObj, // Target the tree object
-        height: newHeight, // Set the new height
-        duration: 500, // Animation duration in milliseconds
-        ease: "Linear", // Linear easing for smooth animation
+        targets: treeObj,
+        height: newHeight,
+        duration: 500,
+        ease: "Linear",
         onUpdate: () => {
-          // Ensure the tree's width stays constant
-          treeObj.setSize(50, treeObj.height); // Keep the tree's width at 50
+          treeObj.setSize(50, treeObj.height);
         },
         onComplete: () => {
-          // Add a new branch when the animation completes
-          const branchY = treeObj.y - treeObj.height + 10; // Y-coordinate of the branch
+          const branchY = treeObj.y - treeObj.height + 10;
           const branchX =
-            scene.branchSide === "left"
-              ? treeObj.x - 50 // Move the branch further out to the left
-              : treeObj.x + 50; // Move the branch further out to the right
+            scene.branchSide === "left" ? treeObj.x - 20 : treeObj.x + 20;
           scene.branchSide =
             scene.branchSide === "left" ? "right" : "left"; // Alternate branch side
 
@@ -164,16 +197,33 @@ const Tree = () => {
 
   return (
     <div>
-      <button onClick={growTree}>Add Task</button> {/* Button to grow the tree */}
+      <button onClick={() => setShowTaskManager(true)}>Add Task</button>
       <div
         id="phaser-game"
         style={{
-          width: "100%", // Full width
-          height: "100vh", // Full height
-          border: "1px solid black", // Black border
-          position: "relative", // Relative positioning for layout
+          width: "100%",
+          height: "100vh",
+          border: "1px solid black",
+          position: "relative",
         }}
       />
+      {showTaskManager && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 999,
+            }}
+            onClick={handleCancel} // Close the popup when clicking outside
+          />
+          <TaskManager onAddTask={handleAddTask} onCancel={handleCancel} />
+        </>
+      )}
     </div>
   );
 };
