@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Phaser from "phaser";
 import monkeyImg from "../../assets/monkey.png";
+import groundImg from "../../assets/ground.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Shop from './Shop'; // Import Shop scene
 
@@ -21,7 +22,7 @@ const Tree = () => {
       physics: {
         default: 'arcade',
         arcade: {
-          gravity: { y: 0},
+          gravity: { y: 1000 },
           debug: false,
         },
       },
@@ -39,52 +40,48 @@ const Tree = () => {
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
     let cursors; // Cursor keys for keyboard input
-    let keys; // WASD keys for keyboard input
     let ground; // Variable for the ground
 
     function preload() {
       this.load.image("monkey", monkeyImg);
+      this.load.image("ground", groundImg);
     }
 
     function create(data) {
       // Create the tree as a vertical rectangle
       tree = this.add.rectangle(
         window.innerWidth / 2,
-        window.innerHeight - 60,
+        window.innerHeight *.9,
         50,
         150,
         0x4a3d36
       );
       tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
+      this.physics.add.existing(tree, true);
 
       // Create the monkey sprite with physics
-      const startY = data && data.y ? data.y : window.innerHeight - 100; // Use passed y position or default
-      monkey = this.physics.add.image(window.innerWidth*.94, startY, "monkey"); // Initial position
+      const startY = data && data.y ? data.y : window.innerHeight *.775; // Use passed y position or default
+      monkey = this.physics.add.sprite(window.innerWidth * 0.94, startY, "monkey");
       monkey.setDisplaySize(100, 80);
       monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
-      
-      // Create the ground as a green rectangle
-      ground = this.add.rectangle(
+
+      const mound = this.add.rectangle(
         window.innerWidth / 2,
-        window.innerHeight - 10,
+        window.innerHeight * 0.885,
         window.innerWidth,
         50,
-        0x228b22
-      ).setOrigin(0.5, 1);
+        0x4CAF50
+      );
+      mound.setOrigin(0.5, 1);
+      
+      ground = this.physics.add.staticGroup();
+      ground.create(window.innerWidth / 2, window.innerHeight * 0.98, 'ground').setScale(4).refreshBody();
 
-      // // Create the monkey sprite with physics
-      // monkey = this.physics.add
-      //   .image(window.innerWidth / 2, window.innerHeight - 60, "monkey")
-      //   .setScale(0.075)
-      //   .setOrigin(0.5, 1)
-      //   .setCollideWorldBounds(true);
-
-      // monkey.body.setAllowGravity(false); // Disable gravity for the monkey initially
-      // this.physics.add.collider(monkey, ground);
+      this.physics.add.collider(monkey, ground);
+      // this.physics.add.collider(monkey, tree);
 
       // Set up keyboard input for monkey movement
       cursors = this.input.keyboard.createCursorKeys();
-      // keys = this.input.keyboard.addKeys("W,S,A,D");
 
       // Save references for use in growTree
       this.tree = tree;
@@ -104,17 +101,31 @@ const Tree = () => {
         monkey.setVelocityX(0); // Stop horizontal movement
       }
 
-      // Move the monkey up or down
-      if (cursors.up.isDown) {
-        monkey.setVelocityY(-750); // Move up
-      } else if (cursors.down.isDown) {
-        monkey.setVelocityY(750); // Move down
-      } else {
-        monkey.setVelocityY(0); // Stop vertical movement
+      if (cursors.up.isDown) { 
+        if (this.physics.overlap(monkey, this.tree)) {
+        monkey.y -= 10;
+        } else if (monkey.body.touching.down) {
+          monkey.setVelocityY(-600);
+        }
+      }
+      
+      if (cursors.down.isDown && this.physics.overlap(monkey, this.tree)) {
+        // Prevent the monkey from moving beneath the ground level
+        if (monkey.y < window.innerHeight * 0.770) {
+          monkey.y += 10;
+        }
       }
 
       if (monkey.x >= (window.innerWidth*0.95)) { 
-        this.scene.start('Shop', { x: monkey.x, y: monkey.y }); // Pass monkey's position to Shop scene
+        this.scene.start('Shop', { x: monkey.x, y: monkey.y });
+      }
+
+      if (this.physics.overlap(monkey, this.tree)) {
+        monkey.body.setGravityY(-1000); // Disable gravity when touching the tree
+        monkey.setVelocityY(0);
+        console.log('tree')
+      } else {
+        monkey.body.setGravityY(0); // Re-enable gravity when not touching the tree
       }
     }
 
@@ -149,18 +160,19 @@ const Tree = () => {
         ease: "Linear",
         onUpdate: () => {
           treeObj.setSize(50, treeObj.height);
+          treeObj.body.updateFromGameObject();
         },
         onComplete: () => {
           const branchY = treeObj.y - treeObj.height + 10;
           const branchX =
-            scene.branchSide === "left" ? treeObj.x - 20 : treeObj.x + 20;
+            scene.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100;
           scene.branchSide =
             scene.branchSide === "left" ? "right" : "left"; // Alternate branch side
 
           const branch = scene.add.rectangle(
             branchX,
             branchY,
-            50,
+            200,
             15,
             0x4a3d36
           );
