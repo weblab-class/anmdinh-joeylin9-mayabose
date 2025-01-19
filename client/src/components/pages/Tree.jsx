@@ -11,6 +11,7 @@ const Tree = () => {
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
+  const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
 
   useEffect(() => {
     const config = {
@@ -146,8 +147,7 @@ const Tree = () => {
 
   const handleAddTask = (task) => {
     if (task) {
-      setTaskName(task);
-      setTasks([...tasks, task]); // Add the task
+      setTasks([...tasks, task]); // Add the task to the tasks list
       growTree(); // Grow the tree
     }
     setShowTaskManager(false); // Close TaskManager
@@ -195,6 +195,24 @@ const Tree = () => {
   return (
     <div>
       <button onClick={() => setShowTaskManager(true)}>Add Task</button>
+      <button onClick={() => setShowAllTasks(!showAllTasks)}>
+        {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
+      </button>
+
+      {/* Show the task list if "All Tasks" is clicked */}
+      {showAllTasks && (
+        <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
+          <h4>All Tasks</h4>
+          <ul>
+            {tasks.map((task, index) => (
+              <li key={index}>
+                <strong>{task.name}</strong> - {task.difficulty}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div
         id="phaser-game"
         style={{
