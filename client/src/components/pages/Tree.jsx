@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Phaser from "phaser";
 import monkeyImg from "../../assets/monkey.png";
-import groundImg from "../../assets/ground.png";
+import marketImg from '../../assets/market.png';
 import TaskManager from "../AddTask"; // Import TaskManager component
-import Shop from './Shop'; // Import Shop scene
 
 const Tree = () => {
   const [game, setGame] = useState(null);
@@ -29,7 +28,6 @@ const Tree = () => {
       },
       scene: [
         { key: 'Tree', preload, create, update }, // Tree scene
-        Shop, // Shop scene is part of the same game
       ],
     };
 
@@ -43,13 +41,30 @@ const Tree = () => {
     let cursors; // Cursor keys for keyboard input
     let ground; // Variable for the ground
     let camera; // Camera reference
+    let market; // Variable for the market image
 
     function preload() {
       this.load.image("monkey", monkeyImg);
-      this.load.image("ground", groundImg);
+      this.load.image('market', marketImg); // Preload the market image
     }
 
     function create(data) {
+
+      //` SHOP SCENE
+
+      const welcomeText = this.add.text(window.innerWidth * 1.5 , window.innerHeight / 2, 'The Shop', {
+        fontSize: '32px',
+        fill: '#000',
+      });
+      welcomeText.setOrigin(0.5, 0.5); // Center the text
+
+      const market = this.add.image(window.innerWidth * 1.5, window.innerHeight * .75, 'market');
+      market.setDisplaySize(window.innerWidth/5, window.innerHeight/2.5);
+      market.setOrigin(0.5, 0.5); // Center the image
+
+      
+      // TREE SCENE
+
       // Create the tree as a vertical rectangle
       tree = this.add.rectangle(
         window.innerWidth / 2,
@@ -62,23 +77,19 @@ const Tree = () => {
       this.physics.add.existing(tree, true);
 
       // Create the monkey sprite with physics
-      const startY = data && data.y ? data.y : window.innerHeight * 0.775; // Use passed y position or default
-      monkey = this.physics.add.sprite(window.innerWidth * 0.94, startY, "monkey");
+      monkey = this.physics.add.sprite(window.innerWidth/2, window.innerHeight/2, "monkey");
       monkey.setDisplaySize(100, 80);
-      monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
 
-      const mound = this.add.rectangle(
+      ground = this.add.rectangle(
         window.innerWidth / 2,
-        window.innerHeight * 0.885,
-        window.innerWidth,
-        50,
-        0x4CAF50
+        window.innerHeight * 0.9,
+        window.innerWidth*3,
+        window.innerHeight / 2,
+        0x4caf50
       );
-      mound.setOrigin(0.5, 1);
-
-      ground = this.physics.add.staticGroup();
-      ground.create(window.innerWidth / 2, window.innerHeight * 0.98, 'ground').setScale(4).refreshBody();
-
+      ground.setOrigin(0.5, 0);
+      this.physics.add.existing(ground, true); // Add static physics to the rectangle
+    
       this.physics.add.collider(monkey, ground);
 
       // Set up keyboard input for monkey movement
@@ -125,10 +136,6 @@ const Tree = () => {
       if (monkey.y <= tree.y - tree.height / 2) {
         // Scroll the view up by adjusting the camera position
         camera.scrollY -= 5; // Adjust this value for the desired scroll speed
-      }
-
-      if (monkey.x >= window.innerWidth * 0.95) {
-        this.scene.start('Shop', { x: monkey.x, y: monkey.y });
       }
 
       if (this.physics.overlap(monkey, this.tree)) {
