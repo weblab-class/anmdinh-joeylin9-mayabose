@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Phaser from "phaser";
 import monkeyImg from "../../assets/monkey.png";
 import groundImg from "../../assets/ground.png";
+import bananaImg from "../../assets/banana.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Shop from './Shop'; // Import Shop scene
 
@@ -31,6 +32,11 @@ const Tree = () => {
         { key: 'Tree', preload, create, update }, // Tree scene
         Shop, // Shop scene is part of the same game
       ],
+      input: {
+        keyboard: {
+          capture: ['UP', 'DOWN', 'LEFT', 'RIGHT'], // Capture only arrow keys
+        },
+      },
     };
 
     const newGame = new Phaser.Game(config);
@@ -40,13 +46,14 @@ const Tree = () => {
     let branches = []; // Array to store branch objects
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
-    let cursors; // Cursor keys for keyboard input
-    let ground; // Variable for the ground
     let camera; // Camera reference
+    let upKey, downKey, leftKey, rightKey; // Custom key variables
+    let ground; // Variable for the ground
 
     function preload() {
       this.load.image("monkey", monkeyImg);
       this.load.image("ground", groundImg);
+      this.load.image("banana", bananaImg); // Load banana image here
     }
 
     function create(data) {
@@ -62,7 +69,7 @@ const Tree = () => {
       this.physics.add.existing(tree, true);
 
       // Create the monkey sprite with physics
-      const startY = data && data.y ? data.y : window.innerHeight * 0.775; // Use passed y position or default
+      const startY = data && data.y ? data.y : window.innerHeight * 0.5; // Use passed y position or default
       monkey = this.physics.add.sprite(window.innerWidth * 0.94, startY, "monkey");
       monkey.setDisplaySize(100, 80);
       monkey.setCollideWorldBounds(true); // Prevent monkey from leaving the screen
@@ -81,8 +88,11 @@ const Tree = () => {
 
       this.physics.add.collider(monkey, ground);
 
-      // Set up keyboard input for monkey movement
-      cursors = this.input.keyboard.createCursorKeys();
+      // Set up custom keys for monkey movement
+      upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+      downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+      leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+      rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
       // Save references for use in growTree
       this.tree = tree;
@@ -98,15 +108,15 @@ const Tree = () => {
 
     function update() {
       // Move the monkey left or right
-      if (cursors.left.isDown) {
+      if (leftKey.isDown) {
         monkey.setVelocityX(-750);
-      } else if (cursors.right.isDown) {
+      } else if (rightKey.isDown) {
         monkey.setVelocityX(750);
       } else {
         monkey.setVelocityX(0); // Stop horizontal movement
       }
 
-      if (cursors.up.isDown) {
+      if (upKey.isDown) {
         if (this.physics.overlap(monkey, this.tree)) {
           monkey.y -= 10;
         } else if (monkey.body.touching.down) {
@@ -114,7 +124,7 @@ const Tree = () => {
         }
       }
 
-      if (cursors.down.isDown && this.physics.overlap(monkey, this.tree)) {
+      if (downKey.isDown && this.physics.overlap(monkey, this.tree)) {
         // Prevent the monkey from moving beneath the ground level
         if (monkey.y < window.innerHeight * 0.770) {
           monkey.y += 10;
@@ -134,7 +144,6 @@ const Tree = () => {
       if (this.physics.overlap(monkey, this.tree)) {
         monkey.body.setGravityY(-1000); // Disable gravity when touching the tree
         monkey.setVelocityY(0);
-        console.log('tree');
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not touching the tree
       }
@@ -160,7 +169,7 @@ const Tree = () => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
       const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
-
+  
       // Create a tween animation for growing the tree
       scene.tweens.add({
         targets: treeObj,
@@ -175,10 +184,9 @@ const Tree = () => {
           const branchY = treeObj.y - treeObj.height + 10;
           const branchX =
             scene.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100;
-          scene.branchSide =
-            scene.branchSide === "left" ? "right" : "left"; // Alternate branch side
-          
-          const taskName = task?.name || "Default Task";
+          const taskName = task.name || "Default Task";
+  
+          // Create the branch
           const branch = scene.add.rectangle(
             branchX,
             branchY,
@@ -186,20 +194,44 @@ const Tree = () => {
             15,
             0x4a3d36
           );
-
-
-          scene.add.text(branchX, branchY - 30, String(taskName || "Default Task"), {
+          scene.branches.push(branch); // Add the branch to the branches array
+  
+          // Determine the starting x position for bananas based on branch side
+          const bananaStartX =
+            scene.branchSide === "left"
+              ? branchX - 100 // Leftmost side of the left branch
+              : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Rightmost side of the right branch
+  
+          // Add task text to the branch
+          scene.add.text(branchX, branchY - 20, taskName, {
             font: "20px Courier New",
             fill: "#000",
-            fontColor: 'white',
-            align: "left",
+            align: "center",
           });
-          
-          scene.branches.push(branch); // Add the branch to the branches array
+  
+          // Add bananas based on difficulty, spaced horizontally
+          const bananaCount =
+            task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+          const bananaSpacing = 50; // Horizontal spacing between bananas
+          for (let i = 0; i < bananaCount; i++) {
+            const banana = scene.add.sprite(
+              bananaStartX + i * bananaSpacing, // Offset each banana by spacing
+              branchY, // Slightly above the branch
+              "banana"
+            );
+            banana.setOrigin(0.5, 0.5);
+            banana.setDisplaySize(50, 50); // Adjust the size as needed
+            banana.setDepth(10); // Ensure it appears in front of other objects
+          }
+  
+          // Alternate branch side for the next branch
+          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
         },
       });
     }
   };
+  
+  
 
   return (
     <div>

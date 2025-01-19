@@ -6,13 +6,14 @@ const TaskManager = ({ onAddTask, onCancel }) => {
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
-      onAddTask({ name: taskName, difficulty: taskDifficulty }); // Ensure clean strings
+      // Allow spaces in the task name, no trimming
+      onAddTask({ name: taskName, difficulty: taskDifficulty });
       setTaskName(""); // Reset inputs
       setTaskDifficulty("");
     } else {
       alert("Please fill out both fields.");
     }
-  };  
+  };
 
   return (
     <div
@@ -36,16 +37,16 @@ const TaskManager = ({ onAddTask, onCancel }) => {
         <input
           type="text"
           value={taskName}
-          onChange={(e) => setTaskName(e.target.value)}
+          onChange={e => setTaskName(e.target.value)} // Allow spaces in input
           style={{
             width: "100%",
             padding: "8px",
             margin: "10px 0",
             borderRadius: "4px",
             border: "1px solid #ccc",
-            fontFamily: 'Courier New',
           }}
         />
+        <p>Input Value: {taskName}</p>
       </label>
       <label>
         Task Difficulty:
