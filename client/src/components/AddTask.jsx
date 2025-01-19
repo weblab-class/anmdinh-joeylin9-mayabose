@@ -6,13 +6,13 @@ const TaskManager = ({ onAddTask, onCancel }) => {
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
-      onAddTask({ name: taskName, difficulty: taskDifficulty }); // Call the parent's handler
-      setTaskName(""); // Reset the input fields
+      onAddTask({ name: taskName, difficulty: taskDifficulty }); // Ensure clean strings
+      setTaskName(""); // Reset inputs
       setTaskDifficulty("");
     } else {
       alert("Please fill out both fields.");
     }
-  };
+  };  
 
   return (
     <div
@@ -43,7 +43,7 @@ const TaskManager = ({ onAddTask, onCancel }) => {
             margin: "10px 0",
             borderRadius: "4px",
             border: "1px solid #ccc",
-            font: 'Courier New',
+            fontFamily: 'Courier New',
           }}
         />
       </label>

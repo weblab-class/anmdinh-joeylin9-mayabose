@@ -138,16 +138,15 @@ const Tree = () => {
     if (task) {
       setTaskName(task);
       setTasks([...tasks, task]); // Add the task
-      growTree(); // Grow the tree
+      setShowTaskManager(false);
     }
-    setShowTaskManager(false); // Close TaskManager
   };
 
   const handleCancel = () => {
     setShowTaskManager(false); // Close the TaskManager without adding a task
   };
 
-  const growTree = () => {
+  const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
       const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
@@ -168,7 +167,8 @@ const Tree = () => {
             scene.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100;
           scene.branchSide =
             scene.branchSide === "left" ? "right" : "left"; // Alternate branch side
-
+          
+          const taskName = task?.name || "Default Task";
           const branch = scene.add.rectangle(
             branchX,
             branchY,
@@ -176,6 +176,15 @@ const Tree = () => {
             15,
             0x4a3d36
           );
+
+
+          scene.add.text(branchX, branchY - 30, String(taskName || "Default Task"), {
+            font: "20px Courier New",
+            fill: "#000",
+            fontColor: 'white',
+            align: "left",
+          });
+          
           scene.branches.push(branch); // Add the branch to the branches array
         },
       });
@@ -208,7 +217,7 @@ const Tree = () => {
             }}
             onClick={handleCancel}
           />
-          <TaskManager onAddTask={handleAddTask} onCancel={handleCancel} />
+          <TaskManager onAddTask={(task) => {growTree(task); handleAddTask(task);}} onCancel={handleCancel}/>
         </>
       )}
     </div>
