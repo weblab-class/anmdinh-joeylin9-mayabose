@@ -44,7 +44,6 @@ const Tree = () => {
     let branches = []; // Array to store branch objects
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
-    let camera; // Camera reference
     let upKey, downKey, leftKey, rightKey; // Custom key variables
     let ground; // Variable for the ground
     let camera; // Camera reference
@@ -118,6 +117,7 @@ const Tree = () => {
 
       setScene(this);
     }
+    
 
     function update() {
       // Move the monkey left or right
@@ -128,7 +128,8 @@ const Tree = () => {
       } else {
         monkey.setVelocityX(0); // Stop horizontal movement
       }
-
+    
+      // Allow the monkey to climb if it's overlapping with the tree or any branch
       if (upKey.isDown) {
         if (this.physics.overlap(monkey, this.tree)) {
           monkey.y -= 10;
@@ -136,28 +137,31 @@ const Tree = () => {
           monkey.setVelocityY(-600);
         }
       }
-
+    
+      // Prevent the monkey from moving beneath the ground level
       if (downKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        // Prevent the monkey from moving beneath the ground level
-        if (monkey.y < window.innerHeight * 0.770) {
+        if (monkey.y < window.innerHeight*.770) {
           monkey.y += 10;
         }
       }
-
+    
+      // Check if the monkey is on the tree or a branch, and disable gravity
+      if (this.physics.overlap(monkey, this.tree) ||
+          this.branches.some(branch => this.physics.overlap(monkey, branch))) {
+        monkey.body.setGravityY(-1000); // Disable gravity when on tree or branch
+        monkey.setVelocityY(0); // Stop any downward movement
+      } else {
+        monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
+      }
+    
       // Check if the monkey has reached the top of the tree
       if (monkey.y <= tree.y - tree.height / 2) {
-        // Scroll the view up by adjusting the camera position
-        camera.scrollY -= 5; // Adjust this value for the desired scroll speed
-      }
-
-      if (this.physics.overlap(monkey, this.tree)) {
-        monkey.body.setGravityY(-1000); // Disable gravity when touching the tree
-        monkey.setVelocityY(0);
-      } else {
-        monkey.body.setGravityY(0); // Re-enable gravity when not touching the tree
+        camera.scrollY -= 5; // Adjust scroll speed as needed
       }
     }
-
+    
+    
+    
     return () => {
       newGame.destroy(true);
     };
@@ -177,7 +181,7 @@ const Tree = () => {
   const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
-      const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
+      const newHeight = treeObj.height + 150;
   
       // Create a tween animation for growing the tree
       scene.tweens.add({
@@ -203,13 +207,19 @@ const Tree = () => {
             15,
             0x4a3d36
           );
-          scene.branches.push(branch); // Add the branch to the branches array
+  
+          // Add the branch to the branches array and physics world
+          scene.branches.push(branch);
+          scene.physics.add.existing(branch, true); // Enable physics for the branch
+          branch.body.updateFromGameObject(); // Update the body to reflect the current game object
+
+          // // Add a collider between the monkey and the branch
   
           // Determine the starting x position for bananas based on branch side
           const bananaStartX =
             scene.branchSide === "left"
-              ? branchX - 100 // Leftmost side of the left branch
-              : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Rightmost side of the right branch
+              ? branchX - 100
+              : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
   
           // Add task text to the branch
           scene.add.text(branchX, branchY - 20, taskName, {
@@ -224,8 +234,8 @@ const Tree = () => {
           const bananaSpacing = 50; // Horizontal spacing between bananas
           for (let i = 0; i < bananaCount; i++) {
             const banana = scene.add.sprite(
-              bananaStartX + i * bananaSpacing, // Offset each banana by spacing
-              branchY, // Slightly above the branch
+              bananaStartX + i * bananaSpacing,
+              branchY,
               "banana"
             );
             banana.setOrigin(0.5, 0.5);
@@ -239,6 +249,7 @@ const Tree = () => {
       });
     }
   };
+  
   
   
 
