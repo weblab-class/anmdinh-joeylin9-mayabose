@@ -46,7 +46,6 @@ const Tree = () => {
     let branches = []; // Array to store branch objects
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
-    let cursors; // Variable for cursor keys
     let ground; // Variable for the ground
     let mound; // Variable for the mound
     let camera; // Camera reference
@@ -124,7 +123,20 @@ const Tree = () => {
       mound.setOrigin(0.5, 0);
       this.physics.add.existing(mound, true); // Add static physics to the rectangle
 
-      cursors = this.input.keyboard.createCursorKeys();
+      // Set up custom keys for monkey movement
+      this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+      this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+      this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+      this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+
+      // Save references for use in growTree
+      this.tree = tree;
+      this.branches = branches;
+      this.branchSide = branchSide;
+
+      // Set up the camera to follow the monkey
+      camera = this.cameras.main;
+      camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
 
       // Set up the camera to follow the monkey
       camera = this.cameras.main;
@@ -221,15 +233,15 @@ const Tree = () => {
     function update() {
       if (monkeyMovementEnabled) {
         // Process monkey movement
-        if (cursors.left.isDown) {
+        if (this.leftKey.isDown) {
           monkey.setVelocityX(-750);
-        } else if (cursors.right.isDown) {
+        } else if (this.rightKey.isDown) {
           monkey.setVelocityX(750);
         } else {
           monkey.setVelocityX(0); // Stop horizontal movement
         }
     
-        if (cursors.up.isDown && monkey.body.touching.down) {
+        if (this.upKey.isDown && monkey.body.touching.down) {
           monkey.setVelocityY(-600); // Jump
         }
       } else {
@@ -238,14 +250,14 @@ const Tree = () => {
         monkey.setVelocityY(0); // Stop vertical movement as well if necessary
       }
 
-      if (cursors.down.isDown && this.physics.overlap(monkey, this.tree)) {
+      if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
         // Prevent the monkey from moving beneath the ground level
         if (!this.physics.overlap(monkey, mound)) {
           monkey.y += 10;
         }
       }
 
-      if (cursors.up.isDown && this.physics.overlap(monkey, this.tree)) {
+      if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
         monkey.y -= 10;
       }
     
