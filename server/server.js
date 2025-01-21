@@ -114,3 +114,21 @@ socketManager.init(server);
 server.listen(port, () => {
   console.log(`Server running on port: ${port}`);
 });
+
+const hardcoded_tasks = [task1, task2, task3]
+const task1 = {
+  name: "test1",
+  difficulty: "Easy"
+}
+const task2 = {
+  name: "test2",
+  difficulty: "Medium"
+}
+const task3 = {
+  name: "test3",
+  difficulty: "Hard"
+}
+
+get ("/api/tasks", (req, res) => {
+  res.send(tasks);
+});
