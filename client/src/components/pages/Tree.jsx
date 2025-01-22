@@ -34,32 +34,12 @@ const Tree = () => {
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
-  const popupRef = useRef(null);
   // const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
   const [treeState, setTreeState] = useState({
     height: 150, // Initialize height
     branches: [], // Initialize branches
   });
   const gameRef = useRef(null); // Ref to track the Phaser game instance
-
-    // Close the popup if the user clicks outside of it
-    useEffect(() => {
-      const handleOutsideClick = (event) => {
-        if (popupRef.current && !popupRef.current.contains(event.target)) {
-          setShowTaskManager(false); // Close the popup
-        }
-      };
-  
-      if (showTaskManager) {
-        document.addEventListener("mousedown", handleOutsideClick);
-      } else {
-        document.removeEventListener("mousedown", handleOutsideClick);
-      }
-  
-      return () => {
-        document.removeEventListener("mousedown", handleOutsideClick);
-      };
-    }, [showTaskManager]);
 
   // Fetch tasks and tree data only if userId is available
   useEffect(() => {
@@ -602,7 +582,6 @@ const saveTaskData = async (task) => {
       {showTaskManager && (
         <>
           <div
-            ref={popupRef}
             style={{
               position: "fixed",
               top: 15,
@@ -613,7 +592,7 @@ const saveTaskData = async (task) => {
             }}
             onClick={handleCancel}
           />
-          <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} onClose={() => setShowTaskManager(false)}/>
+          <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} />
       </>
       )}
 
