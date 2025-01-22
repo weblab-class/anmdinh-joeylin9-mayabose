@@ -15,16 +15,18 @@ export const UserContext = createContext(null);
  * Define the "App" component
  */
 const App = () => {
-  const [userId, setUserId] = useState(undefined);
+  const [userId, setUserId] = useState(() => localStorage.getItem("userId") || undefined);
 
   useEffect(() => {
-    get("/api/whoami").then((user) => {
-      if (user._id) {
-        // they are registed in the database, and currently logged in.
-        setUserId(user._id);
-      }
-    });
-  }, []);
+    if (!userId) {
+      get("/api/whoami").then((user) => {
+        if (user._id) {
+          setUserId(user._id);
+          localStorage.setItem("userId", user._id);
+        }
+      });
+    }
+  }, [userId]);
 
   const handleLogin = (credentialResponse) => {
     const userToken = credentialResponse.credential;
