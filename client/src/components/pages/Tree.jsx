@@ -507,10 +507,11 @@ const saveTaskData = async (task) => {
               : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
 
           // Add task text to the branch
-          scene.add.text(branchX, branchY - 20, taskName, {
+          scene.add.text(bananaStartX - 20, branchY - 50, taskName, {
             font: "20px Courier New",
             fill: "#000",
             align: "center",
+            fontWeight: "80px",
           });
 
           // Add bananas based on difficulty, spaced horizontally
@@ -549,9 +550,9 @@ const saveTaskData = async (task) => {
 
   return (
     <div>
-      <button onClick={() => setShowTaskManager(true)}>Add Task</button>
-      <button onClick={() => setShowAllTasks(!showAllTasks)}>
-        {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
+      <button onClick={() => setShowTaskManager(true)} style={{position:"relative", left: "5px", padding: "10px", fontFamily: "Courier New", marginTop: "10px",}}><strong>Add Task</strong></button>
+      <button onClick={() => setShowAllTasks(!showAllTasks)} style={{position:"relative", left: "9px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", }}>
+        <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
 
       {/* Show the task list if "All Tasks" is clicked */}
@@ -573,7 +574,7 @@ const saveTaskData = async (task) => {
         style={{
           width: "100%",
           height: "100vh",
-          border: "1px solid black",
+          border: "0px solid black",
           position: "relative",
         }}
       />
@@ -583,10 +584,9 @@ const saveTaskData = async (task) => {
           <div
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
+              top: 15,
+              left: 5,
               width: "100%",
-              height: "100%",
               backgroundColor: "rgba(0, 0, 0, 0.5)",
               zIndex: 999,
             }}
@@ -607,7 +607,7 @@ const saveTaskData = async (task) => {
                 }}
               />
       )}
-      <div style={{ position: 'absolute', top: -15, right: 15}}>
+      <div style={{ position: 'absolute', top: -15, right: 15, fontFamily: "Courier New", marginTop: "10px", fontWeight: "100"}}>
         <p>Bananas: {bananaCounter}</p>
       </div>
     </div>
