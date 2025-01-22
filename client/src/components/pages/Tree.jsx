@@ -1,17 +1,86 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Phaser from "phaser";
+import axios from "axios";
 import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkey2.png";
 import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
+import Shop from './Shop'; // Import Shop scene
+import { useNavigate } from "react-router-dom";
+
+// Create an Axios instance with a custom base URL
+const api = axios.create({
+  baseURL: "http://localhost:3000", // Set base URL for the API
+});
 
 const Tree = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('authToken'); // Get the token from local storage
+  const userID = localStorage.getItem('userId'); // Get the userID from local storage
+
+  // Check if token or userID is missing and redirect immediately
+  useEffect(() => {
+    if (!token || !userID) {
+      console.log("Missing token or userID, redirecting to homepage...");
+      navigate("/"); // This should redirect to the homepage
+    }
+  }, [token, navigate]);
+
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState(""); // Store task name
+  const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
+  const [treeState, setTreeState] = useState({
+    height: 150, // Initialize height
+    branches: [], // Initialize branches
+  });
+  const gameRef = useRef(null); // Ref to track the Phaser game instance
+
+  // Fetch tasks and tree data only if token is available
+  useEffect(() => {
+    // Fetch tasks and tree data only if token and userID are available
+    if (token && userID) {
+      // Fetch tree data
+      axios
+        .get("/api/tree", {
+          params: { userId: userID },
+          headers: { Authorization: `Bearer ${token}` } // Ensure token is passed in the header
+        })
+        .then((response) => {
+          console.log("Fetched tree data from backend:", response.data);
+          const { tree } = response.data;
+          setTreeState(tree || { height: 150, branches: [] }); // Ensure treeState is initialized
+        })
+        .catch((error) => {
+          console.error("Error fetching tree data:", error);
+          if (error.response && error.response.status === 401) {
+            navigate("/"); // Redirect if Unauthorized
+          }
+        });
+
+      // Fetch tasks data
+      axios
+        .get("/api/tasks", {
+          params: { userId: userID },
+          headers: { Authorization: `Bearer ${token}` } // Ensure token is passed in the header
+        })
+        .then((response) => {
+          console.log("Fetched tasks from backend:", response.data);
+          const { tasks } = response.data;
+          setTasks(tasks || []); // Ensure tasks is always an array
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks:", error);
+          if (error.response && error.response.status === 401) {
+            navigate("/"); // Redirect if Unauthorized
+          }
+        });
+    }
+  }, [token, navigate, userID]);
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
 
@@ -66,7 +135,7 @@ const Tree = () => {
     const updateBananaCounter = (newCount) => {
       setBananaCounter(newCount);
     };
-  
+
     // Example: Increment banana count in Phaser
     function collectBanana() {
       setBananaCounter((prev) => prev + 1);
@@ -218,39 +287,39 @@ const Tree = () => {
     function changeMonkey(direction) {
       setPurchasedMonkeys((currentPurchasedMonkeys) => {
         let newIndex = monkeyNumber + direction;
-    
+
         if (newIndex < 0) {
           newIndex = monkeysAvailable.length - 1;
         } else if (newIndex >= monkeysAvailable.length) {
           newIndex = 0;
         }
-    
+
         // Update the button text based on the React state
         purchaseButton.setText(currentPurchasedMonkeys[newIndex] ? "Purchased" : "Purchase");
-    
+
         monkeyNumber = newIndex;
         costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
         monkeyDisplay.setTexture(monkeysAvailable[newIndex]);
         monkey.setTexture(monkeysAvailable[newIndex]);
-    
+
         return currentPurchasedMonkeys;
       });
     }
-    
+
     function purchaseMonkey() {
       setBananaCounter((prevCounter) => {
         const price = monkeyPrices[monkeyNumber];
-    
+
         if (!purchasedMonkeys[monkeyNumber] && prevCounter >= price) {
           console.log('Purchased!');
-    
+
           setPurchasedMonkeys((prevPurchasedMonkeys) => {
             const updatedMonkeys = [...prevPurchasedMonkeys];
             updatedMonkeys[monkeyNumber] = true;
             purchaseButton.setText("Purchased"); // Update button immediately
             return updatedMonkeys;
           });
-    
+
           return prevCounter - price; // Deduct the price
         } else {
           console.log('Not enough bananas or already purchased.');
@@ -259,7 +328,7 @@ const Tree = () => {
         }
       });
     }
-  
+
     function openShop() {
       console.log('Opening shop...');
       monkeyMovementEnabled = false; // Disable monkey movement
@@ -269,7 +338,7 @@ const Tree = () => {
       camera.stopFollow(); // Stop following the monkey
       camera.pan(shopContainer.x, shopContainer.y, 500, 'Linear', true); // Pan to shop container
     }
-    
+
     function closeShop() {
       setPurchasedMonkeys((prevPurchasedMonkeys) => {
         if (prevPurchasedMonkeys[monkeyNumber]) {
@@ -283,7 +352,7 @@ const Tree = () => {
         } else {
           alert(`You must purchase this monkey first!`);
         }
-    
+
         return prevPurchasedMonkeys; // Ensure state remains unchanged
       });
     }
@@ -298,7 +367,7 @@ const Tree = () => {
         } else {
           monkey.setVelocityX(0); // Stop horizontal movement
         }
-    
+
         if (this.upKey.isDown && monkey.body.touching.down) {
           monkey.setVelocityY(-600); // Jump
         }
@@ -318,7 +387,7 @@ const Tree = () => {
       if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
         monkey.y -= 10;
       }
-    
+
       // Check if the monkey is on the tree or a branch, and disable gravity
       if (this.physics.overlap(monkey, this.tree) ||
           this.branches.some(branch => this.physics.overlap(monkey, branch))) {
@@ -327,7 +396,7 @@ const Tree = () => {
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
       }
-    
+
       // Check if the monkey has reached the top of the tree
       if (monkey.y <= tree.y - tree.height / 2) {
         // Scroll the view up by adjusting the camera position
@@ -351,7 +420,7 @@ const Tree = () => {
           return newCount; // Return the new value to update state
         });
       });
-      
+
     }
 
     return () => {
@@ -373,15 +442,15 @@ const Tree = () => {
   const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
-      const newHeight = treeObj.height + 150;
-  
-      // Create a tween animation for growing the tree
+      const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
+
       scene.tweens.add({
         targets: treeObj,
         height: newHeight,
         duration: 500,
         ease: "Linear",
         onUpdate: () => {
+          // Ensure that the rectangle's size is updated
           treeObj.setSize(50, treeObj.height);
           treeObj.body.updateFromGameObject();
         },
@@ -390,7 +459,7 @@ const Tree = () => {
           const branchX =
             scene.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100;
           const taskName = task.name || "Default Task";
-  
+
           // Create the branch
           const branch = scene.add.rectangle(
             branchX,
@@ -399,27 +468,27 @@ const Tree = () => {
             15,
             0x4a3d36
           );
-  
+
           // Add the branch to the branches array and physics world
           scene.branches.push(branch);
           scene.physics.add.existing(branch, true); // Enable physics for the branch
           branch.body.updateFromGameObject(); // Update the body to reflect the current game object
 
           // // Add a collider between the monkey and the branch
-  
+
           // Determine the starting x position for bananas based on branch side
           const bananaStartX =
             scene.branchSide === "left"
               ? branchX - 100
               : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
-  
+
           // Add task text to the branch
           scene.add.text(branchX, branchY - 20, taskName, {
             font: "20px Courier New",
             fill: "#000",
             align: "center",
           });
-  
+
           // Add bananas based on difficulty, spaced horizontally
           const bananaCount =
             task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
@@ -434,16 +503,16 @@ const Tree = () => {
             banana.setDisplaySize(50, 50); // Adjust the size as needed
             banana.setDepth(10); // Ensure it appears in front of other objects
           }
-  
+
           // Alternate branch side for the next branch
           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
         },
       });
     }
   };
-  
-  
-  
+
+
+
 
   return (
     <div>
