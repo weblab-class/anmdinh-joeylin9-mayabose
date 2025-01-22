@@ -8,7 +8,7 @@ import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
-import Popup from "../PopUp";
+import Popup from "../Popup";
 // import Shop from './Shop'; // Import Shop scene
 import { useNavigate } from "react-router-dom";
 
