@@ -28,6 +28,7 @@ const session = require("express-session"); // library that stores info about ea
 const mongoose = require("mongoose"); // library to connect to MongoDB
 const path = require("path"); // provide utilities for working with file and directory paths
 const cors = require('cors');
+const { v4: uuidv4 } = require("uuid"); // for generating player IDs
 
 const api = require("./api");
 const auth = require("./auth");
@@ -58,7 +59,12 @@ mongoose
 const app = express();
 app.use(validator.checkRoutes);
 
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+app.use(cors(corsOptions));
 
 // allow us to process POST requests
 app.use(express.json());
@@ -67,11 +73,19 @@ app.use(express.json());
 app.use(
   session({
     // TODO: add a SESSION_SECRET string in your .env file, and replace the secret with process.env.SESSION_SECRET
-    secret: "session-secret",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   })
 );
+
+// Middleware to check player ID and generate it if it doesn't exist
+app.use((req, res, next) => {
+  if (!req.session.playerId) {
+    req.session.playerId = uuidv4(); // Generate a random ID for the player if not exists
+  }
+  next();
+});
 
 // this checks if the user is logged in, and populates "req.user"
 app.use(auth.populateCurrentUser);

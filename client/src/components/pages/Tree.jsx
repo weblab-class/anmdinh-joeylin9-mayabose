@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import Phaser from "phaser";
 import axios from "axios";
+import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkey2.png";
 import monkeyImg3 from "../../assets/monkey3.png";
@@ -8,7 +9,7 @@ import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../PopUp";
-import Shop from './Shop'; // Import Shop scene
+// import Shop from './Shop'; // Import Shop scene
 import { useNavigate } from "react-router-dom";
 
 // Create an Axios instance with a custom base URL
@@ -18,70 +19,62 @@ const api = axios.create({
 
 const Tree = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem('authToken'); // Get the token from local storage
-  const userID = localStorage.getItem('userId'); // Get the userID from local storage
+  const { userId, handleLogout } = useContext(UserContext);  // Access context values
 
-  // Check if token or userID is missing and redirect immediately
+  // Check if userId is missing and redirect immediately
   useEffect(() => {
-    if (!token || !userID) {
-      console.log("Missing token or userID, redirecting to homepage...");
+    if (!userId) {
+      console.log("Missing userId, redirecting to homepage...");
       navigate("/"); // This should redirect to the homepage
     }
-  }, [token, navigate]);
+  }, [userId, navigate]);
 
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
-  const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
+  // const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
   const [treeState, setTreeState] = useState({
     height: 150, // Initialize height
     branches: [], // Initialize branches
   });
   const gameRef = useRef(null); // Ref to track the Phaser game instance
 
-  // Fetch tasks and tree data only if token is available
+  // Fetch tasks and tree data only if userId is available
   useEffect(() => {
-    // Fetch tasks and tree data only if token and userID are available
-    if (token && userID) {
-      // Fetch tree data
-      axios
-        .get("/api/tree", {
-          params: { userId: userID },
-          headers: { Authorization: `Bearer ${token}` } // Ensure token is passed in the header
-        })
-        .then((response) => {
-          console.log("Fetched tree data from backend:", response.data);
-          const { tree } = response.data;
-          setTreeState(tree || { height: 150, branches: [] }); // Ensure treeState is initialized
-        })
-        .catch((error) => {
-          console.error("Error fetching tree data:", error);
-          if (error.response && error.response.status === 401) {
-            navigate("/"); // Redirect if Unauthorized
-          }
-        });
-
-      // Fetch tasks data
-      axios
-        .get("/api/tasks", {
-          params: { userId: userID },
-          headers: { Authorization: `Bearer ${token}` } // Ensure token is passed in the header
-        })
-        .then((response) => {
-          console.log("Fetched tasks from backend:", response.data);
-          const { tasks } = response.data;
-          setTasks(tasks || []); // Ensure tasks is always an array
-        })
-        .catch((error) => {
-          console.error("Error fetching tasks:", error);
-          if (error.response && error.response.status === 401) {
-            navigate("/"); // Redirect if Unauthorized
-          }
-        });
+    if (!userId) {
+      console.error("User ID is not available.");
+      navigate("/"); // Redirect to homepage if userId is not available
+      return;
     }
-  }, [token, navigate, userID]);
+
+    const fetchData = async () => {
+      try {
+        // Fetch tree data
+        const treeResponse = await axios.get("/api/tree", {
+          params: { userId: userId },
+        });
+        console.log("Fetched tree data from backend:", treeResponse.data);
+        const { tree } = treeResponse.data;
+        setTreeState(tree || { height: 150, branches: [] }); // Ensure treeState is initialized
+
+        // Fetch tasks data
+        const tasksResponse = await api.get("/api/tasks", { params: { userId: userId } });
+        console.log("Fetched tasks:", tasksResponse.data);
+        setTasks(tasksResponse.data.tasks || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        if (error.response && error.response.status === 401) {
+          handleLogout();
+          navigate("/"); // Redirect to homepage on unauthorized error
+        }
+      }
+    };
+
+    fetchData();
+  }, [userId, navigate, handleLogout]);
+
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
 
@@ -412,7 +405,7 @@ const Tree = () => {
         setPopupVisible(false);
       }
     }
-    
+
     return () => {
       newGame.destroy(true);
     };
@@ -422,6 +415,37 @@ const Tree = () => {
     if (task) {
       setTasks([...tasks, task]); // Add the task to the tasks list
       setShowTaskManager(false);
+      saveTaskData(task);
+    }
+  };
+
+  // Function to save task data to backend
+const saveTaskData = async (task) => {
+  try {
+    await axios.post("/api/tasks/save", {
+      task: task.name, // Assuming task has a name field
+      difficulty: task.difficulty, // Send difficulty as part of the task object
+    });
+    console.log("Task saved successfully!");
+  } catch (error) {
+    console.error("Error saving task data:", error);
+    if (error.response && error.response.status === 401) {
+      handleLogout();
+      navigate("/");
+    }
+  }
+};
+
+  // Function to update tree state
+  const saveTreeData = async (updatedTreeState) => {
+    try {
+      await api.post("/api/tree/save", {
+        userId: userId,
+        tree: updatedTreeState,
+      });
+      console.log("Tree data saved successfully!");
+    } catch (error) {
+      console.error("Error saving tree data:", error);
     }
   };
 
@@ -435,7 +459,7 @@ const Tree = () => {
      // process data
   };
 
-  
+
   const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
@@ -470,7 +494,7 @@ const Tree = () => {
           if (scene && scene.branches) {
             scene.branches.push(branch);
           }
-          
+
           scene.physics.add.existing(branch, true); // Enable physics for the branch
           branch.body.updateFromGameObject(); // Update the body to reflect the current game object
 
@@ -504,15 +528,24 @@ const Tree = () => {
             banana.setDepth(10); // Ensure it appears in front of other objects
           }
 
+          // Create the updated tree state to pass to saveTreeData
+          const updatedTreeState = {
+            height: treeObj.height,  // The updated height of the tree
+            branches: scene.branches,  // All the branches currently on the tree
+          };
+
+          // Save the updated tree state
+          saveTreeData(updatedTreeState);
+
           // Alternate branch side for the next branch
           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
         },
       });
     }
   };
-  
-  
-  
+
+
+
 
   return (
     <div>
@@ -520,7 +553,7 @@ const Tree = () => {
       <button onClick={() => setShowAllTasks(!showAllTasks)}>
         {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
       </button>
-  
+
       {/* Show the task list if "All Tasks" is clicked */}
       {showAllTasks && (
         <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
@@ -534,7 +567,7 @@ const Tree = () => {
           </ul>
         </div>
       )}
-  
+
       <div
         id="phaser-game"
         style={{
@@ -544,7 +577,7 @@ const Tree = () => {
           position: "relative",
         }}
       />
-      
+
       {showTaskManager && (
         <>
           <div
@@ -562,7 +595,7 @@ const Tree = () => {
           <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} />
       </>
       )}
-          
+
           {popupVisible && (
               <Popup
                 inputValue={inputValue}
@@ -580,5 +613,5 @@ const Tree = () => {
     </div>
   );
 }
-  
+
 export default Tree;

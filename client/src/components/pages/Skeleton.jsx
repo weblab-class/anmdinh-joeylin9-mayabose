@@ -4,20 +4,28 @@ import "../../utilities.css";
 import "./Skeleton.css";
 import { UserContext } from "../App";
 import { useNavigate } from "react-router-dom";
-  
+
 
 const Skeleton = () => {
   const { userId, handleLogin, handleLogout } = useContext(UserContext);
   const navigate = useNavigate();
+
   const handleClick = () => {
-    navigate('/tree');
+    console.log("Navigating to /tree with userId:", userId);
+    if (userId) {
+      navigate("/tree");
+    } else {
+      console.error("Cannot navigate: userId is undefined.");
+    }
   };
+
   return (
     <>
-      <h1 class='homeTitle'>monkey see, monkey do</h1>
+      <h1 className="homeTitle">monkey see, monkey do</h1>
       {userId ? (
-        <div class='center-flex'>
-          <button className='climbing'
+        <div className="center-flex">
+          <button
+            className="climbing"
             onClick={() => {
               handleClick();
             }}
@@ -26,11 +34,12 @@ const Skeleton = () => {
           </button>
         </div>
       ) : (
-        <div class='center-flex'>
-          <GoogleLogin 
-            onSuccess={handleLogin} 
-            onError={(err) => console.log(err)} />
-         </div>
+        <div className="center-flex">
+          <GoogleLogin
+            onSuccess={handleLogin}
+            onError={(err) => console.log("Login error:", err)}
+          />
+        </div>
       )}
     </>
   );
