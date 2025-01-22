@@ -27,6 +27,7 @@ const express = require("express"); // backend framework for our node server.
 const session = require("express-session"); // library that stores info about each connected user
 const mongoose = require("mongoose"); // library to connect to MongoDB
 const path = require("path"); // provide utilities for working with file and directory paths
+const cors = require('cors');
 
 const api = require("./api");
 const auth = require("./auth");
@@ -38,7 +39,7 @@ const socketManager = require("./server-socket");
 // TODO change connection URL after setting up your team database
 const mongoConnectionURL = process.env.MONGO_SRV;
 // TODO change database name to the name you chose
-const databaseName = "FILL_ME_IN";
+const databaseName = "JamCluster";
 
 // mongoose 7 warning
 mongoose.set("strictQuery", false);
@@ -56,6 +57,8 @@ mongoose
 // create a new express server
 const app = express();
 app.use(validator.checkRoutes);
+
+app.use(cors());
 
 // allow us to process POST requests
 app.use(express.json());
@@ -113,22 +116,4 @@ socketManager.init(server);
 
 server.listen(port, () => {
   console.log(`Server running on port: ${port}`);
-});
-
-const hardcoded_tasks = [task1, task2, task3]
-const task1 = {
-  name: "test1",
-  difficulty: "Easy"
-}
-const task2 = {
-  name: "test2",
-  difficulty: "Medium"
-}
-const task3 = {
-  name: "test3",
-  difficulty: "Hard"
-}
-
-get ("/api/tasks", (req, res) => {
-  res.send(tasks);
 });

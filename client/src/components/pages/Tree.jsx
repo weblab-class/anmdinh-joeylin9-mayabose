@@ -1,17 +1,83 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Phaser from "phaser";
+import axios from "axios";
 import monkeyImg from "../../assets/monkey.png";
 import groundImg from "../../assets/ground.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Shop from './Shop'; // Import Shop scene
+import { useNavigate } from "react-router-dom";
+
+// Create an Axios instance with a custom base URL
+const api = axios.create({
+  baseURL: "http://localhost:3000", // Set base URL for the API
+});
 
 const Tree = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('authToken'); // Get the token from local storage
+  const userID = localStorage.getItem('userId'); // Get the userID from local storage
+
+  // Check if token or userID is missing and redirect immediately
+  useEffect(() => {
+    if (!token || !userID) {
+      console.log("Missing token or userID, redirecting to homepage...");
+      navigate("/"); // This should redirect to the homepage
+    }
+  }, [token, navigate]);
+
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
   const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
+  const [treeState, setTreeState] = useState({
+    height: 150, // Initialize height
+    branches: [], // Initialize branches
+  });
+  const gameRef = useRef(null); // Ref to track the Phaser game instance
+
+  // Fetch tasks and tree data only if token is available
+  useEffect(() => {
+    // Fetch tasks and tree data only if token and userID are available
+    if (token && userID) {
+      // Fetch tree data
+      axios
+        .get("/api/tree", {
+          params: { userId: userID },
+          headers: { Authorization: `Bearer ${token}` } // Ensure token is passed in the header
+        })
+        .then((response) => {
+          console.log("Fetched tree data from backend:", response.data);
+          const { tree } = response.data;
+          setTreeState(tree || { height: 150, branches: [] }); // Ensure treeState is initialized
+        })
+        .catch((error) => {
+          console.error("Error fetching tree data:", error);
+          if (error.response && error.response.status === 401) {
+            navigate("/"); // Redirect if Unauthorized
+          }
+        });
+
+      // Fetch tasks data
+      axios
+        .get("/api/tasks", {
+          params: { userId: userID },
+          headers: { Authorization: `Bearer ${token}` } // Ensure token is passed in the header
+        })
+        .then((response) => {
+          console.log("Fetched tasks from backend:", response.data);
+          const { tasks } = response.data;
+          setTasks(tasks || []); // Ensure tasks is always an array
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks:", error);
+          if (error.response && error.response.status === 401) {
+            navigate("/"); // Redirect if Unauthorized
+          }
+        });
+    }
+  }, [token, navigate, userID]);
 
   useEffect(() => {
     const config = {
@@ -162,13 +228,13 @@ const Tree = () => {
       const treeObj = scene.tree;
       const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
 
-      // Create a tween animation for growing the tree
       scene.tweens.add({
         targets: treeObj,
         height: newHeight,
         duration: 500,
         ease: "Linear",
         onUpdate: () => {
+          // Ensure that the rectangle's size is updated
           treeObj.setSize(50, treeObj.height);
           treeObj.body.updateFromGameObject();
         },
