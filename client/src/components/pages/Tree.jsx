@@ -6,6 +6,7 @@ import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
+import Popup from "../PopUp";
 
 const Tree = () => {
   const [game, setGame] = useState(null);
@@ -14,6 +15,15 @@ const Tree = () => {
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
   const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
+  // Add state to manage popup visibility and input
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [userInput, setUserInput] = useState("");
+  const [onBranch, setOnBranch] = useState(false); // Tracks if the monkey is currently on a branch
+  const [inputValue, setInputValue] = useState("");
+
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value); // Update the input value when the user types
+  };
 
   useEffect(() => {
     const config = {
@@ -129,10 +139,6 @@ const Tree = () => {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-      // Save references for use in growTree
-      this.tree = tree;
-      this.branches = branches;
-      this.branchSide = branchSide;
 
       // Set up the camera to follow the monkey
       camera = this.cameras.main;
@@ -169,6 +175,7 @@ const Tree = () => {
       this.physics.add.overlap(monkey, market, () => {
         openShop(); // Call function to handle shop opening
       });
+      
 
       // Create arrow buttons to change monkey image
       const leftArrow = this.add.text(-100, 0, '<', { fontSize: '32px', fill: '#000' });
@@ -246,6 +253,7 @@ const Tree = () => {
         }
       } else {
         // Disable movement
+        console.log('stopped');
         monkey.setVelocityX(0);
         monkey.setVelocityY(0); // Stop vertical movement as well if necessary
       }
@@ -269,14 +277,15 @@ const Tree = () => {
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
       }
-    
-      // Check if the monkey has reached the top of the tree
-      if (monkey.y <= tree.y - tree.height / 2) {
-        camera.scrollY -= 5; // Adjust scroll speed as needed
+
+      if (this.branches.some(branch => this.physics.overlap(monkey, branch))) {
+          setPopupVisible(true);
+        }
+       else {
+        // Hide the popup when the monkey is not on any branch
+        setPopupVisible(false);
       }
     }
-    
-    
     
     return () => {
       newGame.destroy(true);
@@ -294,6 +303,13 @@ const Tree = () => {
     setShowTaskManager(false); // Close the TaskManager without adding a task
   };
 
+  const handleSubmit = () => {
+    console.log("Task Submitted:", inputValue); // You can handle the task submission here
+    //setPopupVisible(false);
+     // process data
+  };
+
+  
   const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
@@ -325,7 +341,10 @@ const Tree = () => {
           );
   
           // Add the branch to the branches array and physics world
-          scene.branches.push(branch);
+          if (scene && scene.branches) {
+            scene.branches.push(branch);
+          }
+          
           scene.physics.add.existing(branch, true); // Enable physics for the branch
           branch.body.updateFromGameObject(); // Update the body to reflect the current game object
 
@@ -366,8 +385,6 @@ const Tree = () => {
     }
   };
   
-  
-  
 
   return (
     <div>
@@ -375,7 +392,7 @@ const Tree = () => {
       <button onClick={() => setShowAllTasks(!showAllTasks)}>
         {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
       </button>
-
+  
       {/* Show the task list if "All Tasks" is clicked */}
       {showAllTasks && (
         <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
@@ -389,7 +406,7 @@ const Tree = () => {
           </ul>
         </div>
       )}
-
+  
       <div
         id="phaser-game"
         style={{
@@ -399,6 +416,7 @@ const Tree = () => {
           position: "relative",
         }}
       />
+      
       {showTaskManager && (
         <>
           <div
@@ -413,11 +431,23 @@ const Tree = () => {
             }}
             onClick={handleCancel}
           />
-          <TaskManager onAddTask={(task) => {growTree(task); handleAddTask(task);}} onCancel={handleCancel}/>
-        </>
+          <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} />
+      </>
+      )}
+          
+          {popupVisible && (
+              <Popup
+                inputValue={inputValue}
+                onInputChange={handleInputChange}
+                onSubmit={handleSubmit}
+                setPopupVisibility={setPopupVisible}
+                style={{
+                  zIndex: 1000, // Ensure this is higher than any other elements
+                }}
+              />
       )}
     </div>
   );
-};
-
+}
+  
 export default Tree;

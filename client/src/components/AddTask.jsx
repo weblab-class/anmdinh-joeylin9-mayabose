@@ -3,15 +3,17 @@ import React, { useState } from "react";
 const TaskManager = ({ onAddTask, onCancel }) => {
   const [taskName, setTaskName] = useState(""); // State for task name
   const [taskDifficulty, setTaskDifficulty] = useState(""); // State for task difficulty
+  const [taskNotes, setTaskNotes] = useState(""); // State for task notes
 
   const handleSubmit = () => {
-    if (taskName && taskDifficulty) {
+    if (taskName && taskDifficulty && taskNotes) {
       // Allow spaces in the task name, no trimming
-      onAddTask({ name: taskName, difficulty: taskDifficulty });
+      onAddTask({ name: taskName, difficulty: taskDifficulty, notes: taskNotes });
       setTaskName(""); // Reset inputs
       setTaskDifficulty("");
+      setTaskNotes(""); // Reset task notes
     } else {
-      alert("Please fill out both fields.");
+      alert("Please fill out all fields.");
     }
   };
 
@@ -25,10 +27,11 @@ const TaskManager = ({ onAddTask, onCancel }) => {
         backgroundColor: "white",
         padding: "12px",
         border: "1px solid dark green",
-        borderRadius: "8px",
+        borderRadius: "4px",
         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.4)",
         zIndex: 1000,
         width: "300px",
+        fontFamily: "Courier New",
       }}
     >
       <h3>Add a New Task</h3>
@@ -39,15 +42,34 @@ const TaskManager = ({ onAddTask, onCancel }) => {
           value={taskName}
           onChange={e => setTaskName(e.target.value)} // Allow spaces in input
           style={{
-            width: "100%",
+            width: "80%",
             padding: "8px",
             margin: "10px 0",
             borderRadius: "4px",
             border: "1px solid #ccc",
+            fontFamily: "Courier New",
+            backgroundColor: "light green",
           }}
         />
-        <p>Input Value: {taskName}</p>
       </label>
+      <label>
+        Notes:
+        <input
+          type="text"
+          value={taskNotes}  // Using taskNotes for the Notes field
+          onChange={e => setTaskNotes(e.target.value)}  // Updating taskNotes
+          placeholder="Type here"
+          style={{
+            width: "80%",
+            padding: "8px",
+            margin: "10px 0",
+            borderRadius: "4px",
+            border: "1px solid #ccc",
+            fontFamily: "Courier New",
+          }}
+        />
+      </label>
+      <div/>
       <label>
         Task Difficulty:
         <select
@@ -59,6 +81,7 @@ const TaskManager = ({ onAddTask, onCancel }) => {
             margin: "10px 0",
             borderRadius: "4px",
             border: "1px solid #ccc",
+            fontFamily: "Courier New",
           }}
         >
           <option value="">Select Difficulty</option>
@@ -77,6 +100,7 @@ const TaskManager = ({ onAddTask, onCancel }) => {
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
+            fontFamily: "Courier New",
           }}
         >
           Submit
@@ -90,6 +114,7 @@ const TaskManager = ({ onAddTask, onCancel }) => {
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
+            fontFamily: "Courier New",
           }}
         >
           Cancel
