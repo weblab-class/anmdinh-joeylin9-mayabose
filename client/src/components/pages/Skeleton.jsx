@@ -21,9 +21,9 @@ const Skeleton = () => {
 
   return (
     <>
-      <h1 className="homeTitle">monkey see, monkey do</h1>
+      <h1 className="homeTitle" style={{backgroundColor:" #6c8a80"}}>monkey see, monkey do</h1>
       {userId ? (
-        <div className="center-flex">
+        <div className="center-flex" style={{backgroundColor:" #6c8a80"}} >
           <button
             className="climbing"
             onClick={() => {
@@ -34,7 +34,7 @@ const Skeleton = () => {
           </button>
         </div>
       ) : (
-        <div className="center-flex">
+        <div className="center-flex" style={{backgroundColor:" #6c8a80"}}>
           <GoogleLogin
             onSuccess={handleLogin}
             onError={(err) => console.log("Login error:", err)}

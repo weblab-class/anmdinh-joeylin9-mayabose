@@ -1,21 +1,27 @@
 import React, { useState, useEffect, createContext } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 import jwt_decode from "jwt-decode";
-
 import "../utilities.css";
-
 import { socket } from "../client-socket";
-
 import { get, post } from "../utilities";
 
 export const UserContext = createContext(null);
 
-/**
- * Define the "App" component
- */
 const App = () => {
   const [userId, setUserId] = useState(() => localStorage.getItem("userId") || undefined);
+  const location = useLocation(); // Move useLocation outside the useEffect
+
+  // Update background color based on route
+  useEffect(() => {
+    if (location.pathname === "/") {
+      document.body.style.backgroundColor = "#6c8a80"; // Light green
+    } else if (location.pathname === "/tree") {
+      document.body.style.backgroundColor = "#ADD8E6"; // Blue
+    } else {
+      document.body.style.backgroundColor = "#FFFFFF"; // Default white
+    }
+  }, [location.pathname]); // Trigger this effect on location change
 
   useEffect(() => {
     if (!userId) {

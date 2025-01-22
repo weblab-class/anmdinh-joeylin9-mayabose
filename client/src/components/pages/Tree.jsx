@@ -34,12 +34,32 @@ const Tree = () => {
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [taskName, setTaskName] = useState(""); // Store task name
+  const popupRef = useRef(null);
   // const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
   const [treeState, setTreeState] = useState({
     height: 150, // Initialize height
     branches: [], // Initialize branches
   });
   const gameRef = useRef(null); // Ref to track the Phaser game instance
+
+    // Close the popup if the user clicks outside of it
+    useEffect(() => {
+      const handleOutsideClick = (event) => {
+        if (popupRef.current && !popupRef.current.contains(event.target)) {
+          setShowTaskManager(false); // Close the popup
+        }
+      };
+  
+      if (showTaskManager) {
+        document.addEventListener("mousedown", handleOutsideClick);
+      } else {
+        document.removeEventListener("mousedown", handleOutsideClick);
+      }
+  
+      return () => {
+        document.removeEventListener("mousedown", handleOutsideClick);
+      };
+    }, [showTaskManager]);
 
   // Fetch tasks and tree data only if userId is available
   useEffect(() => {
@@ -550,8 +570,8 @@ const saveTaskData = async (task) => {
 
   return (
     <div>
-      <button onClick={() => setShowTaskManager(true)} style={{position:"relative", left: "5px", padding: "10px", fontFamily: "Courier New", marginTop: "10px",}}><strong>Add Task</strong></button>
-      <button onClick={() => setShowAllTasks(!showAllTasks)} style={{position:"relative", left: "9px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", }}>
+      <button onClick={() => setShowTaskManager(true)} style={{position:"relative", left: "5px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", fontSize: "15px", }}><strong>Add Task</strong></button>
+      <button onClick={() => setShowAllTasks(!showAllTasks)} style={{position:"relative", left: "9px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", fontSize: "15px", }}>
         <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
 
@@ -582,17 +602,18 @@ const saveTaskData = async (task) => {
       {showTaskManager && (
         <>
           <div
+            ref={popupRef}
             style={{
               position: "fixed",
               top: 15,
               left: 5,
               width: "100%",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
               zIndex: 999,
             }}
             onClick={handleCancel}
           />
-          <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} />
+          <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} onClose={() => setShowTaskManager(false)}/>
       </>
       )}
 
@@ -608,7 +629,7 @@ const saveTaskData = async (task) => {
               />
       )}
       <div style={{ position: 'absolute', top: -15, right: 15, fontFamily: "Courier New", marginTop: "10px", fontWeight: "100"}}>
-        <p>Bananas: {bananaCounter}</p>
+        <p style={{fontSize: "18px"}}><strong>Bananas: {bananaCounter}</strong></p>
       </div>
     </div>
   );
