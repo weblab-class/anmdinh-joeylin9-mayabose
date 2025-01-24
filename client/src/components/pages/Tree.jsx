@@ -7,6 +7,7 @@ import monkeyImg2 from "../../assets/monkey2.png";
 import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana.png";
+import grassImg from "../../assets/grass.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
 // import Shop from './Shop'; // Import Shop scene
@@ -44,9 +45,17 @@ const Tree = () => {
   // Fetch tasks and tree data only if userId is available
   useEffect(() => {
     if (!userId) {
-      console.error("User ID is not available.");
+      console.log("Missing userId, redirecting to homepage...");
       navigate("/"); // Redirect to homepage if userId is not available
-      return;
+    } else {
+      // Check if the tutorial has already been shown
+      const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
+
+      // Show tutorial only if it hasn't been shown before
+      if (!hasSeenTutorial) {
+        setShowHelp(true);
+        localStorage.setItem("hasSeenTutorial", "true"); // Mark as seen
+      }
     }
 
     const fetchData = async () => {
@@ -88,6 +97,8 @@ const Tree = () => {
   const [onBranch, setOnBranch] = useState(false); // Tracks if the monkey is currently on a branch
   const [inputValue, setInputValue] = useState("");
 
+  const [showHelp, setShowHelp] = useState(false);
+
   const handleInputChange = (event) => {
     setInputValue(event.target.value); // Update the input value when the user types
   };
@@ -124,6 +135,7 @@ const Tree = () => {
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
     let ground; // Variable for the ground
+    let waterfall;
     let mound; // Variable for the mound
     let camera; // Camera reference
     let market; // Variable for the market image
@@ -152,6 +164,7 @@ const Tree = () => {
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
+      this.load.image("grass", grassImg);
     }
 
     function create(data) {
@@ -210,7 +223,28 @@ const Tree = () => {
         0x4caf50
       );
       mound.setOrigin(0.5, 0);
-      this.physics.add.existing(mound, true); // Add static physics to the rectangle
+      this.physics.add.existing(mound, true); // Add static physics to the rectangles
+      
+      for (let i = 0; i < 100; i++) {
+        const randomX = Math.random() * window.innerWidth*5 // Random X within screen width
+        const randomWidth = Math.random() * (100-50) + 50;
+        const randomHeight = Math.random() * (100-40) + 40;
+    
+        // Add the grass patch at the random position
+        const grassPatch = this.add.image(randomX-window.innerWidth, window.innerHeight*.875, 'grass');
+        grassPatch.setDisplaySize(randomWidth, randomHeight)
+      }
+
+      waterfall = this.add.rectangle(
+        -window.innerWidth/1.5,
+        0,
+        window.innerWidth/2,
+        window.innerHeight,
+        0x4caf50
+      );
+      waterfall.setOrigin(0.5, 0);
+      this.physics.add.existing(waterfall, true); // Add static physics to the rectangle
+      this.physics.add.collider(monkey, waterfall);
 
       // Set up custom keys for monkey movement
       this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -306,7 +340,11 @@ const Tree = () => {
       setBananaCounter((prevCounter) => {
         const price = monkeyPrices[monkeyNumber];
 
-        if (!purchasedMonkeys[monkeyNumber] && prevCounter >= price) {
+        if (prevCounter < price) {
+          alert('Not enough bananas!')
+        } else if (purchaseButton._text === "Purchased") {
+          alert('Monkey already purchased!')
+        }else{
           console.log('Purchased!');
 
           setPurchasedMonkeys((prevPurchasedMonkeys) => {
@@ -317,10 +355,6 @@ const Tree = () => {
           });
 
           return prevCounter - price; // Deduct the price
-        } else {
-          console.log('Not enough bananas or already purchased.');
-          alert('Not enough bananas or already purchased!');
-          return prevCounter;
         }
       });
     }
@@ -566,15 +600,80 @@ const saveTaskData = async (task) => {
     }
   };
 
-
-
-
   return (
     <div>
       <button onClick={() => setShowTaskManager(true)} style={{position:"relative", left: "5px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", fontSize: "15px", }}><strong>Add Task</strong></button>
       <button onClick={() => setShowAllTasks(!showAllTasks)} style={{position:"relative", left: "9px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", fontSize: "15px", }}>
         <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
+
+      <div 
+      style={{
+        position: 'absolute', 
+        top: 18, 
+        left: 275, 
+        cursor: 'pointer', 
+        fontSize: '24px',
+        zIndex: 1000
+      }} 
+      onClick={() => setShowHelp(true)}
+    >
+      ?
+    </div>
+
+    {showHelp && (
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 2000
+        }}
+      >
+        <div 
+          style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '10px',
+            width: '80%',
+            maxWidth: '600px',
+            position: 'relative',
+            maxHeight: '80%',
+            overflowY: 'auto'
+          }}
+        >
+          <button 
+            onClick={() => setShowHelp(false)}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              fontSize: '24px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            ✕
+          </button>
+          <h2>Welcome to Monkey See Monkey Do!</h2>
+          <p>Here's how to use the app:</p>
+          <ul>
+            <li style={{ marginBottom: '10px' }}>Use the arrow keys to move the monkey</li>
+            <li style={{ marginBottom: '10px' }}>Click "Add Task" to create new tasks</li>
+            <li style={{ marginBottom: '10px' }}>To find a task, climb the tree or click "Show All Tasks", then click the task </li>
+            <li style={{ marginBottom: '10px' }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
+            <li>Have fun!</li>
+          </ul>
+        </div>
+      </div>
+    )}
 
       {/* Show the task list if "All Tasks" is clicked */}
       {showAllTasks && (
