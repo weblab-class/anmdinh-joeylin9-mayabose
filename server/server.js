@@ -60,7 +60,7 @@ const app = express();
 app.use(validator.checkRoutes);
 
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', 'https://monkey-see-monkey-do-yi4u.onrender.com'],
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
