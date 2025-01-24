@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Popup = ({ inputValue, onInputChange, onSubmit, setPopupVisibility }) => {
+const Popup = ({ inputValue, onInputChange, onSubmit, handleCollect, setPopupVisibility }) => {
   const [status, setStatus] = useState(""); // Track the current status
   const [isCompleted, setIsCompleted] = useState(false); // Track if completed
   const [buttonText, setButtonText] = useState("Save"); // Track button text
@@ -19,9 +19,16 @@ const Popup = ({ inputValue, onInputChange, onSubmit, setPopupVisibility }) => {
     setIsCompleted(checked);
   };
 
+  // Handle submit function (differentiated based on task status)
   const handleSubmit = () => {
-    onSubmit(inputValue); // Submit the input value
-    setButtonText("Saved!"); // Change button text to "Saved!"
+    if (isCompleted) {
+      // Trigger different function when task is completed (e.g., "Collect Bananas!")
+      handleCollect();
+    } else {
+      // Trigger default onSubmit for in-progress tasks
+      onSubmit(inputValue);
+    }
+    setButtonText("Saved!"); // Change button text to "Saved!" after submit
   };
 
   // Update button text based on "completed" checkbox
@@ -119,7 +126,7 @@ const Popup = ({ inputValue, onInputChange, onSubmit, setPopupVisibility }) => {
           onClick={handleSubmit}
           style={{
             fontFamily: "Courier New",
-            backgroundColor: isCompleted ? "#4CAF50" : "#008CBA", // Green if completed
+            backgroundColor: getButtonColor(), // Dynamic button color
             color: "#fff",
             border: "none",
             padding: "10px 20px",
