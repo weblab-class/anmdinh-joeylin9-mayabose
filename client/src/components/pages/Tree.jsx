@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import Phaser from "phaser";
-import axios from "axios";
+// import axios from "axios";
 import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkey2.png";
@@ -11,24 +11,11 @@ import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
 // import Shop from './Shop'; // Import Shop scene
 import { useNavigate } from "react-router-dom";
-
-// Create an Axios instance with a custom base URL
-const api = axios.create({
-  baseURL: "http://localhost:3000", // Set base URL for the API
-});
+import { fetchGameInfo, saveTaskData } from '../gameDataHandler';
 
 const Tree = () => {
   const navigate = useNavigate();
   const { userId, handleLogout } = useContext(UserContext);  // Access context values
-
-  // Check if userId is missing and redirect immediately
-  useEffect(() => {
-    if (!userId) {
-      console.log("Missing userId, redirecting to homepage...");
-      navigate("/"); // This should redirect to the homepage
-    }
-  }, [userId, navigate]);
-
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
   const [showTaskManager, setShowTaskManager] = useState(false);
@@ -40,59 +27,47 @@ const Tree = () => {
     branches: [], // Initialize branches
   });
   const gameRef = useRef(null); // Ref to track the Phaser game instance
-
-  // Fetch tasks and tree data only if userId is available
-  useEffect(() => {
-    if (!userId) {
-      console.error("User ID is not available.");
-      navigate("/"); // Redirect to homepage if userId is not available
-      return;
-    }
-
-    const fetchData = async () => {
-      try {
-        // Fetch tree data
-        const treeResponse = await axios.get("/api/tree", {
-          params: { userId: userId },
-        });
-        console.log("Fetched tree data from backend:", treeResponse.data);
-        const { tree } = treeResponse.data;
-        setTreeState(tree || { height: 150, branches: [] }); // Ensure treeState is initialized
-
-        // Fetch tasks data
-        const tasksResponse = await api.get("/api/tasks", { params: { userId: userId } });
-        console.log("Fetched tasks:", tasksResponse.data);
-        setTasks(tasksResponse.data.tasks || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        if (error.response && error.response.status === 401) {
-          handleLogout();
-          navigate("/"); // Redirect to homepage on unauthorized error
-        }
-      }
-    };
-
-    fetchData();
-  }, [userId, navigate, handleLogout]);
-
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
-
   const [selectedMonkeyIndex, setSelectedMonkeyIndex] = useState(0); // Current selected monkey in the shop
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false]); // Purchase state for monkeys
   const monkeyPrices = [0, 10, 20]; // Prices for each monkey
-
   // Add state to manage popup visibility and input
   const [popupVisible, setPopupVisible] = useState(false);
   const [userInput, setUserInput] = useState("");
   const [onBranch, setOnBranch] = useState(false); // Tracks if the monkey is currently on a branch
   const [inputValue, setInputValue] = useState("");
-
+  const [loading, setLoading] = useState(true); // Track loading state for tasks
   const handleInputChange = (event) => {
     setInputValue(event.target.value); // Update the input value when the user types
   };
 
+  // Fetch game info only when userId is available
   useEffect(() => {
+    if (!userId) {
+      console.log("Missing userId, redirecting to homepage...");
+      navigate("/"); // Redirect to homepage if userId is not available
+      return;
+    }
+
+    const getGameInfo = async () => {
+      try {
+        const data = await fetchGameInfo(userId);
+        setTasks(data.tasks || []);  // Set tasks (empty array for new users)
+        setBananaCounter(data.bananaCounter || 0);  // Set banana counter
+        setLoading(false); // Set loading to false after data is fetched
+      } catch (error) {
+        console.error("Error fetching game info (Tree.jsx):", error);
+        setLoading(false); // Set loading to false even on error
+      }
+    };
+
+    getGameInfo(); // Fetch game info
+  }, [userId, navigate]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (game) return;
     const config = {
       type: Phaser.AUTO,
       width: window.innerWidth,
@@ -119,7 +94,12 @@ const Tree = () => {
     const newGame = new Phaser.Game(config);
     setGame(newGame);
 
-    let tree; // Variable to hold the tree object
+    return () => {
+      newGame.destroy(true);
+    };
+  }, [loading]);
+
+  let tree; // Variable to hold the tree object
     let branches = []; // Array to store branch objects
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
@@ -147,6 +127,7 @@ const Tree = () => {
     }
 
     function preload() {
+      console.log('Preloading assets...');
       this.load.image('monkey1', monkeyImg); // Preload the monkey image
       this.load.image('monkey2', monkeyImg2); // Preload the monkey image
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
@@ -154,7 +135,90 @@ const Tree = () => {
       this.load.image("banana", bananaImg); // Load banana image here
     }
 
-    function create(data) {
+    function create() {
+      if (bananaCounter === undefined) {
+        console.error('Banana counter is not initialized.');
+        return;
+      }
+      console.log('Creating shop and game elements');
+
+      // Tree setup based on tasks length
+      const treeBaseHeight = 150;
+      const treeHeight = treeBaseHeight + tasks.length * 100; // Dynamic tree height
+
+      tree = this.add.rectangle(
+        window.innerWidth / 2,
+        window.innerHeight * 0.9,
+        50,
+        treeHeight,
+        0x4a3d36
+      );
+      tree.setOrigin(0.5, 1);
+      this.physics.add.existing(tree, true);
+
+      // Save references for use in growTree
+      this.tree = tree;
+      this.branches = branches;
+      this.branchSide = branchSide;
+
+      // Initialize branches with tasks, ensuring bananas are added and order is reversed
+this.branches = [];
+tasks.reverse().forEach((task, index) => {
+  // Assuming tree height is initialized at 0 or a default value
+  const treeObj = this.tree;
+  const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
+  const branchX =
+    this.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100; // Alternate branch side for each branch
+
+  // Create the branch
+  const branch = this.add.rectangle(
+    branchX,
+    branchY,
+    200,
+    15,
+    0x4a3d36
+  );
+
+  // Add the branch to the branches array and physics world
+  if (this && this.branches) {
+    this.branches.push(branch);
+  }
+
+  this.physics.add.existing(branch, true); // Enable physics for the branch
+  branch.body.updateFromGameObject(); // Update the body to reflect the current game object
+
+  // Add task text to the branch
+  const taskName = task.name || "Default Task";
+  const bananaStartX =
+    this.branchSide === "left"
+      ? branchX - 100
+      : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
+
+  this.add.text(bananaStartX - 20, branchY - 50, taskName, {
+    font: "20px Courier New",
+    fill: "#000",
+    align: "center",
+    fontWeight: "80px",
+  });
+
+  // Add bananas based on difficulty, spaced horizontally
+  const bananaCount =
+    task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+  const bananaSpacing = 50; // Horizontal spacing between bananas
+  for (let i = 0; i < bananaCount; i++) {
+    const banana = this.add.sprite(
+      bananaStartX + i * bananaSpacing,
+      branchY,
+      "banana"
+    );
+    banana.setOrigin(0.5, 0.5);
+    banana.setDisplaySize(50, 50); // Adjust the size as needed
+    banana.setDepth(10); // Ensure it appears in front of other objects
+  }
+
+  // Alternate branch side for the next branch
+  this.branchSide = this.branchSide === "left" ? "right" : "left";
+});
 
       //` SHOP SCENE
 
@@ -168,24 +232,6 @@ const Tree = () => {
       market.setDisplaySize(window.innerWidth/5, window.innerHeight/2.5);
       market.setOrigin(0.5, 0.5); // Center the image
       this.physics.add.existing(market, true);
-
-      // TREE SCENE
-
-      // Create the tree as a vertical rectangle
-      tree = this.add.rectangle(
-        window.innerWidth / 2,
-        window.innerHeight * 0.9,
-        50,
-        150,
-        0x4a3d36
-      );
-      tree.setOrigin(0.5, 1); // Anchor the tree's origin to the bottom center
-      this.physics.add.existing(tree, true);
-
-      // Save references for use in growTree
-      this.tree = tree;
-      this.branches = branches;
-      this.branchSide = branchSide;
 
       // Create the monkey sprite with physics
       monkey = this.physics.add.sprite(window.innerWidth /2 , window.innerHeight/2, "monkey1");
@@ -367,12 +413,12 @@ const Tree = () => {
       // SHOP UPDATES
       if (shopOpen) {
         const currentTime = Date.now(); // Get the current time in milliseconds
-      
+
         if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
           changeMonkey(-1);
           lastChangeTime = currentTime; // Update the last change time
         }
-      
+
         if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
           changeMonkey(1);
           lastChangeTime = currentTime; // Update the last change time
@@ -427,46 +473,12 @@ const Tree = () => {
       }
     }
 
-    return () => {
-      newGame.destroy(true);
-    };
-  }, []);
-
   const handleAddTask = (task) => {
     if (task) {
-      setTasks([...tasks, task]); // Add the task to the tasks list
+      const updatedTasks = [task, ...tasks]; // Add the task to the tasks list
+      setTasks(updatedTasks); // Update the tasks state
       setShowTaskManager(false);
-      saveTaskData(task);
-    }
-  };
-
-  // Function to save task data to backend
-const saveTaskData = async (task) => {
-  try {
-    await axios.post("/api/tasks/save", {
-      task: task.name, // Assuming task has a name field
-      difficulty: task.difficulty, // Send difficulty as part of the task object
-    });
-    console.log("Task saved successfully!");
-  } catch (error) {
-    console.error("Error saving task data:", error);
-    if (error.response && error.response.status === 401) {
-      handleLogout();
-      navigate("/");
-    }
-  }
-};
-
-  // Function to update tree state
-  const saveTreeData = async (updatedTreeState) => {
-    try {
-      await api.post("/api/tree/save", {
-        userId: userId,
-        tree: updatedTreeState,
-      });
-      console.log("Tree data saved successfully!");
-    } catch (error) {
-      console.error("Error saving tree data:", error);
+      saveTaskData(userId, updatedTasks, bananaCounter, setTasks); // Pass the updated tasks list to saveTaskData
     }
   };
 
@@ -555,9 +567,6 @@ const saveTaskData = async (task) => {
             height: treeObj.height,  // The updated height of the tree
             branches: scene.branches,  // All the branches currently on the tree
           };
-
-          // Save the updated tree state
-          saveTreeData(updatedTreeState);
 
           // Alternate branch side for the next branch
           scene.branchSide = scene.branchSide === "left" ? "right" : "left";

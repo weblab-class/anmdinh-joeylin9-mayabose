@@ -13,8 +13,9 @@ const auth = require("./auth");
 const socketManager = require("./server-socket");
 
 const router = express.Router();
-const Task = require("./models/Tasks");
-const TreeData = require("./models/TreeData");
+// const Task = require("./models/Tasks");
+// const TreeData = require("./models/TreeData");
+const GameInfo = require("./models/GameInfo");
 
 // Middleware to check playerId session
 const checkPlayerAuth = (req, res, next) => {
@@ -49,81 +50,71 @@ router.post("/initsocket", checkPlayerAuth, async (req, res) => {
   }
 });
 
-// GET /api/tasks - Fetch tasks for the player
-router.get("/tasks", checkPlayerAuth, async (req, res) => {
+// GET route: Fetch game data for a user (e.g., from database)
+router.get('/gameInfo', async (req, res) => {
   try {
-    const tasks = await Task.find({ playerId: req.playerId });
-    const transformedTasks = tasks.map(task => ({
-      taskId: task._id,
-      name: task.name,
-      difficulty: task.difficulty,
-    }));
-    res.json(transformedTasks);
-  } catch (err) {
-    console.error("Error fetching tasks:", err);
-    res.status(500).json({ message: "Error fetching tasks" });
-  }
-});
+    const userId = req.query.userId; // Get userId from query params
+    console.log("userId:", userId);
+    console.log("!userId is:", !userId);
 
-
-// POST /api/tasks/save - Save task data for the player (updated)
-router.post("/api/tasks/save", checkPlayerAuth, async (req, res) => {
-  const { task, difficulty } = req.body;
-  if (!task || !difficulty) {
-    return res.status(400).json({ message: "Task and difficulty are required" });
-  }
-
-  try {
-    const newTask = new Task({
-      name: task,
-      difficulty: difficulty,
-      playerId: req.playerId,
-    });
-    await newTask.save();
-    res.status(201).json({ message: "Task saved successfully", task: newTask });
-  } catch (err) {
-    console.error("Error saving task:", err);
-    res.status(500).json({ message: "Error saving task" });
-  }
-});
-
-// GET /api/tree - Retrieve saved tree data for the player
-router.get("/tree", checkPlayerAuth, async (req, res) => {
-  try {
-    const treeData = await TreeData.findOne({ playerId: req.playerId });
-    if (treeData) {
-      return res.json(treeData);
-    } else {
-      const defaultTreeData = { treeHeight: 150, branches: [] };
-      return res.json(defaultTreeData);
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
     }
-  } catch (err) {
-    console.error("Error fetching tree data:", err);
-    res.status(500).json({ message: "Error fetching tree data" });
-  }
-});
 
-// POST /api/tree/save - Save updated tree data for the player (updated)
-router.post("/tree/save", checkPlayerAuth, async (req, res) => {
-  const { treeHeight, branches } = req.body;
-  if (treeHeight === undefined || !Array.isArray(branches)) {
-    return res.status(400).json({ message: "Tree height and branches are required" });
-  }
+    // Fetch game info for the user from the database
+    const gameInfo = await GameInfo.findOne({ userId });
 
-  try {
-    let treeData = await TreeData.findOne({ playerId: req.playerId });
-    if (!treeData) {
-      treeData = new TreeData({ playerId: req.playerId });
+    // If no game info is found, return an object with numBananas set to 0
+    if (!gameInfo) {
+      return res.json({ numBananas: 0, tasks: [] }); // Ensure tasks is also an empty array
     }
-    treeData.treeHeight = treeHeight;
-    treeData.branches = branches;
-    await treeData.save();
-    res.status(200).json({ message: "Tree data saved successfully", treeData });
+
+    // Return the gameInfo object if found
+    res.json(gameInfo);
   } catch (err) {
-    console.error("Error saving tree data:", err);
-    res.status(500).json({ message: "Error saving tree data" });
+    console.error("Error fetching game info:", err);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
+// POST route: Accepts user input (e.g., game data) and saves to the database
+router.post('/gameInfo', async (req, res) => {
+  try {
+    const { userId, tasks, numBananas } = req.body;  // Data sent in POST request body
+    console.log("Received game data:", { userId, tasks, numBananas });
+
+    if (!userId || !tasks) {
+      return res.status(400).json({ message: "Missing required fields: userId or tasks" });
+    }
+
+    // Check if the user already has game info
+    let gameInfo = await GameInfo.findOne({ userId });
+
+    if (!gameInfo) {
+      // If no game info exists for the user, create a new gameInfo document
+      gameInfo = new GameInfo({
+        userId,
+        tasks: tasks,  // Start with the list of tasks
+        numBananas: numBananas || 0,  // Default numBananas value
+      });
+      await gameInfo.save();  // Save the new game info
+      return res.status(201).json({ message: 'Game info created and tasks added', data: gameInfo });
+    }
+
+    // If game info exists, update the tasks list
+    gameInfo.tasks = tasks;  // Replace tasks with the new list
+    gameInfo.numBananas = numBananas;  // Optionally update numBananas
+    await gameInfo.save();  // Save the updated game info
+
+    res.status(200).json({ message: 'Tasks updated successfully', data: gameInfo });
+
+  } catch (err) {
+    console.error("Error saving game info:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 // Catch-all for undefined API routes
 router.all("*", (req, res) => {
