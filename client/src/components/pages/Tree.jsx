@@ -168,7 +168,7 @@ const Tree = () => {
 
 // Initialize branches with tasks, ensuring bananas are added and order is reversed
 this.branches = [];
-tasks.forEach((task, index) => {
+tasks.reverse().forEach((task, index) => {
   // Assuming tree height is initialized at 0 or a default value
   const treeObj = this.tree;
   const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
