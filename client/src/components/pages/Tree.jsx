@@ -109,7 +109,6 @@ const Tree = () => {
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
     let ground; // Variable for the ground
-    let waterfall;
     let mound; // Variable for the mound
     let camera; // Camera reference
     let market; // Variable for the market image
@@ -170,70 +169,70 @@ const Tree = () => {
       this.bananas = bananas;
       this.branchSide = branchSide;
 
-// Initialize branches with tasks, ensuring bananas are added and order is reversed
-this.branches = [];
-this.bananas = [];
-tasks.reverse().forEach((task, index) => {
-  // Assuming tree height is initialized at 0 or a default value
-  const treeObj = this.tree;
-  const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
+      // Initialize branches with tasks, ensuring bananas are added and order is reversed
+      this.branches = [];
+      this.bananas = [];
+      tasks.reverse().forEach((task, index) => {
+        // Assuming tree height is initialized at 0 or a default value
+        const treeObj = this.tree;
+        const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
 
-  // Ensure task.side is used correctly for left/right placement
-  const branchX = task.side === "left" ? treeObj.x - 100 : treeObj.x + 100; // Correct placement based on task.side
+        // Ensure task.side is used correctly for left/right placement
+        const branchX = task.side === "left" ? treeObj.x - 100 : treeObj.x + 100; // Correct placement based on task.side
 
-  // Create the branch
-  const branch = this.add.rectangle(
-    branchX,
-    branchY,
-    200,
-    15,
-    0x4a3d36
-  );
+        // Create the branch
+        const branch = this.add.rectangle(
+          branchX,
+          branchY,
+          200,
+          15,
+          0x4a3d36
+        );
 
-  // Add the branch to the branches array and physics world
-  if (this && this.branches) {
-    this.branches.push(branch);
-  }
+        // Add the branch to the branches array and physics world
+        if (this && this.branches) {
+          this.branches.push(branch);
+        }
 
-  this.physics.add.existing(branch, true); // Enable physics for the branch
-  branch.body.updateFromGameObject(); // Update the body to reflect the current game object
+        this.physics.add.existing(branch, true); // Enable physics for the branch
+        branch.body.updateFromGameObject(); // Update the body to reflect the current game object
 
-  // Add task text to the branch
-  const taskName = task.name || "Default Task";
-  const bananaStartX =
-    task.side === "left"
-      ? branchX - 100 // Adjust start position for "left" side
-      : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Adjust for "right" side
+        // Add task text to the branch
+        const taskName = task.name || "Default Task";
+        const bananaStartX =
+          task.side === "left"
+            ? branchX - 100 // Adjust start position for "left" side
+            : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Adjust for "right" side
 
-  this.add.text(bananaStartX - 20, branchY - 50, taskName, {
-    font: "20px Courier New",
-    fill: "#000",
-    align: "center",
-    fontWeight: "80px",
-  });
+        this.add.text(bananaStartX - 20, branchY - 50, taskName, {
+          font: "20px Courier New",
+          fill: "#000",
+          align: "center",
+          fontWeight: "80px",
+        });
 
-  // Add bananas based on difficulty, spaced horizontally
-  const bananaCount =
-    task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-  const bananaSpacing = 50; // Horizontal spacing between bananas
-  for (let i = 0; i < bananaCount; i++) {
-    const banana = this.add.sprite(
-      bananaStartX + i * bananaSpacing,
-      branchY,
-      "banana"
-    );
-    banana.setOrigin(0.5, 0.5);
-    banana.setDisplaySize(50, 50); // Adjust the size as needed
-    banana.setDepth(10); // Ensure it appears in front of other objects
+        // Add bananas based on difficulty, spaced horizontally
+        const bananaCount =
+          task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+        const bananaSpacing = 50; // Horizontal spacing between bananas
+        for (let i = 0; i < bananaCount; i++) {
+          const banana = this.add.sprite(
+            bananaStartX + i * bananaSpacing,
+            branchY,
+            "banana"
+          );
+          banana.setOrigin(0.5, 0.5);
+          banana.setDisplaySize(50, 50); // Adjust the size as needed
+          banana.setDepth(10); // Ensure it appears in front of other objects
 
-    if (this && this.bananas) {
-      this.bananas.push(banana);
-    }
-  }
+          if (this && this.bananas) {
+            this.bananas.push(banana);
+          }
+        }
 
-  // Alternate branch side for the next branch
-  this.branchSide = this.branchSide === "left" ? "right" : "left";
-});
+        // Alternate branch side for the next branch
+        this.branchSide = this.branchSide === "left" ? "right" : "left";
+      });
 
 
       //` SHOP SCENE
@@ -284,26 +283,18 @@ tasks.reverse().forEach((task, index) => {
         grassPatch.setDisplaySize(randomWidth, randomHeight)
       }
 
-      waterfall = this.add.rectangle(
-        -window.innerWidth/1.5,
-        0,
-        window.innerWidth/2,
-        window.innerHeight,
-        0x4caf50
-      );
-      waterfall.setOrigin(0.5, 0);
-      this.physics.add.existing(waterfall, true); // Add static physics to the rectangle
-      this.physics.add.collider(monkey, waterfall);
-
       // Set up custom keys for monkey movement
       this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
       this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-      // Set up the camera to follow the monkey
+      // Set up the camera
       camera = this.cameras.main;
-      camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
+      camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, 0);
+
+      // Smooth follow of the monkey sprite
+      camera.startFollow(monkey, true, 0.1, 0.1);
 
       //SHOP//
       shopContainer = this.add.container(window.innerWidth * 1.5, window.innerHeight / 2);
@@ -443,6 +434,9 @@ tasks.reverse().forEach((task, index) => {
     }
 
     function update() {
+      // Boundaries for the world
+      monkey.x = Phaser.Math.Clamp(monkey.x, -window.innerWidth/2, window.innerWidth*1.5);
+
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
       qKey.on("down", () => {
