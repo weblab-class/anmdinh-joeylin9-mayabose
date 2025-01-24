@@ -505,70 +505,87 @@ tasks.reverse().forEach((task, index) => {
 
        // Flag to track if the popup should be show
 
-       this.branches.forEach(branch => {
+       for (const branch of this.branches) {
         const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
         const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
         const branchBounds = branch.getBounds(); // Get branch's bounds
-      
+        
         // Check if the monkey is currently overlapping with the branch
         const isOverlapping = this.physics.overlap(monkey, branch);
-      
-        // If monkey is overlapping with the branch, check conditions for the popup
+        
         if (isOverlapping) {
+          // If the monkey is overlapping, we need to display the popup for this branch
+          let popupShown = false;
+      
           // Check leftmost half of left branch
           if (
-            isLeftBranch &&
+            isLeftBranch && 
             monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
             monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
           ) {
-            console.log("Monkey is in the leftmost half of the left branch!");
-            setPopupVisible(true);
+            if (!popupShown) {
+              console.log("Monkey is in the leftmost half of the left branch!");
+              setPopupVisible(true); // Show the popup
+              
+              // Find the text directly above the leftmost half of the left branch
+              const textAboveBranch = this.children.getChildren().find(child => {
+                return (
+                  child instanceof Phaser.GameObjects.Text && 
+                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+                  child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
+                );
+              });
       
-            // Find the text directly above the leftmost half of the left branch
-            const textAboveBranch = this.children.getChildren().find(child => {
-              return (
-                child instanceof Phaser.GameObjects.Text && // Check if it's a Text object
-                child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
-              );
-            });
+              if (textAboveBranch) {
+                const taskName = textAboveBranch.text; // Get the task name from the text
+                setSelectedTaskName(taskName); // Update the selected task name
+                console.log('Selected task name:', taskName);
+              }
       
-            if (textAboveBranch) {
-              const taskName = textAboveBranch.text; // Get the task name from the text
-              setSelectedTaskName(taskName);
-              console.log('found task name');
+              popupShown = true; // Prevent multiple popups from showing for this branch
+              break; // Exit the loop once the popup is shown
             }
           }
-      
+          
           // Check rightmost half of right branch
           if (
-            !isLeftBranch &&
+            !isLeftBranch && 
             monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
             monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
           ) {
-            console.log("Monkey is in the rightmost half of the right branch!");
-            setPopupVisible(true);
+            if (!popupShown) {
+              console.log("Monkey is in the rightmost half of the right branch!");
+              setPopupVisible(true); // Show the popup
+              
+              // Find the text directly above the rightmost half of the right branch
+              const textAboveBranch = this.children.getChildren().find(child => {
+                return (
+                  child instanceof Phaser.GameObjects.Text && 
+                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+                  child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
+                );
+              });
       
-            // Find the text directly above the rightmost half of the right branch
-            const textAboveBranch = this.scene.children.getChildren().find(child => {
-              return (
-                child instanceof Phaser.GameObjects.Text && // Check if it's a Text object
-                child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
-              );
-            });
+              if (textAboveBranch) {
+                const taskName = textAboveBranch.text; // Get the task name from the text
+                setSelectedTaskName(taskName); // Update the selected task name
+                console.log('Selected task name:', taskName);
+              }
       
-            if (textAboveBranch) {
-              const taskName = textAboveBranch.text; // Get the task name from the text
-              setSelectedTaskName(taskName);
-              console.log('found task name');
+              popupShown = true; // Prevent multiple popups from showing for this branch
+              break; // Exit the loop once the popup is shown
             }
           }
-        } else {
-          // If the monkey is no longer overlapping with the branch, hide the popup
+        }
+      
+        // If the monkey is no longer overlapping with any branch, hide the popup
+        if (!isOverlapping) {
           setPopupVisible(false);
         }
-      });
+      }
+   
+      
+      
       
       
     }
@@ -587,23 +604,33 @@ tasks.reverse().forEach((task, index) => {
   };
 
   const handleSave = (input) => {
+    console.log('taskname', selectedTaskName);
+  
+    // Find the task with the selected name
     const task = tasks.find(t => t.name === selectedTaskName);
-    console.log(selectedTaskName)
-    console.log(task)
-    // Update the task notes with the newly provided input
-    task.notes = input;
     
-    // Assuming tasks is the list of all tasks in the state and you want to update the specific task
-    const updatedTasks = tasks.map((existingTask) =>
-      existingTask.id === task.id ? { ...existingTask, notes: task.notes } : existingTask
-    );
+    if (task) {
+      console.log('Found task:', task);
   
-    // Update the state with the new task list
-    setTasks(updatedTasks);
+      // Update the task's notes
+      const updatedTasks = tasks.map(existingTask => {
+        if (existingTask.name === selectedTaskName) {
+          // Update only the task that matches the selectedTaskName
+          return { ...existingTask, notes: input };
+        }
+        return existingTask; // Keep the other tasks the same
+      });
   
-    // Optionally, trigger the save function to persist the updated task list
-    saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+      // Update the tasks state with the new task list
+      setTasks(updatedTasks);
+  
+      // Optionally, trigger the save function to persist the updated task list
+      saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+    } else {
+      console.log('Task not found!');
+    }
   };
+ 
   
 
   const handleCollectBananas = () => {
