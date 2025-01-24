@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Create an Axios instance with a custom base URL
 const api = axios.create({
-  baseURL: "http://localhost:3000", // Set base URL for the API
+  baseURL: "https://monkey-see-monkey-do-yi4u.onrender.com/", // Set base URL for the API
 });
 
 // Function to fetch game info from the backend

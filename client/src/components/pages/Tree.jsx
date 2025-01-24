@@ -39,6 +39,7 @@ const Tree = () => {
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
+  const [showSettings, setShowSettings] = useState(false); // State for settings popup
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value); // Update the input value when the user types
@@ -165,14 +166,15 @@ const Tree = () => {
       this.branches = branches;
       this.branchSide = branchSide;
 
-      // Initialize branches with tasks, ensuring bananas are added and order is reversed
+// Initialize branches with tasks, ensuring bananas are added and order is reversed
 this.branches = [];
-tasks.reverse().forEach((task, index) => {
+tasks.forEach((task, index) => {
   // Assuming tree height is initialized at 0 or a default value
   const treeObj = this.tree;
   const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
-  const branchX =
-    this.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100; // Alternate branch side for each branch
+
+  // Ensure task.side is used correctly for left/right placement
+  const branchX = task.side === "left" ? treeObj.x - 100 : treeObj.x + 100; // Correct placement based on task.side
 
   // Create the branch
   const branch = this.add.rectangle(
@@ -194,9 +196,9 @@ tasks.reverse().forEach((task, index) => {
   // Add task text to the branch
   const taskName = task.name || "Default Task";
   const bananaStartX =
-    this.branchSide === "left"
-      ? branchX - 100
-      : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
+    task.side === "left"
+      ? branchX - 100 // Adjust start position for "left" side
+      : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Adjust for "right" side
 
   this.add.text(bananaStartX - 20, branchY - 50, taskName, {
     font: "20px Courier New",
@@ -219,10 +221,8 @@ tasks.reverse().forEach((task, index) => {
     banana.setDisplaySize(50, 50); // Adjust the size as needed
     banana.setDepth(10); // Ensure it appears in front of other objects
   }
-
-  // Alternate branch side for the next branch
-  this.branchSide = this.branchSide === "left" ? "right" : "left";
 });
+
 
       //` SHOP SCENE
 
@@ -636,26 +636,68 @@ tasks.reverse().forEach((task, index) => {
         <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
 
-      {/* Help Icon */}
-      <div
+      {/* Settings Button */}
+      <button
+        onClick={() => setShowSettings(!showSettings)}
         style={{
           position: "absolute",
-          top: "14px", // Adjust this to control vertical space from the buttons
-          left: "285px", // Move right from the left
-          cursor: "pointer",
-          fontSize: "25px", // Icon size
+          top: "10px",
+          right: "10px",
+          padding: "10px",
           fontFamily: "Courier New",
-          fontWeight: "100",
-          color: "black", // Icon color for visibility
-          zIndex: 1000, // Ensure it's on top
-        }}
-        onClick={() => {
-          setShowHelp(true);
-          console.log("Help clicked!"); // Check if it's triggered
+          fontSize: "15px",
+          zIndex: 9999,
         }}
       >
-        ?
-      </div>
+        <strong>Settings</strong>
+      </button>
+
+      {/* Settings Popup */}
+      {showSettings && (
+        <div
+          style={{
+            position: "fixed",
+            top: "0",
+            right: "0",
+            width: "300px",
+            height: "200px",
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "15px",
+            zIndex: 2000,
+          }}
+        >
+          <h3>Settings</h3>
+          <button
+            onClick={() => {
+              setShowHelp(true); // Open Help popup
+              setShowSettings(false); // Close Settings popup
+            }}
+            style={{
+              padding: "10px",
+              margin: "10px 0",
+              fontFamily: "Courier New",
+              fontSize: "15px",
+            }}
+          >
+            Help
+          </button>
+          <button
+            onClick={() => {
+              handleLogout(); // Call logout function
+              setShowSettings(false); // Close Settings popup
+            }}
+            style={{
+              padding: "10px",
+              margin: "10px 0",
+              fontFamily: "Courier New",
+              fontSize: "15px",
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      )}
 
       {/* Help Popup */}
       {showHelp && (
@@ -750,12 +792,13 @@ tasks.reverse().forEach((task, index) => {
             onClick={handleCancel}
           />
           <TaskManager
-            onAddTask={(task) => {
-              growTree(task);
-              handleAddTask(task);
-            }}
-            onCancel={handleCancel}
-          />
+  onAddTask={(task) => {
+    growTree(task);
+    handleAddTask(task);
+  }}
+  onCancel={handleCancel}
+  tasks={tasks}  // Pass the tasks prop here
+/>
         </>
       )}
 
@@ -763,8 +806,8 @@ tasks.reverse().forEach((task, index) => {
       <div
         style={{
           position: "absolute",
-          top: "-15px",
-          right: "15px",
+          top: "-10px",
+          right: "125px",
           fontFamily: "Courier New",
           marginTop: "10px",
           fontWeight: "100",

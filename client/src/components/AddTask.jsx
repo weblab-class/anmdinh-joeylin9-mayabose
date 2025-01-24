@@ -1,21 +1,26 @@
 import React, { useState } from "react";
 
-const TaskManager = ({ onAddTask, onCancel }) => {
+const TaskManager = ({ onAddTask, onCancel, tasks }) => {
   const [taskName, setTaskName] = useState(""); // State for task name
   const [taskDifficulty, setTaskDifficulty] = useState(""); // State for task difficulty
   const [taskNotes, setTaskNotes] = useState(""); // State for task notes
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty && taskNotes) {
-      // Allow spaces in the task name, no trimming
-      onAddTask({ name: taskName, difficulty: taskDifficulty, notes: taskNotes });
-      setTaskName(""); // Reset inputs
-      setTaskDifficulty("");
-      setTaskNotes(""); // Reset task notes
+        console.log("Previous tasks:", tasks); // Log the current list of tasks
+        const previousTask = tasks[0]
+        console.log("Previous task:", previousTask); // Log the previous task
+        const taskSide = previousTask && previousTask.side === "left" ? "right" : "left";
+        console.log("Assigned side for new task:", taskSide); // Log the determined side for new task
+        onAddTask({ name: taskName, difficulty: taskDifficulty, notes: taskNotes, side: taskSide });
+
+        setTaskName(""); // Reset inputs
+        setTaskDifficulty("");
+        setTaskNotes(""); // Reset task notes
     } else {
-      alert("Please fill out all fields.");
+        alert("Please fill out all fields.");
     }
-  };
+};
 
   return (
     <div

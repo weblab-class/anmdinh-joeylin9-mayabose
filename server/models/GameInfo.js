@@ -12,6 +12,7 @@ const gameSchema = new mongoose.Schema(
       {
         name: { type: String, required: true }, // Task name
         difficulty: { type: String, enum: ["Easy", "Medium", "Hard"], required: true }, // Task difficulty
+        side: { type: String, enum: ["left", "right"], required: true }, // New field for left/right side of the tree
         notes: { type: String }, // Additional notes
         createdAt: {
           type: Date,
