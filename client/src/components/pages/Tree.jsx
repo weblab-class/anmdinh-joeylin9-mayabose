@@ -25,6 +25,7 @@ const Tree = () => {
   const [treeState, setTreeState] = useState({
     height: 150, // Initialize height
     branches: [], // Initialize branches
+    bananas: [],
   });
   const gameRef = useRef(null); // Ref to track the Phaser game instance
   const [showAllTasks, setShowAllTasks] = useState(false);
@@ -40,6 +41,7 @@ const Tree = () => {
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
+  const [selectedTaskName, setSelectedTaskName] = useState("")
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value); // Update the input value when the user types
@@ -120,6 +122,7 @@ const Tree = () => {
     let purchaseButton; // Reference to the purchase button in the shop
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
+    let bananas = [];
 
     const updateBananaCounter = (newCount) => {
       setBananaCounter(newCount);
@@ -164,10 +167,12 @@ const Tree = () => {
       // Save references for use in growTree
       this.tree = tree;
       this.branches = branches;
+      this.bananas = bananas;
       this.branchSide = branchSide;
 
 // Initialize branches with tasks, ensuring bananas are added and order is reversed
 this.branches = [];
+this.bananas = [];
 tasks.reverse().forEach((task, index) => {
   // Assuming tree height is initialized at 0 or a default value
   const treeObj = this.tree;
@@ -220,7 +225,14 @@ tasks.reverse().forEach((task, index) => {
     banana.setOrigin(0.5, 0.5);
     banana.setDisplaySize(50, 50); // Adjust the size as needed
     banana.setDepth(10); // Ensure it appears in front of other objects
+
+    if (this && this.bananas) {
+      this.bananas.push(banana);
+    }
   }
+
+  // Alternate branch side for the next branch
+  this.branchSide = this.branchSide === "left" ? "right" : "left";
 });
 
 
@@ -491,13 +503,74 @@ tasks.reverse().forEach((task, index) => {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
       }
 
-      if (this.branches.some(branch => this.physics.overlap(monkey, branch))) {
-          setPopupVisible(true);
+       // Flag to track if the popup should be show
+
+       this.branches.forEach(branch => {
+        const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
+        const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
+        const branchBounds = branch.getBounds(); // Get branch's bounds
+      
+        // Check if the monkey is currently overlapping with the branch
+        const isOverlapping = this.physics.overlap(monkey, branch);
+      
+        // If monkey is overlapping with the branch, check conditions for the popup
+        if (isOverlapping) {
+          // Check leftmost half of left branch
+          if (
+            isLeftBranch &&
+            monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
+            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
+          ) {
+            console.log("Monkey is in the leftmost half of the left branch!");
+            setPopupVisible(true);
+      
+            // Find the text directly above the leftmost half of the left branch
+            const textAboveBranch = this.children.getChildren().find(child => {
+              return (
+                child instanceof Phaser.GameObjects.Text && // Check if it's a Text object
+                child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+                child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
+              );
+            });
+      
+            if (textAboveBranch) {
+              const taskName = textAboveBranch.text; // Get the task name from the text
+              setSelectedTaskName(taskName);
+              console.log('found task name');
+            }
+          }
+      
+          // Check rightmost half of right branch
+          if (
+            !isLeftBranch &&
+            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
+            monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
+          ) {
+            console.log("Monkey is in the rightmost half of the right branch!");
+            setPopupVisible(true);
+      
+            // Find the text directly above the rightmost half of the right branch
+            const textAboveBranch = this.scene.children.getChildren().find(child => {
+              return (
+                child instanceof Phaser.GameObjects.Text && // Check if it's a Text object
+                child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+                child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
+              );
+            });
+      
+            if (textAboveBranch) {
+              const taskName = textAboveBranch.text; // Get the task name from the text
+              setSelectedTaskName(taskName);
+              console.log('found task name');
+            }
+          }
+        } else {
+          // If the monkey is no longer overlapping with the branch, hide the popup
+          setPopupVisible(false);
         }
-       else {
-        // Hide the popup when the monkey is not on any branch
-        setPopupVisible(false);
-      }
+      });
+      
+      
     }
 
   const handleAddTask = (task) => {
@@ -513,12 +586,30 @@ tasks.reverse().forEach((task, index) => {
     setShowTaskManager(false); // Close the TaskManager without adding a task
   };
 
-  const handleSubmit = () => {
-    console.log("Task Submitted:", inputValue); // You can handle the task submission here
-    //setPopupVisible(false);
-     // process data
+  const handleSave = (input) => {
+    const task = tasks.find(t => t.name === selectedTaskName);
+    console.log(selectedTaskName)
+    console.log(task)
+    // Update the task notes with the newly provided input
+    task.notes = input;
+    
+    // Assuming tasks is the list of all tasks in the state and you want to update the specific task
+    const updatedTasks = tasks.map((existingTask) =>
+      existingTask.id === task.id ? { ...existingTask, notes: task.notes } : existingTask
+    );
+  
+    // Update the state with the new task list
+    setTasks(updatedTasks);
+  
+    // Optionally, trigger the save function to persist the updated task list
+    saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
   };
+  
 
+  const handleCollectBananas = () => {
+    console.log("Bananas collected!"); // Placeholder for actual action
+    // Add any action you want to trigger when "Collect Bananas!" is clicked
+  };
 
   const growTree = (task) => {
     if (scene && scene.tree) {
@@ -578,6 +669,11 @@ tasks.reverse().forEach((task, index) => {
           const bananaCount =
             task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
           const bananaSpacing = 50; // Horizontal spacing between bananas
+          if (!scene.bananas) {
+            scene.bananas = [];
+          }
+          
+          // Inside the `growTree` function (where bananas are created), add each banana to the `scene.bananas` array
           for (let i = 0; i < bananaCount; i++) {
             const banana = scene.add.sprite(
               bananaStartX + i * bananaSpacing,
@@ -587,12 +683,19 @@ tasks.reverse().forEach((task, index) => {
             banana.setOrigin(0.5, 0.5);
             banana.setDisplaySize(50, 50); // Adjust the size as needed
             banana.setDepth(10); // Ensure it appears in front of other objects
-          }
 
+            scene.physics.add.existing(banana);
+            banana.body.setAllowGravity(false); // Disable gravity if bananas shouldn't fall
+            banana.body.setImmovable(true); // Make bananas immovable
+          
+            // Add the banana to the scene's bananas array
+            scene.bananas.push(banana);
+          }
           // Create the updated tree state to pass to saveTreeData
           const updatedTreeState = {
             height: treeObj.height,  // The updated height of the tree
             branches: scene.branches,  // All the branches currently on the tree
+            bananas: scene.bananas,
           };
 
           // Alternate branch side for the next branch
@@ -756,17 +859,19 @@ tasks.reverse().forEach((task, index) => {
 
       {/* Show All Tasks Section */}
       {showAllTasks && (
-        <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
-          <h4>All Tasks</h4>
-          <ul>
-            {tasks.map((task, index) => (
-              <li key={index}>
-                <strong>{task.name}</strong> - {task.difficulty}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+  <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
+    <h4>All Tasks</h4>
+    <ul>
+      {tasks.map((task, index) => (
+        <li key={index}>
+          <strong>{task.name}</strong> - {task.difficulty} <br />
+          <em>Notes:</em> {task.notes || "No notes available"} {/* Display task notes */}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
 
       {/* Game and Task Manager */}
       <div
@@ -800,6 +905,19 @@ tasks.reverse().forEach((task, index) => {
   tasks={tasks}  // Pass the tasks prop here
 />
         </>
+      )}
+
+{popupVisible && (
+              <Popup
+                inputValue={inputValue}
+                onInputChange={handleInputChange}
+                onSubmit={handleSave}
+                handleCollect={handleCollectBananas}
+                setPopupVisibility={setPopupVisible}
+                style={{
+                zIndex: 1000, // Ensure this is higher than any other elements
+                }}
+              />
       )}
 
       {/* Bananas Display */}
