@@ -362,8 +362,10 @@ const Tree = () => {
 
         if (prevCounter < price) {
           alert('Not enough bananas!')
+          return prevCounter
         } else if (purchaseButton._text === "Purchased") {
           alert('Monkey already purchased!')
+          return prevCounter
         }else{
           console.log('Purchased!');
 
