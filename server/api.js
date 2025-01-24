@@ -54,8 +54,6 @@ router.post("/initsocket", checkPlayerAuth, async (req, res) => {
 router.get('/gameInfo', async (req, res) => {
   try {
     const userId = req.query.userId; // Get userId from query params
-    console.log("userId:", userId);
-    console.log("!userId is:", !userId);
 
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });

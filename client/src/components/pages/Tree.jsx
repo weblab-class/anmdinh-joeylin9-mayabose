@@ -28,52 +28,6 @@ const Tree = () => {
     branches: [], // Initialize branches
   });
   const gameRef = useRef(null); // Ref to track the Phaser game instance
-<<<<<<< HEAD
-=======
-
-  // Fetch tasks and tree data only if userId is available
-  useEffect(() => {
-    if (!userId) {
-      console.log("Missing userId, redirecting to homepage...");
-      navigate("/"); // Redirect to homepage if userId is not available
-    } else {
-      // Check if the tutorial has already been shown
-      const hasSeenTutorial = localStorage.getItem("hasSeenTutorial");
-
-      // Show tutorial only if it hasn't been shown before
-      if (!hasSeenTutorial) {
-        setShowHelp(true);
-        localStorage.setItem("hasSeenTutorial", "true"); // Mark as seen
-      }
-    }
-
-    const fetchData = async () => {
-      try {
-        // Fetch tree data
-        const treeResponse = await axios.get("/api/tree", {
-          params: { userId: userId },
-        });
-        console.log("Fetched tree data from backend:", treeResponse.data);
-        const { tree } = treeResponse.data;
-        setTreeState(tree || { height: 150, branches: [] }); // Ensure treeState is initialized
-
-        // Fetch tasks data
-        const tasksResponse = await api.get("/api/tasks", { params: { userId: userId } });
-        console.log("Fetched tasks:", tasksResponse.data);
-        setTasks(tasksResponse.data.tasks || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        if (error.response && error.response.status === 401) {
-          handleLogout();
-          navigate("/"); // Redirect to homepage on unauthorized error
-        }
-      }
-    };
-
-    fetchData();
-  }, [userId, navigate, handleLogout]);
-
->>>>>>> b71917c1a72ef6dee3768ca162139d0206ecedb3
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
   const [selectedMonkeyIndex, setSelectedMonkeyIndex] = useState(0); // Current selected monkey in the shop
@@ -84,13 +38,9 @@ const Tree = () => {
   const [userInput, setUserInput] = useState("");
   const [onBranch, setOnBranch] = useState(false); // Tracks if the monkey is currently on a branch
   const [inputValue, setInputValue] = useState("");
-<<<<<<< HEAD
   const [loading, setLoading] = useState(true); // Track loading state for tasks
-=======
-
   const [showHelp, setShowHelp] = useState(false);
 
->>>>>>> b71917c1a72ef6dee3768ca162139d0206ecedb3
   const handleInputChange = (event) => {
     setInputValue(event.target.value); // Update the input value when the user types
   };
@@ -289,7 +239,7 @@ tasks.reverse().forEach((task, index) => {
       this.physics.add.existing(market, true);
 
       // Create the monkey sprite with physics
-      monkey = this.physics.add.sprite(window.innerWidth /2 , window.innerHeight/2, "monkey1");
+      monkey = this.physics.add.sprite(window.innerWidth /2 , window.innerHeight * 0.9 - 45, "monkey1");
       monkey.setDisplaySize(100, 80);
 
       ground = this.add.rectangle(
@@ -312,12 +262,12 @@ tasks.reverse().forEach((task, index) => {
       );
       mound.setOrigin(0.5, 0);
       this.physics.add.existing(mound, true); // Add static physics to the rectangles
-      
+
       for (let i = 0; i < 100; i++) {
         const randomX = Math.random() * window.innerWidth*5 // Random X within screen width
         const randomWidth = Math.random() * (100-50) + 50;
         const randomHeight = Math.random() * (100-40) + 40;
-    
+
         // Add the grass patch at the random position
         const grassPatch = this.add.image(randomX-window.innerWidth, window.innerHeight*.875, 'grass');
         grassPatch.setDisplaySize(randomWidth, randomHeight)
@@ -655,80 +605,115 @@ tasks.reverse().forEach((task, index) => {
 
   return (
     <div>
-      <button onClick={() => setShowTaskManager(true)} style={{position:"relative", left: "5px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", fontSize: "15px", }}><strong>Add Task</strong></button>
-      <button onClick={() => setShowAllTasks(!showAllTasks)} style={{position:"relative", left: "9px", padding: "10px", fontFamily: "Courier New", marginTop: "10px", fontSize: "15px", }}>
+      {/* Add Task Button */}
+      <button
+        onClick={() => setShowTaskManager(true)}
+        style={{
+          position: "absolute",
+          top: "10px",
+          left: "10px",
+          padding: "10px",
+          fontFamily: "Courier New",
+          fontSize: "15px",
+          zIndex: 9999,
+        }}
+      >
+        <strong>Add Task</strong>
+      </button>
+
+      {/* Show All Tasks Button */}
+      <button
+        onClick={() => setShowAllTasks(!showAllTasks)}
+        style={{
+          position: "absolute",
+          top: "10px",
+          left: "120px",
+          padding: "10px",
+          fontFamily: "Courier New",
+          fontSize: "15px",
+          zIndex: 9999,
+        }}
+      >
         <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
 
-      <div 
-      style={{
-        position: 'absolute', 
-        top: 18, 
-        left: 275, 
-        cursor: 'pointer', 
-        fontSize: '24px',
-        zIndex: 1000
-      }} 
-      onClick={() => setShowHelp(true)}
-    >
-      ?
-    </div>
-
-    {showHelp && (
-      <div 
+      {/* Help Icon */}
+      <div
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 2000
+          position: "absolute",
+          top: "14px", // Adjust this to control vertical space from the buttons
+          left: "285px", // Move right from the left
+          cursor: "pointer",
+          fontSize: "25px", // Icon size
+          fontFamily: "Courier New",
+          fontWeight: "100",
+          color: "black", // Icon color for visibility
+          zIndex: 1000, // Ensure it's on top
+        }}
+        onClick={() => {
+          setShowHelp(true);
+          console.log("Help clicked!"); // Check if it's triggered
         }}
       >
-        <div 
+        ?
+      </div>
+
+      {/* Help Popup */}
+      {showHelp && (
+        <div
           style={{
-            backgroundColor: 'white',
-            padding: '30px',
-            borderRadius: '10px',
-            width: '80%',
-            maxWidth: '600px',
-            position: 'relative',
-            maxHeight: '80%',
-            overflowY: 'auto'
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.7)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 2000,
           }}
         >
-          <button 
-            onClick={() => setShowHelp(false)}
+          <div
             style={{
-              position: 'absolute',
-              top: '10px',
-              right: '10px',
-              fontSize: '24px',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer'
+              backgroundColor: "white",
+              padding: "30px",
+              borderRadius: "10px",
+              width: "80%",
+              maxWidth: "600px",
+              position: "relative",
+              maxHeight: "80%",
+              overflowY: "auto",
             }}
           >
-            ✕
-          </button>
-          <h2>Welcome to Monkey See Monkey Do!</h2>
-          <p>Here's how to use the app:</p>
-          <ul>
-            <li style={{ marginBottom: '10px' }}>Use the arrow keys to move the monkey</li>
-            <li style={{ marginBottom: '10px' }}>Click "Add Task" to create new tasks</li>
-            <li style={{ marginBottom: '10px' }}>To find a task, climb the tree or click "Show All Tasks", then click the task </li>
-            <li style={{ marginBottom: '10px' }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
-            <li>Have fun!</li>
-          </ul>
+            <button
+              onClick={() => setShowHelp(false)}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                fontSize: "24px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              ✕
+            </button>
+            <h2>Welcome to Monkey See Monkey Do!</h2>
+            <p>Here's how to use the app:</p>
+            <ul>
+              <li style={{ marginBottom: "10px" }}>Use the arrow keys to move the monkey</li>
+              <li style={{ marginBottom: "10px" }}>Click "Add Task" to create new tasks</li>
+              <li style={{ marginBottom: "10px" }}>To find a task, climb the tree or click "Show All Tasks", then click the task</li>
+              <li style={{ marginBottom: "10px" }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
+              <li>Have fun!</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    )}
+      )}
 
-      {/* Show the task list if "All Tasks" is clicked */}
+      {/* Show All Tasks Section */}
       {showAllTasks && (
         <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
           <h4>All Tasks</h4>
@@ -742,6 +727,7 @@ tasks.reverse().forEach((task, index) => {
         </div>
       )}
 
+      {/* Game and Task Manager */}
       <div
         id="phaser-game"
         style={{
@@ -751,7 +737,6 @@ tasks.reverse().forEach((task, index) => {
           position: "relative",
         }}
       />
-
       {showTaskManager && (
         <>
           <div
@@ -765,23 +750,30 @@ tasks.reverse().forEach((task, index) => {
             }}
             onClick={handleCancel}
           />
-          <TaskManager onAddTask={(task) => { growTree(task); handleAddTask(task); }} onCancel={handleCancel} />
-      </>
+          <TaskManager
+            onAddTask={(task) => {
+              growTree(task);
+              handleAddTask(task);
+            }}
+            onCancel={handleCancel}
+          />
+        </>
       )}
 
-          {popupVisible && (
-              <Popup
-                inputValue={inputValue}
-                onInputChange={handleInputChange}
-                onSubmit={handleSubmit}
-                setPopupVisibility={setPopupVisible}
-                style={{
-                  zIndex: 1000, // Ensure this is higher than any other elements
-                }}
-              />
-      )}
-      <div style={{ position: 'absolute', top: -15, right: 15, fontFamily: "Courier New", marginTop: "10px", fontWeight: "100"}}>
-        <p style={{fontSize: "18px"}}><strong>Bananas: {bananaCounter}</strong></p>
+      {/* Bananas Display */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-15px",
+          right: "15px",
+          fontFamily: "Courier New",
+          marginTop: "10px",
+          fontWeight: "100",
+        }}
+      >
+        <p style={{ fontSize: "18px" }}>
+          <strong>Bananas: {bananaCounter}</strong>
+        </p>
       </div>
     </div>
   );
