@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import Phaser from "phaser";
-// import axios from "axios";
 import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkey2.png";
@@ -80,7 +79,7 @@ const Tree = () => {
       physics: {
         default: 'arcade',
         arcade: {
-          gravity: { y: 1000 },
+          gravity: { y: 1500 },
           debug: false,
         },
       },
@@ -486,7 +485,7 @@ tasks.reverse().forEach((task, index) => {
       // Check if the monkey is on the tree or a branch, and disable gravity
       if (this.physics.overlap(monkey, this.tree) ||
           this.branches.some(branch => this.physics.overlap(monkey, branch))) {
-        monkey.body.setGravityY(-1000); // Disable gravity when on tree or branch
+        monkey.body.setGravityY(-1500); // Disable gravity when on tree or branch
         monkey.setVelocityY(0); // Stop any downward movement
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
