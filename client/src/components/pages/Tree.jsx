@@ -8,7 +8,7 @@ import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
-import Popup from "../PopUp";
+import Popup from "../Popup";
 // import Shop from './Shop'; // Import Shop scene
 import { useNavigate } from "react-router-dom";
 
@@ -134,6 +134,8 @@ const Tree = () => {
     let monkeyNumber = 0; // Reference to the monkey number in the shop
     let costText; // Reference to the cost text in the shop
     let purchaseButton; // Reference to the purchase button in the shop
+    let shopOpen = false; // Track if the shop is open
+    let lastChangeTime = 0;
 
     const updateBananaCounter = (newCount) => {
       setBananaCounter(newCount);
@@ -216,7 +218,6 @@ const Tree = () => {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-
       // Set up the camera to follow the monkey
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
@@ -240,10 +241,6 @@ const Tree = () => {
         closeShop();
       });
       shopContainer.add(closeButton);
-
-      this.physics.add.overlap(monkey, market, () => {
-        openShop();
-      });
 
       purchaseButton = this.add.text(0, shopBackground.height*.4, "Purchased", { fontSize: "16px", fill: "#000" });
       purchaseButton.setOrigin(0.5, 0.5);
@@ -330,18 +327,22 @@ const Tree = () => {
 
     function openShop() {
       console.log('Opening shop...');
+      shopOpen = true;
       monkeyMovementEnabled = false; // Disable monkey movement
       monkey.x = window.innerWidth*1.2
       monkey.y = window.innerHeight * .8
       shopContainer.setVisible(true);
       camera.stopFollow(); // Stop following the monkey
       camera.pan(shopContainer.x, shopContainer.y, 500, 'Linear', true); // Pan to shop container
+      lastChangeTime = Date.now() + 500;
     }
 
     function closeShop() {
       setPurchasedMonkeys((prevPurchasedMonkeys) => {
         if (prevPurchasedMonkeys[monkeyNumber]) {
           console.log("Closing shop...");
+          shopOpen = false;
+          lastChangeTime = 0;
           monkeyMovementEnabled = true; // Re-enable monkey movement
           shopContainer.setVisible(false);
           camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
@@ -357,6 +358,27 @@ const Tree = () => {
     }
 
     function update() {
+      // INFINITE BANANA COLLECTION
+      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+      qKey.on("down", () => {
+        setBananaCounter((prevCount) => prevCount + 1);
+      });
+
+      // SHOP UPDATES
+      if (shopOpen) {
+        const currentTime = Date.now(); // Get the current time in milliseconds
+      
+        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
+          changeMonkey(-1);
+          lastChangeTime = currentTime; // Update the last change time
+        }
+      
+        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
+          changeMonkey(1);
+          lastChangeTime = currentTime; // Update the last change time
+        }
+      }
+
       if (monkeyMovementEnabled) {
         // Process monkey movement
         if (this.leftKey.isDown) {
@@ -372,7 +394,6 @@ const Tree = () => {
         }
       } else {
         // Disable movement
-        console.log('stopped');
         monkey.setVelocityX(0);
         monkey.setVelocityY(0); // Stop vertical movement as well if necessary
       }
