@@ -85,13 +85,17 @@ const Tree = () => {
       physics: {
         default: 'arcade',
         arcade: {
-          gravity: { y: window.innerHeight*2 },
+          gravity: { y: windowHeight*2 },
           debug: false,
         },
       },
       scene: [
         { key: 'Tree', preload, create, update }, // Tree scene
       ],
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+      },
       input: {
         keyboard: {
           capture: ['UP', 'DOWN', 'LEFT', 'RIGHT'], // Capture only arrow keys
@@ -107,6 +111,8 @@ const Tree = () => {
     };
   }, [loading]);
 
+    let windowWidth = window.innerWidth;
+    let windowHeight = window.innerHeight;
     let tree; // Variable to hold the tree object
     let branches = []; // Array to store branch objects
     let branchSide = "left"; // Track which side the next branch will appear
@@ -143,13 +149,11 @@ const Tree = () => {
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
       this.load.image("grass", grassImg);
-      console.log(window.innerWidth)
-      console.log(window.innerHeight)
     }
 
     function update() {
       // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, -window.innerWidth/2, Infinity);
+      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
       monkey.y = Phaser.Math.Clamp(monkey.y, 0, Infinity);
 
       // INFINITE BANANA COLLECTION
@@ -176,15 +180,15 @@ const Tree = () => {
       if (monkeyMovementEnabled) {
         // Process monkey movement
         if (this.leftKey.isDown) {
-          monkey.setVelocityX(-window.innerWidth/2);
+          monkey.setVelocityX(-windowWidth/2);
         } else if (this.rightKey.isDown) {
-          monkey.setVelocityX(window.innerWidth/2);
+          monkey.setVelocityX(windowWidth/2);
         } else {
           monkey.setVelocityX(0); // Stop horizontal movement
         }
 
         if (this.upKey.isDown && monkey.body.touching.down) {
-          monkey.setVelocityY(-window.innerHeight); // Jump
+          monkey.setVelocityY(-windowHeight); // Jump
         }
       } else {
         // Disable movement
@@ -195,18 +199,18 @@ const Tree = () => {
       if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
         // Prevent the monkey from moving beneath the ground level
         if (!this.physics.overlap(monkey, mound)) {
-          monkey.y += window.innerHeight*(1/75);
+          monkey.y += windowHeight*(1/75);
         }
       }
 
       if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        monkey.y -= window.innerHeight*(1/75);
+        monkey.y -= windowHeight*(1/75);
       }
 
       // Check if the monkey is on the tree or a branch, and disable gravity
       if (this.physics.overlap(monkey, this.tree) ||
           this.branches.some(branch => this.physics.overlap(monkey, branch))) {
-        monkey.body.setGravityY(-window.innerHeight*2); // Disable gravity when on tree or branch
+        monkey.body.setGravityY(-windowHeight*2); // Disable gravity when on tree or branch
         monkey.setVelocityY(0); // Stop any downward movement
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
@@ -242,7 +246,7 @@ const Tree = () => {
                 return (
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - window.innerHeight*(2/25) // that height above the branch
+                  child.y >= branchBounds.y - windowHeight*(2/25) // that height above the branch
                 );
               });
 
@@ -272,7 +276,7 @@ const Tree = () => {
                 return (
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
+                  child.y >= branchBounds.y - windowHeight*(2/25) // Ensure text is within 60 pixels above the branch
                 );
               });
 
@@ -303,13 +307,13 @@ const Tree = () => {
       console.log('Creating shop and game elements');
 
       // Tree setup based on tasks length
-      const treeBaseHeight = 150;
+      const treeBaseHeight = windowHeight*(150/765);
       const treeHeight = treeBaseHeight + tasks.length * 100; // Dynamic tree height
 
       tree = this.add.rectangle(
-        window.innerWidth / 2,
-        window.innerHeight * 0.9,
-        50,
+        windowWidth / 2,
+        windowHeight * 0.9,
+        windowHeight*(50/765),
         treeHeight,
         0x4a3d36
       );
@@ -328,18 +332,19 @@ const Tree = () => {
       tasks.reverse().forEach((task, index) => {
         // Assuming tree height is initialized at 0 or a default value
         const treeObj = this.tree;
-        const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
+        const branchY = treeObj.y - treeObj.height + windowHeight*(10/765) + (index * 100); // Position relative to tree height
 
 
         // Ensure task.side is used correctly for left/right placement
-        const branchX = task.side === "left" ? treeObj.x - 100 : treeObj.x + 100; // Correct placement based on task.side
+        const branchX = task.side === "left" ? treeObj.x - windowWidth*(100/1494) : 
+          treeObj.x + windowWidth*(100/1494); // Correct placement based on task.side
 
         // Create the branch
         const branch = this.add.rectangle(
           branchX,
           branchY,
-          200,
-          15,
+          windowWidth*(200/1494),
+          windowHeight*(15/765),
           0x4a3d36
         );
 
@@ -357,20 +362,21 @@ const Tree = () => {
         const taskName = task.name || "Default Task";
         const bananaStartX =
           task.side === "left"
-            ? branchX - 100 // Adjust start position for "left" side
-            : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Adjust for "right" side
+            ? branchX - windowWidth*(100/1494) // Adjust start position for "left" side
+            : branchX + windowWidth*(100/1494) - windowWidth*(50/1494) * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Adjust for "right" side
 
-        this.add.text(bananaStartX - 20, branchY - 50, taskName, {
-          font: "20px Courier New",
+        this.add.text(bananaStartX - windowWidth*(20/1494), branchY - windowHeight*(50/765), taskName, {
+          font: windowWidth * (20 / 1494),
+          fontFamily: 'Courier New',
           fill: "#000",
           align: "center",
-          fontWeight: "80px",
+          fontWeight: windowWidth * (80 / 1494),
         });
 
         // Add bananas based on difficulty, spaced horizontally
         const bananaCount =
           task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-        const bananaSpacing = 50; // Horizontal spacing between bananas
+        const bananaSpacing = windowWidth*(50/1494); // Horizontal spacing between bananas
         for (let i = 0; i < bananaCount; i++) {
           const banana = this.add.sprite(
             bananaStartX + i * bananaSpacing,
@@ -378,7 +384,7 @@ const Tree = () => {
             "banana"
           );
           banana.setOrigin(0.5, 0.5);
-          banana.setDisplaySize(window.innerHeight*(3/50), window.innerHeight*(3/50)); // Adjust the size as needed
+          banana.setDisplaySize(windowHeight*(3/50), windowHeight*(3/50)); // Adjust the size as needed
           banana.setDepth(10); // Ensure it appears in front of other objects
 
           if (this && this.bananas) {
@@ -392,26 +398,26 @@ const Tree = () => {
 
       //` SHOP SCENE
 
-      const welcomeText = this.add.text(window.innerWidth * 1.5 , window.innerHeight / 2, 'The Shop', {
-        fontSize: '32px',
+      const welcomeText = this.add.text(windowWidth * 1.5 , windowHeight / 2, 'The Shop', {
+        fontSize: windowWidth*(32/1494),
         fill: '#000',
       });
       welcomeText.setOrigin(0.5, 0.5); // Center the text
 
-      market = this.add.image(window.innerWidth * 1.5, window.innerHeight * .75, 'market');
-      market.setDisplaySize(window.innerWidth/5, window.innerHeight/2.5);
+      market = this.add.image(windowWidth * 1.5, windowHeight * .75, 'market');
+      market.setDisplaySize(windowWidth/5, windowHeight/2.5);
       market.setOrigin(0.5, 0.5); // Center the image
       this.physics.add.existing(market, true);
 
       // Create the monkey sprite with physics
-      monkey = this.physics.add.sprite(window.innerWidth /2 , window.innerHeight * 0.9 - 45, "monkey1");
-      monkey.setDisplaySize(window.innerWidth*.075, window.innerHeight*.1);
+      monkey = this.physics.add.sprite(windowWidth /2 , windowHeight * 0.9 - windowHeight*(45/765), "monkey1");
+      monkey.setDisplaySize(windowWidth*.075, windowHeight*.1);
 
       ground = this.add.rectangle(
-        window.innerWidth / 2,
-        window.innerHeight * 0.9,
-        window.innerWidth*3,
-        window.innerHeight / 2,
+        windowWidth / 2,
+        windowHeight * 0.9,
+        windowWidth*3,
+        windowHeight / 2,
         0x4caf50
       );
       ground.setOrigin(0.5, 0);
@@ -419,21 +425,21 @@ const Tree = () => {
       this.physics.add.collider(monkey, ground);
 
       mound = this.add.rectangle(
-        window.innerWidth / 2,
-        window.innerHeight * 0.89,
-        window.innerWidth*3,
-        window.innerHeight / 2,
+        windowWidth / 2,
+        windowHeight * 0.89,
+        windowWidth*3,
+        windowHeight / 2,
         0x4caf50
       );
       mound.setOrigin(0.5, 0);
       this.physics.add.existing(mound, true); // Add static physics to the rectangles
 
       for (let i = 0; i < 100; i++) {
-        const randomX = Math.random() * window.innerWidth*5 // Random X within screen width
-        const randomWidth = Math.random() * (window.innerWidth*(3/40)-window.innerWidth*(3/100)) + (window.innerWidth*(3/100));
-        const randomHeight = Math.random() * (window.innerHeight*(1/10)-window.innerHeight*(1/20)) + (window.innerHeight*(1/25));
+        const randomX = Math.random() * windowWidth*5 // Random X within screen width
+        const randomWidth = Math.random() * (windowWidth*(3/40)-windowWidth*(3/100)) + (windowWidth*(3/100));
+        const randomHeight = Math.random() * (windowHeight*(1/10)-windowHeight*(1/20)) + (windowHeight*(1/25));
         // Add the grass patch at the random position
-        const grassPatch = this.add.image(randomX-window.innerWidth, window.innerHeight*.875, 'grass');
+        const grassPatch = this.add.image(randomX-windowWidth, windowHeight*.875, 'grass');
         grassPatch.setDisplaySize(randomWidth, randomHeight)
       }
 
@@ -446,22 +452,22 @@ const Tree = () => {
       console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-      camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, Infinity);
+      camera.setBounds(-windowWidth / 2, 0, Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
 
       //SHOP//
-      shopContainer = this.add.container(window.innerWidth * 1.5, window.innerHeight / 2);
+      shopContainer = this.add.container(windowWidth * 1.5, windowHeight / 2);
       shopContainer.setVisible(false);
 
-      const shopBackground = this.add.rectangle(0, 0, window.innerWidth/2.5, window.innerHeight/2, 0xffffff, 1);
+      const shopBackground = this.add.rectangle(0, 0, windowWidth/2.5, windowHeight/2, 0xffffff, 1);
       shopBackground.setOrigin(0.5, 0.5);
       shopContainer.add(shopBackground);
 
-      const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: '32px', fill: '#000' });
+      const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: windowWidth*(32/1494), fill: '#000' });
       shopText.setOrigin(0.5, -0.5);
       shopContainer.add(shopText);
 
-      const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: '24px', fill: '#000' });
+      const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth*(24/1494), fill: '#000' });
       closeButton.setOrigin(2, -0.5);
       closeButton.setInteractive();
       closeButton.on('pointerdown', () => {
@@ -469,33 +475,33 @@ const Tree = () => {
       });
       shopContainer.add(closeButton);
 
-      purchaseButton = this.add.text(0, shopBackground.height*.4, "Purchased", { fontSize: "16px", fill: "#000" });
+      purchaseButton = this.add.text(0, shopBackground.height*.4, "Purchased", { fontSize: windowWidth*(16/1494), fill: "#000" });
       purchaseButton.setOrigin(0.5, 0.5);
       purchaseButton.setInteractive();
       purchaseButton.on("pointerdown", () => purchaseMonkey());
       shopContainer.add(purchaseButton);
 
-      const leftArrow = this.add.text(-shopBackground.width*.15, shopBackground.height*-.1, '<', { fontSize: '32px', fill: '#000' });
+      const leftArrow = this.add.text(-shopBackground.width*.15, shopBackground.height*-.1, '<', { fontSize: windowWidth*(32/1494), fill: '#000' });
       leftArrow.setOrigin(1, 0.5);
       leftArrow.setInteractive();
       leftArrow.on('pointerdown', () => changeMonkey(-1)); // Change monkey to previous image
       shopContainer.add(leftArrow);
 
-      const rightArrow = this.add.text(shopBackground.width*.15, shopBackground.height*-.1, '>', { fontSize: '32px', fill: '#000' });
+      const rightArrow = this.add.text(shopBackground.width*.15, shopBackground.height*-.1, '>', { fontSize: windowWidth*(32/1494), fill: '#000' });
       rightArrow.setOrigin(0, 0.5);
       rightArrow.setInteractive();
       rightArrow.on('pointerdown', () => changeMonkey(1)); // Change monkey to next image
       shopContainer.add(rightArrow);
 
       monkeyDisplay = this.add.sprite(0, shopBackground.height*-.1, "monkey1");
-      monkeyDisplay.setDisplaySize(window.innerWidth*.075, window.innerHeight*.1);
+      monkeyDisplay.setDisplaySize(windowWidth*.075, windowHeight*.1);
       shopContainer.add(monkeyDisplay);
 
       costText = this.add.text(
         0,
-        80,
+        windowHeight*(80/765),
         `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-        { fontSize: "16px", fill: "#000" }
+        { fontSize: windowWidth*(16/1494), fill: "#000" }
       );
       costText.setOrigin(0.5, 0.5); // Center the text
       shopContainer.add(costText);
@@ -558,8 +564,8 @@ const Tree = () => {
       console.log('Opening shop...');
       shopOpen = true;
       monkeyMovementEnabled = false; // Disable monkey movement
-      monkey.x = window.innerWidth*1.2
-      monkey.y = window.innerHeight * .8
+      monkey.x = windowWidth*1.2
+      monkey.y = windowHeight * .8
       shopContainer.setVisible(true);
       camera.stopFollow(); // Stop following the monkey
       camera.pan(shopContainer.x, shopContainer.y, 500, 'Linear', true); // Pan to shop container
@@ -639,7 +645,7 @@ const Tree = () => {
   const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
-      const newHeight = treeObj.height + 150; // Increased height growth for a more noticeable change
+      const newHeight = treeObj.height + windowHeight * (150/765); // Increased height growth for a more noticeable change
 
       scene.tweens.add({
         targets: treeObj,
@@ -652,17 +658,17 @@ const Tree = () => {
           treeObj.body.updateFromGameObject();
         },
         onComplete: () => {
-          const branchY = treeObj.y - treeObj.height + 10;
+          const branchY = treeObj.y - treeObj.height + windowHeight*(10/765);
           const branchX =
-            scene.branchSide === "left" ? treeObj.x - 100 : treeObj.x + 100;
+            scene.branchSide === "left" ? treeObj.x - windowWidth*(100/1494) : treeObj.x + windowWidth*(100/1494);
           const taskName = task.name || "Default Task";
 
           // Create the branch
           const branch = scene.add.rectangle(
             branchX,
             branchY,
-            200,
-            15,
+            windowWidth*(200/1494),
+            windowHeight*(15/765),
             0x4a3d36
           );
 
@@ -679,21 +685,22 @@ const Tree = () => {
           // Determine the starting x position for bananas based on branch side
           const bananaStartX =
             scene.branchSide === "left"
-              ? branchX - 100
-              : branchX + 100 - 50 * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
+              ? branchX - windowWidth*(100/1494)
+              : branchX + windowWidth*(100/1494) - windowWidth*(50/1494) * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
 
           // Add task text to the branch
-          scene.add.text(bananaStartX - 20, branchY - 50, taskName, {
-            font: "20px Courier New",
+          scene.add.text(bananaStartX - windowWidth*(20/1494), branchY - windowHeight*(50/765), taskName, {
+            font: windowWidth*(20/1494),
+            fontFamily: "Courier New",
             fill: "#000",
             align: "center",
-            fontWeight: "80px",
+            fontWeight: windowWidth*(80/1494),
           });
 
           // Add bananas based on difficulty, spaced horizontally
           const bananaCount =
             task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-          const bananaSpacing = 50; // Horizontal spacing between bananas
+          const bananaSpacing = windowWidth*(50/1494); // Horizontal spacing between bananas
           if (!scene.bananas) {
             scene.bananas = [];
           }
@@ -706,7 +713,7 @@ const Tree = () => {
               "banana"
             );
             banana.setOrigin(0.5, 0.5);
-            banana.setDisplaySize(window.innerHeight*(3/50), window.innerHeight*(3/50)); // Adjust the size as needed
+            banana.setDisplaySize(windowHeight*(3/50), windowHeight*(3/50)); // Adjust the size as needed
             banana.setDepth(10); // Ensure it appears in front of other objects
 
             scene.physics.add.existing(banana);
@@ -770,11 +777,11 @@ const Tree = () => {
         onClick={() => setShowTaskManager(true)}
         style={{
           position: "absolute",
-          top: "10px",
-          left: "10px",
-          padding: "10px",
+          top: windowHeight*(10/765),
+          left: windowWidth*(10/1494),
+          padding: windowWidth*(10/1494),
           fontFamily: "Courier New",
-          fontSize: "15px",
+          fontSize: windowWidth*(15/1494),
           zIndex: 9999,
         }}
       >
@@ -786,11 +793,11 @@ const Tree = () => {
         onClick={() => setShowAllTasks(!showAllTasks)}
         style={{
           position: "absolute",
-          top: "10px",
-          left: "120px",
-          padding: "10px",
+          top: windowHeight*(10/765),
+          left: windowWidth*(120/1494),
+          padding: windowWidth*(10/1494),
           fontFamily: "Courier New",
-          fontSize: "15px",
+          fontSize: windowWidth*(15/1494),
           zIndex: 9999,
         }}
       >
@@ -802,11 +809,11 @@ const Tree = () => {
         onClick={() => setShowSettings(!showSettings)}
         style={{
           position: "absolute",
-          top: "10px",
-          right: "10px",
-          padding: "10px",
+          top: windowHeight*(10/765),
+          right: windowWidth*(10/1494),
+          padding: windowWidth * (10/1494),
           fontFamily: "Courier New",
-          fontSize: "15px",
+          fontSize: windowWidth*(15/1494),
           zIndex: 9999,
         }}
       >
@@ -820,25 +827,26 @@ const Tree = () => {
             position: "fixed",
             top: "0",
             right: "0",
-            width: "300px",
-            height: "200px",
+            width: windowWidth * (300/1494),
+            height: windowWidth * (200/765),
             backgroundColor: "white",
-            padding: "20px",
-            borderRadius: "15px",
+            padding: windowWidth * (20 / 1494),
+            borderRadius: windowWidth * (15 / 1494),
             zIndex: 2000,
+            fontSize: windowWidth * (16/1494),
           }}
         >
-          <h3>Settings</h3>
+          <h1>Settings</h1>
           <button
             onClick={() => {
               setShowHelp(true); // Open Help popup
               setShowSettings(false); // Close Settings popup
             }}
             style={{
-              padding: "10px",
-              margin: "10px 0",
+              padding: windowWidth * (10 / 1494),
+              margin: windowWidth * (15 / 1494),
               fontFamily: "Courier New",
-              fontSize: "15px",
+              fontSize: windowWidth * (15 / 1494),
             }}
           >
             Help
@@ -849,10 +857,10 @@ const Tree = () => {
               setShowSettings(false); // Close Settings popup
             }}
             style={{
-              padding: "10px",
-              margin: "10px 0",
+              padding: windowWidth * (10 / 1494),
+              margin: windowWidth * (10 / 1494),
               fontFamily: "Courier New",
-              fontSize: "15px",
+              fontSize: windowWidth * (15 / 1494),
             }}
           >
             Logout
@@ -879,10 +887,10 @@ const Tree = () => {
           <div
             style={{
               backgroundColor: "white",
-              padding: "30px",
-              borderRadius: "10px",
+              padding: windowWidth * (30 / 1494),
+              borderRadius: windowWidth * (10 / 1494),
               width: "80%",
-              maxWidth: "600px",
+              maxWidth: windowWidth * (600 / 1494),
               position: "relative",
               maxHeight: "80%",
               overflowY: "auto",
@@ -892,9 +900,9 @@ const Tree = () => {
               onClick={() => setShowHelp(false)}
               style={{
                 position: "absolute",
-                top: "10px",
-                right: "10px",
-                fontSize: "24px",
+                top: windowHeight*(10/765),
+                right: windowWidth * (10 / 1494),
+                fontSize: windowWidth * (24 / 1494),
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -905,10 +913,10 @@ const Tree = () => {
             <h2>Welcome to Monkey See Monkey Do!</h2>
             <p>Here's how to use the app:</p>
             <ul>
-              <li style={{ marginBottom: "10px" }}>Use the arrow keys to move the monkey</li>
-              <li style={{ marginBottom: "10px" }}>Click "Add Task" to create new tasks</li>
-              <li style={{ marginBottom: "10px" }}>To find a task, climb the tree or click "Show All Tasks", then click the task</li>
-              <li style={{ marginBottom: "10px" }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Use the arrow keys to move the monkey</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Click "Add Task" to create new tasks</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>To find a task, climb the tree or click "Show All Tasks", then click the task</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
               <li>Have fun!</li>
             </ul>
           </div>
@@ -917,7 +925,7 @@ const Tree = () => {
 
       {/* Show All Tasks Section */}
       {showAllTasks && (
-  <div style={{ marginTop: "20px", padding: "10px", backgroundColor: "#f4f4f4" }}>
+  <div style={{ marginTop: windowHeight * (20 / 765), padding: windowWidth * (10 / 1494), backgroundColor: "#f4f4f4" }}>
     <h4>All Tasks</h4>
     <ul>
       {tasks.map((task, index) => (
@@ -969,8 +977,8 @@ const Tree = () => {
       <div
         style={{
           position: "absolute",
-          bottom: "10px",
-          right: "20px",
+          bottom: windowHeight * (10 / 765),
+          right: windowWidth * (20 / 1494),
           display: "flex",
           alignItems: "center",
           zIndex: 9999,
@@ -979,11 +987,11 @@ const Tree = () => {
         <button
           onClick={zoomInHandler}
           style={{
-            fontSize: "24px",
+            fontSize: windowWidth * (24 / 1494),
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: "0 10px",
+            margin: windowWidth * (10 / 1494),
           }}
         >
           +
@@ -991,11 +999,11 @@ const Tree = () => {
         <button
           onClick={zoomOutHandler}
           style={{
-            fontSize: "24px",
+            fontSize: windowWidth * (24 / 1494),
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: "0 10px",
+            margin: windowWidth * (10 / 1494),
           }}
         >
           -
@@ -1003,11 +1011,11 @@ const Tree = () => {
         <button
           onClick={resetZoomHandler}
           style={{
-            fontSize: "18px",
+            fontSize: windowWidth * (18 / 1494),
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: "0 10px",
+            margin: windowWidth * (10 / 1494),
           }}
         >
           Reset Zoom
@@ -1038,10 +1046,10 @@ const Tree = () => {
     setPopupVisibility={setPopupVisible}
     style={{
       zIndex: 1000, // Ensure this is higher than any other elements
-      width: '100px', // Adjust the width to be smaller
+      width: windowWidth * (100 / 1494), // Adjust the width to be smaller
       height: 'auto', // Allow height to adjust based on content
-      padding: '15px', // Reduce the padding to make it smaller
-      border: "5px solid black",
+      padding: windowWidth * (15 / 1494), // Reduce the padding to make it smaller
+      border: windowWidth * (5 / 1494),
     }}
   />
 )}
@@ -1052,13 +1060,13 @@ const Tree = () => {
         style={{
           position: "absolute",
           top: 0,
-          right: window.innerWidth*.085,
+          right: windowWidth*.085,
           fontFamily: "Courier New",
-          marginTop: "10px",
-          fontWeight: "100",
+          marginTop: windowHeight * (10 / 765),
+          fontWeight: windowWidth * (100 / 1494),
         }}
       >
-        <p style={{ fontSize: "18px" }}>
+        <p style={{ fontSize: windowWidth * (18 / 1494) }}>
           <strong>Bananas: {bananaCounter}</strong>
         </p>
       </div>
