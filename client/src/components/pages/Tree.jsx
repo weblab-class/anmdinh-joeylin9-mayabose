@@ -43,9 +43,12 @@ const Tree = () => {
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
   const [selectedTaskName, setSelectedTaskName] = useState("")
 
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value); // Update the input value when the user types
+
+  const handleInputChange = (input) => {
+    setInputValue(input); // Update the input value state
+    handleSave(input);  // Call the handleSave function with updated value
   };
+  
 
   // Fetch game info only when userId is available
   useEffect(() => {
@@ -597,33 +600,37 @@ const Tree = () => {
 
   const handleSave = (input) => {
     console.log('taskname', selectedTaskName);
-
+    console.log('Updated input:', input);
+  
     // Find the task with the selected name
     const task = tasks.find(t => t.name === selectedTaskName);
-
+  
     if (task) {
       console.log('Found task:', task);
-
-      // Update the task's notes
-      const updatedTasks = tasks.map(existingTask => {
-        if (existingTask.name === selectedTaskName) {
-          // Update only the task that matches the selectedTaskName
-          return { ...existingTask, notes: input };
-        }
-        return existingTask; // Keep the other tasks the same
+  
+      // Use the callback form of setTasks to ensure we're updating the latest state
+      setTasks((prevTasks) => {
+        // Update the task's notes
+        const updatedTasks = prevTasks.map(existingTask => {
+          if (existingTask.name === selectedTaskName) {
+            return { ...existingTask, notes: input }; // Update only the task that matches the selectedTaskName
+          }
+          return existingTask; // Keep the other tasks the same
+        });
+  
+        // Trigger save function to persist the updated task list
+        saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+  
+        return updatedTasks; // Return the updated tasks to be set
       });
-
-      // Update the tasks state with the new task list
-      setTasks(updatedTasks);
-
-      // Optionally, trigger the save function to persist the updated task list
-      saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
     } else {
       console.log('Task not found!');
     }
   };
-
-
+  
+  
+  
+  let task = tasks.find(t => t.name === selectedTaskName);
 
   const handleCollectBananas = () => {
     console.log("Bananas collected!"); // Placeholder for actual action
@@ -1022,17 +1029,24 @@ const Tree = () => {
       )}
 
 {popupVisible && (
-              <Popup
-                inputValue={inputValue}
-                onInputChange={handleInputChange}
-                onSubmit={handleSave}
-                handleCollect={handleCollectBananas}
-                setPopupVisibility={setPopupVisible}
-                style={{
-                zIndex: 1000, // Ensure this is higher than any other elements
-                }}
-              />
-      )}
+  <Popup
+    defaultValue={task.notes}
+    name={task.name}
+    inputValue={inputValue}
+    onInputChange={handleInputChange}
+    onSubmit={handleSave}
+    handleCollect={handleCollectBananas}
+    setPopupVisibility={setPopupVisible}
+    style={{
+      zIndex: 1000, // Ensure this is higher than any other elements
+      width: '100px', // Adjust the width to be smaller
+      height: 'auto', // Allow height to adjust based on content
+      padding: '15px', // Reduce the padding to make it smaller
+      border: "5px solid black",
+    }}
+  />
+)}
+
 
       {/* Bananas Display */}
       <div
