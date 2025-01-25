@@ -291,10 +291,16 @@ const Tree = () => {
 
       // Set up the camera
       camera = this.cameras.main;
+
+if (camera) {
       camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, 0);
 
       // Smooth follow of the monkey sprite
-      camera.startFollow(monkey, true, 0.1, 0.1);
+  camera.startFollow(monkey, true, 0.1, 0.1);
+  camera.setZoom(1); // Set initial zoom level (normal zoom)
+} else {
+  console.error("Camera not initialized");
+}
 
       //SHOP//
       shopContainer = this.add.container(window.innerWidth * 1.5, window.innerHeight / 2);
@@ -503,85 +509,85 @@ const Tree = () => {
         const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
         const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
         const branchBounds = branch.getBounds(); // Get branch's bounds
-        
+
         // Check if the monkey is currently overlapping with the branch
         const isOverlapping = this.physics.overlap(monkey, branch);
-        
+
         if (isOverlapping) {
           // If the monkey is overlapping, we need to display the popup for this branch
           let popupShown = false;
-      
+
           // Check leftmost half of left branch
           if (
-            isLeftBranch && 
+            isLeftBranch &&
             monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
             monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
           ) {
             if (!popupShown) {
               console.log("Monkey is in the leftmost half of the left branch!");
               setPopupVisible(true); // Show the popup
-              
+
               // Find the text directly above the leftmost half of the left branch
               const textAboveBranch = this.children.getChildren().find(child => {
                 return (
-                  child instanceof Phaser.GameObjects.Text && 
+                  child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
                   child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
                 );
               });
-      
+
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
                 console.log('Selected task name:', taskName);
               }
-      
+
               popupShown = true; // Prevent multiple popups from showing for this branch
               break; // Exit the loop once the popup is shown
             }
           }
-          
+
           // Check rightmost half of right branch
           if (
-            !isLeftBranch && 
+            !isLeftBranch &&
             monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
             monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
           ) {
             if (!popupShown) {
               console.log("Monkey is in the rightmost half of the right branch!");
               setPopupVisible(true); // Show the popup
-              
+
               // Find the text directly above the rightmost half of the right branch
               const textAboveBranch = this.children.getChildren().find(child => {
                 return (
-                  child instanceof Phaser.GameObjects.Text && 
+                  child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
                   child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
                 );
               });
-      
+
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
                 console.log('Selected task name:', taskName);
               }
-      
+
               popupShown = true; // Prevent multiple popups from showing for this branch
               break; // Exit the loop once the popup is shown
             }
           }
         }
-      
+
         // If the monkey is no longer overlapping with any branch, hide the popup
         if (!isOverlapping) {
           setPopupVisible(false);
         }
       }
-   
-      
-      
-      
-      
+
+
+
+
+
     }
 
   const handleAddTask = (task) => {
@@ -599,13 +605,13 @@ const Tree = () => {
 
   const handleSave = (input) => {
     console.log('taskname', selectedTaskName);
-  
+
     // Find the task with the selected name
     const task = tasks.find(t => t.name === selectedTaskName);
-    
+
     if (task) {
       console.log('Found task:', task);
-  
+
       // Update the task's notes
       const updatedTasks = tasks.map(existingTask => {
         if (existingTask.name === selectedTaskName) {
@@ -614,18 +620,18 @@ const Tree = () => {
         }
         return existingTask; // Keep the other tasks the same
       });
-  
+
       // Update the tasks state with the new task list
       setTasks(updatedTasks);
-  
+
       // Optionally, trigger the save function to persist the updated task list
       saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
     } else {
       console.log('Task not found!');
     }
   };
- 
-  
+
+
 
   const handleCollectBananas = () => {
     console.log("Bananas collected!"); // Placeholder for actual action
@@ -693,7 +699,7 @@ const Tree = () => {
           if (!scene.bananas) {
             scene.bananas = [];
           }
-          
+
           // Inside the `growTree` function (where bananas are created), add each banana to the `scene.bananas` array
           for (let i = 0; i < bananaCount; i++) {
             const banana = scene.add.sprite(
@@ -708,7 +714,7 @@ const Tree = () => {
             scene.physics.add.existing(banana);
             banana.body.setAllowGravity(false); // Disable gravity if bananas shouldn't fall
             banana.body.setImmovable(true); // Make bananas immovable
-          
+
             // Add the banana to the scene's bananas array
             scene.bananas.push(banana);
           }
@@ -723,6 +729,39 @@ const Tree = () => {
           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
         },
       });
+    }
+  };
+
+  const resetZoomHandler = () => {
+    const camera = game.scene.getScene('Tree')?.cameras?.main;
+    if (camera) {
+      camera.setZoom(1); // Reset zoom level to the initial state
+    } else {
+      console.error("Camera not initialized");
+    }
+  };
+
+  const zoomInHandler = () => {
+    const camera = game.scene.getScene('Tree')?.cameras?.main;
+    if (camera && camera.zoom < 2) {
+      camera.zoom += 0.1;
+      console.log('Zoom level:', camera.zoom);
+    } else {
+      console.log('Camera: ', camera);
+      console.log('Game: ', game);
+      console.error('Camera or Game is not defined');
+    }
+  };
+
+  const zoomOutHandler = () => {
+    const camera = game.scene.getScene('Tree')?.cameras?.main;
+    if (camera && camera.zoom > 0.5) {
+      camera.zoom -= 0.1;
+      console.log('Zoom level:', camera.zoom);
+    } else {
+      console.log('Camera: ', camera);
+      console.log('Game: ', game);
+      console.error('Camera or Game is not defined');
     }
   };
 
@@ -918,14 +957,76 @@ const Tree = () => {
             onClick={handleCancel}
           />
           <TaskManager
-  onAddTask={(task) => {
-    growTree(task);
-    handleAddTask(task);
-  }}
-  onCancel={handleCancel}
-  tasks={tasks}  // Pass the tasks prop here
-/>
+            onAddTask={(task) => {
+              growTree(task);
+              handleAddTask(task);
+            }}
+            onCancel={handleCancel}
+            tasks={tasks}  // Pass the tasks prop here
+          />
         </>
+      )}
+
+      {/* Zoom Controls */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10px",
+          right: "20px",
+          display: "flex",
+          alignItems: "center",
+          zIndex: 9999,
+        }}
+      >
+        <button
+          onClick={zoomInHandler}
+          style={{
+            fontSize: "24px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            margin: "0 10px",
+          }}
+        >
+          +
+        </button>
+        <button
+          onClick={zoomOutHandler}
+          style={{
+            fontSize: "24px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            margin: "0 10px",
+          }}
+        >
+          -
+        </button>
+        <button
+          onClick={resetZoomHandler}
+          style={{
+            fontSize: "18px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            margin: "0 10px",
+          }}
+        >
+          Reset Zoom
+        </button>
+      </div>
+
+{popupVisible && (
+              <Popup
+                inputValue={inputValue}
+                onInputChange={handleInputChange}
+                onSubmit={handleSave}
+                handleCollect={handleCollectBananas}
+                setPopupVisibility={setPopupVisible}
+                style={{
+                zIndex: 1000, // Ensure this is higher than any other elements
+                }}
+              />
       )}
 
 {popupVisible && (
@@ -945,7 +1046,7 @@ const Tree = () => {
       <div
         style={{
           position: "absolute",
-          top: "-10px",
+          top: "10px",
           right: "125px",
           fontFamily: "Courier New",
           marginTop: "10px",
@@ -958,6 +1059,7 @@ const Tree = () => {
       </div>
     </div>
   );
+
 }
 
 export default Tree;
