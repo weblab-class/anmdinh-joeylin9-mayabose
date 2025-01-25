@@ -145,6 +145,7 @@ const Tree = () => {
     function update() {
       // Boundaries for the world
       monkey.x = Phaser.Math.Clamp(monkey.x, -window.innerWidth/2, window.innerWidth*1.5);
+      monkey.y = Phaser.Math.Clamp(monkey.y, 0, Infinity);
 
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -205,6 +206,7 @@ const Tree = () => {
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
       }
+
 
        // Flag to track if the popup should be show
 
@@ -313,7 +315,6 @@ const Tree = () => {
       this.tree = tree;
       this.branches = branches;
       this.bananas = bananas;
-      this.bananas = bananas;
       this.branchSide = branchSide;
 
       // Initialize branches with tasks, ensuring bananas are added and order is reversed
@@ -323,13 +324,7 @@ const Tree = () => {
         // Assuming tree height is initialized at 0 or a default value
         const treeObj = this.tree;
         const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
-      // Initialize branches with tasks, ensuring bananas are added and order is reversed
-      this.branches = [];
-      this.bananas = [];
-      tasks.reverse().forEach((task, index) => {
-        // Assuming tree height is initialized at 0 or a default value
-        const treeObj = this.tree;
-        const branchY = treeObj.y - treeObj.height + 10 + (index * 100); // Position relative to tree height
+
 
         // Ensure task.side is used correctly for left/right placement
         const branchX = task.side === "left" ? treeObj.x - 100 : treeObj.x + 100; // Correct placement based on task.side
@@ -389,8 +384,6 @@ const Tree = () => {
         // Alternate branch side for the next branch
         this.branchSide = this.branchSide === "left" ? "right" : "left";
       });
-      });
-
 
       //` SHOP SCENE
 
@@ -449,7 +442,7 @@ const Tree = () => {
   console.log("camera")
   camera = this.cameras.main;
   camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-  camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, 0);
+  camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, Infinity);
   camera.setZoom(1); // Set initial zoom level (normal zoom)
 
       //SHOP//
@@ -587,157 +580,6 @@ const Tree = () => {
 
         return prevPurchasedMonkeys; // Ensure state remains unchanged
       });
-    }
-
-    function update() {
-      // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, -window.innerWidth/2, window.innerWidth*1.5);
-
-      // INFINITE BANANA COLLECTION
-      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-      qKey.on("down", () => {
-        setBananaCounter((prevCount) => prevCount + 1);
-      });
-
-      // SHOP UPDATES
-      if (shopOpen) {
-        const currentTime = Date.now(); // Get the current time in milliseconds
-
-        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(-1);
-          lastChangeTime = currentTime; // Update the last change time
-        }
-
-        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(1);
-          lastChangeTime = currentTime; // Update the last change time
-        }
-      }
-
-      if (monkeyMovementEnabled) {
-        // Process monkey movement
-        if (this.leftKey.isDown) {
-          monkey.setVelocityX(-750);
-        } else if (this.rightKey.isDown) {
-          monkey.setVelocityX(750);
-        } else {
-          monkey.setVelocityX(0); // Stop horizontal movement
-        }
-
-        if (this.upKey.isDown && monkey.body.touching.down) {
-          monkey.setVelocityY(-600); // Jump
-        }
-      } else {
-        // Disable movement
-        monkey.setVelocityX(0);
-        monkey.setVelocityY(0); // Stop vertical movement as well if necessary
-      }
-
-      if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        // Prevent the monkey from moving beneath the ground level
-        if (!this.physics.overlap(monkey, mound)) {
-          monkey.y += 10;
-        }
-      }
-
-      if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        monkey.y -= 10;
-      }
-
-      // Check if the monkey is on the tree or a branch, and disable gravity
-      if (this.physics.overlap(monkey, this.tree) ||
-          this.branches.some(branch => this.physics.overlap(monkey, branch))) {
-        monkey.body.setGravityY(-1500); // Disable gravity when on tree or branch
-        monkey.setVelocityY(0); // Stop any downward movement
-      } else {
-        monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
-      }
-
-       // Flag to track if the popup should be show
-
-       for (const branch of this.branches) {
-        const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
-        const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
-        const branchBounds = branch.getBounds(); // Get branch's bounds
-
-        // Check if the monkey is currently overlapping with the branch
-        const isOverlapping = this.physics.overlap(monkey, branch);
-
-        if (isOverlapping) {
-          // If the monkey is overlapping, we need to display the popup for this branch
-          let popupShown = false;
-
-          // Check leftmost half of left branch
-          if (
-            isLeftBranch &&
-            monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
-            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
-          ) {
-            if (!popupShown) {
-              console.log("Monkey is in the leftmost half of the left branch!");
-              setPopupVisible(true); // Show the popup
-
-              // Find the text directly above the leftmost half of the left branch
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
-                );
-              });
-
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text; // Get the task name from the text
-                setSelectedTaskName(taskName); // Update the selected task name
-                console.log('Selected task name:', taskName);
-              }
-
-              popupShown = true; // Prevent multiple popups from showing for this branch
-              break; // Exit the loop once the popup is shown
-            }
-          }
-
-          // Check rightmost half of right branch
-          if (
-            !isLeftBranch &&
-            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
-            monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
-          ) {
-            if (!popupShown) {
-              console.log("Monkey is in the rightmost half of the right branch!");
-              setPopupVisible(true); // Show the popup
-
-              // Find the text directly above the rightmost half of the right branch
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
-                );
-              });
-
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text; // Get the task name from the text
-                setSelectedTaskName(taskName); // Update the selected task name
-                console.log('Selected task name:', taskName);
-              }
-
-              popupShown = true; // Prevent multiple popups from showing for this branch
-              break; // Exit the loop once the popup is shown
-            }
-          }
-        }
-
-        // If the monkey is no longer overlapping with any branch, hide the popup
-        if (!isOverlapping) {
-          setPopupVisible(false);
-        }
-      }
-
-
-
-
-
     }
 
   const handleAddTask = (task) => {
