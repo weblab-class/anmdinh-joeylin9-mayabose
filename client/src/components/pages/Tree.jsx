@@ -85,7 +85,7 @@ const Tree = () => {
       physics: {
         default: 'arcade',
         arcade: {
-          gravity: { y: 1500 },
+          gravity: { y: window.innerHeight*2 },
           debug: false,
         },
       },
@@ -107,7 +107,7 @@ const Tree = () => {
     };
   }, [loading]);
 
-  let tree; // Variable to hold the tree object
+    let tree; // Variable to hold the tree object
     let branches = []; // Array to store branch objects
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
@@ -143,11 +143,13 @@ const Tree = () => {
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
       this.load.image("grass", grassImg);
+      console.log(window.innerWidth)
+      console.log(window.innerHeight)
     }
 
     function update() {
       // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, -window.innerWidth/2, window.innerWidth*1.5);
+      monkey.x = Phaser.Math.Clamp(monkey.x, -window.innerWidth/2, Infinity);
       monkey.y = Phaser.Math.Clamp(monkey.y, 0, Infinity);
 
       // INFINITE BANANA COLLECTION
@@ -174,15 +176,15 @@ const Tree = () => {
       if (monkeyMovementEnabled) {
         // Process monkey movement
         if (this.leftKey.isDown) {
-          monkey.setVelocityX(-750);
+          monkey.setVelocityX(-window.innerWidth/2);
         } else if (this.rightKey.isDown) {
-          monkey.setVelocityX(750);
+          monkey.setVelocityX(window.innerWidth/2);
         } else {
           monkey.setVelocityX(0); // Stop horizontal movement
         }
 
         if (this.upKey.isDown && monkey.body.touching.down) {
-          monkey.setVelocityY(-600); // Jump
+          monkey.setVelocityY(-window.innerHeight); // Jump
         }
       } else {
         // Disable movement
@@ -193,18 +195,18 @@ const Tree = () => {
       if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
         // Prevent the monkey from moving beneath the ground level
         if (!this.physics.overlap(monkey, mound)) {
-          monkey.y += 10;
+          monkey.y += window.innerHeight*(1/75);
         }
       }
 
       if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        monkey.y -= 10;
+        monkey.y -= window.innerHeight*(1/75);
       }
 
       // Check if the monkey is on the tree or a branch, and disable gravity
       if (this.physics.overlap(monkey, this.tree) ||
           this.branches.some(branch => this.physics.overlap(monkey, branch))) {
-        monkey.body.setGravityY(-1500); // Disable gravity when on tree or branch
+        monkey.body.setGravityY(-window.innerHeight*2); // Disable gravity when on tree or branch
         monkey.setVelocityY(0); // Stop any downward movement
       } else {
         monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
@@ -240,7 +242,7 @@ const Tree = () => {
                 return (
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - 60 // Ensure text is within 60 pixels above the branch
+                  child.y >= branchBounds.y - window.innerHeight*(2/25) // that height above the branch
                 );
               });
 
@@ -376,7 +378,7 @@ const Tree = () => {
             "banana"
           );
           banana.setOrigin(0.5, 0.5);
-          banana.setDisplaySize(50, 50); // Adjust the size as needed
+          banana.setDisplaySize(window.innerHeight*(3/50), window.innerHeight*(3/50)); // Adjust the size as needed
           banana.setDepth(10); // Ensure it appears in front of other objects
 
           if (this && this.bananas) {
@@ -403,7 +405,7 @@ const Tree = () => {
 
       // Create the monkey sprite with physics
       monkey = this.physics.add.sprite(window.innerWidth /2 , window.innerHeight * 0.9 - 45, "monkey1");
-      monkey.setDisplaySize(100, 80);
+      monkey.setDisplaySize(window.innerWidth*.075, window.innerHeight*.1);
 
       ground = this.add.rectangle(
         window.innerWidth / 2,
@@ -428,9 +430,8 @@ const Tree = () => {
 
       for (let i = 0; i < 100; i++) {
         const randomX = Math.random() * window.innerWidth*5 // Random X within screen width
-        const randomWidth = Math.random() * (100-50) + 50;
-        const randomHeight = Math.random() * (100-40) + 40;
-
+        const randomWidth = Math.random() * (window.innerWidth*(3/40)-window.innerWidth*(3/100)) + (window.innerWidth*(3/100));
+        const randomHeight = Math.random() * (window.innerHeight*(1/10)-window.innerHeight*(1/20)) + (window.innerHeight*(1/25));
         // Add the grass patch at the random position
         const grassPatch = this.add.image(randomX-window.innerWidth, window.innerHeight*.875, 'grass');
         grassPatch.setDisplaySize(randomWidth, randomHeight)
@@ -442,11 +443,11 @@ const Tree = () => {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-  console.log("camera")
-  camera = this.cameras.main;
-  camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-  camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, Infinity);
-  camera.setZoom(1); // Set initial zoom level (normal zoom)
+      console.log("camera")
+      camera = this.cameras.main;
+      camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
+      camera.setBounds(-window.innerWidth / 2, 0, window.innerWidth * 4, Infinity);
+      camera.setZoom(1); // Set initial zoom level (normal zoom)
 
       //SHOP//
       shopContainer = this.add.container(window.innerWidth * 1.5, window.innerHeight / 2);
@@ -487,7 +488,7 @@ const Tree = () => {
       shopContainer.add(rightArrow);
 
       monkeyDisplay = this.add.sprite(0, shopBackground.height*-.1, "monkey1");
-      monkeyDisplay.setDisplaySize(100, 80);
+      monkeyDisplay.setDisplaySize(window.innerWidth*.075, window.innerHeight*.1);
       shopContainer.add(monkeyDisplay);
 
       costText = this.add.text(
@@ -628,8 +629,6 @@ const Tree = () => {
     }
   };
   
-  
-  
   let task = tasks.find(t => t.name === selectedTaskName);
 
   const handleCollectBananas = () => {
@@ -707,7 +706,7 @@ const Tree = () => {
               "banana"
             );
             banana.setOrigin(0.5, 0.5);
-            banana.setDisplaySize(50, 50); // Adjust the size as needed
+            banana.setDisplaySize(window.innerHeight*(3/50), window.innerHeight*(3/50)); // Adjust the size as needed
             banana.setDepth(10); // Ensure it appears in front of other objects
 
             scene.physics.add.existing(banana);
@@ -1052,8 +1051,8 @@ const Tree = () => {
       <div
         style={{
           position: "absolute",
-          top: "10px",
-          right: "125px",
+          top: 0,
+          right: window.innerWidth*.085,
           fontFamily: "Courier New",
           marginTop: "10px",
           fontWeight: "100",
