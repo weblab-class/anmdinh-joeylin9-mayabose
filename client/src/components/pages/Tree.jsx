@@ -289,9 +289,14 @@ tasks.reverse().forEach((task, index) => {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-      // Set up the camera to follow the monkey
       camera = this.cameras.main;
-      camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
+
+if (camera) {
+  camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
+  camera.setZoom(1); // Set initial zoom level (normal zoom)
+} else {
+  console.error("Camera not initialized");
+}
 
       //SHOP//
       shopContainer = this.add.container(window.innerWidth * 1.5, window.innerHeight / 2);
@@ -602,6 +607,39 @@ tasks.reverse().forEach((task, index) => {
     }
   };
 
+  const resetZoomHandler = () => {
+    const camera = game.scene.getScene('Tree')?.cameras?.main;
+    if (camera) {
+      camera.setZoom(1); // Reset zoom level to the initial state
+    } else {
+      console.error("Camera not initialized");
+    }
+  };
+
+  const zoomInHandler = () => {
+    const camera = game.scene.getScene('Tree')?.cameras?.main;
+    if (camera && camera.zoom < 2) {
+      camera.zoom += 0.1;
+      console.log('Zoom level:', camera.zoom);
+    } else {
+      console.log('Camera: ', camera);
+      console.log('Game: ', game);
+      console.error('Camera or Game is not defined');
+    }
+  };
+
+  const zoomOutHandler = () => {
+    const camera = game.scene.getScene('Tree')?.cameras?.main;
+    if (camera && camera.zoom > 0.5) {
+      camera.zoom -= 0.1;
+      console.log('Zoom level:', camera.zoom);
+    } else {
+      console.log('Camera: ', camera);
+      console.log('Game: ', game);
+      console.error('Camera or Game is not defined');
+    }
+  };
+
   return (
     <div>
       {/* Add Task Button */}
@@ -792,21 +830,70 @@ tasks.reverse().forEach((task, index) => {
             onClick={handleCancel}
           />
           <TaskManager
-  onAddTask={(task) => {
-    growTree(task);
-    handleAddTask(task);
-  }}
-  onCancel={handleCancel}
-  tasks={tasks}  // Pass the tasks prop here
-/>
+            onAddTask={(task) => {
+              growTree(task);
+              handleAddTask(task);
+            }}
+            onCancel={handleCancel}
+            tasks={tasks}  // Pass the tasks prop here
+          />
         </>
       )}
+
+      {/* Zoom Controls */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10px",
+          right: "20px",
+          display: "flex",
+          alignItems: "center",
+          zIndex: 9999,
+        }}
+      >
+        <button
+          onClick={zoomInHandler}
+          style={{
+            fontSize: "24px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            margin: "0 10px",
+          }}
+        >
+          +
+        </button>
+        <button
+          onClick={zoomOutHandler}
+          style={{
+            fontSize: "24px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            margin: "0 10px",
+          }}
+        >
+          -
+        </button>
+        <button
+          onClick={resetZoomHandler}
+          style={{
+            fontSize: "18px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            margin: "0 10px",
+          }}
+        >
+          Reset Zoom
+        </button>
+      </div>
 
       {/* Bananas Display */}
       <div
         style={{
           position: "absolute",
-          top: "-10px",
+          top: "10px",
           right: "125px",
           fontFamily: "Courier New",
           marginTop: "10px",
@@ -819,6 +906,7 @@ tasks.reverse().forEach((task, index) => {
       </div>
     </div>
   );
+
 }
 
 export default Tree;
