@@ -253,7 +253,7 @@ const Tree = () => {
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
-                // console.log('Selected task name:', taskName);
+                //console.log('Selected task name:', taskName);
               }
 
               popupShown = true; // Prevent multiple popups from showing for this branch
@@ -282,7 +282,7 @@ const Tree = () => {
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
-                // console.log('Selected task name:', taskName);
+                //console.log('Selected task name:', taskName);
               }
 
               popupShown = true; // Prevent multiple popups from showing for this branch
@@ -604,6 +604,7 @@ const Tree = () => {
   };
 
   const handleSave = (input) => {
+    console.log("got through!")
     console.log('taskname', selectedTaskName);
     console.log('Updated input:', input);
 

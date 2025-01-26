@@ -3,7 +3,6 @@ import React, { useState } from "react";
 const Popup = ({
   defaultValue = "Default Task", // Default fallback text
   name,
-  onInputChange,
   onSubmit,  // Assuming onSubmit is passed as a prop for saving
   handleCollect,
   setPopupVisibility,
@@ -13,15 +12,13 @@ const Popup = ({
 
   // Handle input change without autosave
   const handleChange = (e) => {
-    const updatedValue = e.target.value;
-    setBase(updatedValue); // Update the input state
-    if (onInputChange) onInputChange(updatedValue); // Update the parent if needed
+    setBase(e.target.value); // Update local state without triggering backend updates
   };
 
   // Handle save button click
   const handleSaveClick = () => {
     setButtonText("Saved");
-    if (onSubmit) onSubmit(base);  // Trigger the parent handler to save the input
+    if (onSubmit) onSubmit(base); // Call the parent save function to persist data
   };
 
   // Button click handler for "Collect Bananas!"
@@ -94,7 +91,10 @@ const Popup = ({
         >
           {/* Save button */}
           <button
-            onClick={handleSaveClick} // Trigger the save action
+            onClick={(e) => {
+              console.log("Save button clicked"); // Debug log
+              handleSaveClick(e); // Ensure function is called
+            }} // Trigger the save action
             style={{
               fontFamily: "Courier New",
               backgroundColor: "#55a9f0", // Light blue
@@ -106,8 +106,8 @@ const Popup = ({
               cursor: "pointer",
               transition: "background-color 0.3s ease", // Smooth color transition
             }}
-            onMouseDown={(e) => (e.target.style.backgroundColor = "#005195")} // Dark blue on click
-            onMouseUp={(e) => (e.target.style.backgroundColor = "#55a9f0")} // Light blue after click
+            // onMouseDown={(e) => (e.target.style.backgroundColor = "#005195")} // Dark blue on click
+            // onMouseUp={(e) => (e.target.style.backgroundColor = "#55a9f0")} // Light blue after click
           >
             {buttonText}
           </button>
