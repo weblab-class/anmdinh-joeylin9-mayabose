@@ -214,8 +214,19 @@ const Tree = () => {
         const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
         const branchBounds = branch.getBounds(); // Get branch's bounds
 
-        // Check if the monkey is currently overlapping with the branch
+        //const branches = this.children.getChildren().filter(child => child.texture && child.texture.key === "branch");
         const isOverlapping = this.physics.overlap(monkey, branch);
+        console.log('branching', this.branches)
+        // Check if there are any branches remaining
+        if (this.branches.length === 0) {
+          console.log('entered')
+          setPopupVisible(false); // Hide the popup if there are no branches left
+          isOverlapping = false;
+          return; // Exit early since there's nothing to check for overlaps
+        }
+
+        // Check if the monkey is currently overlapping with the branch
+        console.log('overlap', isOverlapping)
 
         if (isOverlapping) {
           // If the monkey is overlapping, we need to display the popup for this branch
@@ -235,7 +246,7 @@ const Tree = () => {
                 return (
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
+                  child.y >= branchBounds.y - windowHeight*(2/25) + 10 && // that height above the branch
                   Math.abs(child.x - branchBounds.x) <= 50
                 );
               });
@@ -265,8 +276,8 @@ const Tree = () => {
                 return (
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
-                  Math.abs(child.x - branchBounds.x) <= 50
+                  child.y >= branchBounds.y - windowHeight*(2/25) + 10 // Ensure text is within 60 pixels above the branch
+                  //Math.abs(child.x - branchBounds.x) <= 100
                 );
               });
 
@@ -647,7 +658,7 @@ const Tree = () => {
     } else {
       console.log("No task selected.");
     }
-    removeBranchFromFrontend(taskName);
+    removeBranchFromFrontend(selectedTaskName);
   };
 
   const removeBranchFromFrontend = (taskName) => {
@@ -661,7 +672,8 @@ const Tree = () => {
 
     console.log('text', textToRemove);
       if (textToRemove) {
-        const loc = textToRemove.y + windowHeight*(50/765);
+        const textloc = textToRemove.y
+        const loc = textloc + windowHeight*(50/765);
         const bananaY = loc;
         textToRemove.destroy();
         console.log('destoryed text')
@@ -680,72 +692,95 @@ const Tree = () => {
           banana.destroy();  // Destroy the banana
         });
 
-        const shrinkAmount = 150; // Amount by which the tree shrinks (same as the growth in growTree)
+        const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
+        const treeObj = scene.tree;
         const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
-  //       scene.tweens.add({
-  //         targets: treeObj,
-  //         height: newHeight,
-  //         duration: 500,
-  //         ease: "Linear",
-  //         onUpdate: () => {
-  //           // Update the tree's size and physics body
-  //           treeObj.setSize(50, treeObj.height);
-  //           treeObj.body.updateFromGameObject();
-  //         },
-  //         onComplete: () => {
-  //           // Move each branch down by the same amount the tree shrunk
-  //           scene.branches.forEach((branch) => {
-  //             branch.y += shrinkAmount; // Move branch down by the shrink amount
+        scene.tweens.add({
+          targets: treeObj,
+          height: newHeight,
+          duration: 500,
+          ease: "Linear",
+          onUpdate: () => {
+            // Update the tree's size and physics body
+            treeObj.setSize(50, treeObj.height);
+            treeObj.body.updateFromGameObject();
+          },
+          onComplete: () => {
+            if (scene.branches.length === 0) {
+              console.log('No branches left, resetting state...');
+              setPopupVisible(false); // Ensure popup is closed
+              setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
+            }
+            // Save the updated tree state
+            const updatedTreeState = {
+              height: treeObj.height, // Updated height of the tree
+              branches: scene.branches, // Remaining branches on the tree
+              bananas: scene.bananas,
+            };
+            setTreeState(updatedTreeState);
 
-  //           });
+            
+            // Alternate the branch side for the next branch
+            scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+          },
+        });
 
-  //           // Save the updated tree state
-  //           const updatedTreeState = {
-  //             height: treeObj.height, // Updated height of the tree
-  //             branches: scene.branches, // Remaining branches on the tree
-  //           };
-  //           saveTreeData(updatedTreeState);
+        const branchesMove = scene.branches.filter(branch => branch.y < loc);
 
-  //           // Alternate the branch side for the next branch
-  //           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
-  //         },
-  //       });
+        // Create a tween for moving branches, bananas, and text
+        branchesMove.forEach((branch) => {
+          scene.tweens.add({
+            targets: branch,
+            y: branch.y + shrinkAmount,
+            duration: 500,
+            ease: "Linear",
+            onComplete: () => {
+              // Ensure physics body is finalized at the new position
+              if (branch.body) {
+                branch.body.updateFromGameObject();
+              }
+            }
+          });
+        });
 
-  //       // Reorganize the remaining branches, texts, and bananas
-  //       updateBranchesAfterDeletion(currentBranch.y);
-  //     }
-  //   }
-  // };
+        const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
 
-  // const updateBranchesAfterDeletion = (currentBranchY) => {
-  //   console.log('step 2');
-  //   // Adjust positions of remaining branches, texts, and bananas
-  //   const offsetY = windowHeight * (10 / 765);  // The Y offset to shift down
+        bananasMove.forEach((banana) => {
+          scene.tweens.add({
+            targets: banana,
+            y: banana.y + shrinkAmount,
+            duration: 500,
+            ease: "Linear",
+            onComplete: () => {
+              // Ensure physics body is finalized at the new position
+              if (banana.body) {
+                banana.body.updateFromGameObject();
+              }
+            }
+          });
+        });
 
-  //   // Move branches above the deleted branch down
-  //   scene.branches.forEach(branch => {
-  //     if (branch.y < currentBranchY) {
-  //       branch.y += offsetY;
-  //       console.log('done1')
-  //     }
-  //   });
+        const textMove = scene.children.list.filter(
+          (child) => child instanceof Phaser.GameObjects.Text && child.y < textloc
+        );
+        textMove.forEach((text) => {
+          scene.tweens.add({
+            targets: text,
+            y: text.y + shrinkAmount,
+            duration: 500,
+            ease: "Linear",
+            onComplete: () => {
+              // Ensure physics body is finalized at the new position
+              if (text.body) {
+                text.body.updateFromGameObject();
+              }
+            }
+          });
+        });
 
-  //   // Move task text above the deleted branch down
-  //   scene.children.list.forEach(child => {
-  //     if (child.text && child.y < currentBranchY) {
-  //       child.y += offsetY;
-  //       console.log('done2')
-  //     }
-  //   });
-
-  //   // Move bananas above the deleted branch down
-  //   scene.children.list.forEach(child => {
-  //     if (child.textureKey === "banana" && child.y < currentBranchY) {
-  //       child.y += offsetY;
-  //     }
-  //   });
-}}
+      }
+    }
   };
 
 
@@ -837,6 +872,8 @@ const Tree = () => {
             branches: scene.branches,  // All the branches currently on the tree
             bananas: scene.bananas,
           };
+
+          setTreeState(updatedTreeState)
 
           // Alternate branch side for the next branch
           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
@@ -1153,7 +1190,7 @@ const Tree = () => {
 {popupVisible && (
   <Popup
     defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
-    name={selectedTaskName}
+    name={task?.name}
     onSubmit={handleSave}
     handleCollect={handleCollectBananas}
     setPopupVisibility={setPopupVisible}
