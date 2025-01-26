@@ -3,7 +3,6 @@ import React, { useState } from "react";
 const Popup = ({
   defaultValue = "Default Task", // Default fallback text
   name,
-  onInputChange,
   onSubmit,  // Assuming onSubmit is passed as a prop for saving
   handleCollect,
   setPopupVisibility,
