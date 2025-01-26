@@ -53,21 +53,21 @@ router.post("/initsocket", checkPlayerAuth, async (req, res) => {
 // GET route: Fetch game data for a user (e.g., from database)
 router.get('/gameInfo', async (req, res) => {
   try {
-    const userId = req.query.userId; // Get userId from query params
+    const userId = req.query.userId;
 
     if (!userId) {
       return res.status(400).json({ message: "userId is required" });
     }
 
-    // Fetch game info for the user from the database
+    // Fetch the game info for the user
     const gameInfo = await GameInfo.findOne({ userId });
 
-    // If no game info is found, return an object with numBananas set to 0
     if (!gameInfo) {
-      return res.json({ numBananas: 0, tasks: [] }); // Ensure tasks is also an empty array
+      // Return a default response if no game info exists
+      return res.json({ numBananas: 0, tasks: [] });
     }
 
-    // Return the gameInfo object if found
+    // Return the fetched game info
     res.json(gameInfo);
   } catch (err) {
     console.error("Error fetching game info:", err);
@@ -76,42 +76,59 @@ router.get('/gameInfo', async (req, res) => {
 });
 
 
+
 // POST route: Accepts user input (e.g., game data) and saves to the database
 router.post('/gameInfo', async (req, res) => {
   try {
-    const { userId, tasks, numBananas } = req.body;  // Data sent in POST request body
-    console.log("Received game data:", { userId, tasks, numBananas });
+    const { userId, tasks, numBananas } = req.body;
 
     if (!userId || !tasks) {
       return res.status(400).json({ message: "Missing required fields: userId or tasks" });
     }
 
-    // Check if the user already has game info
+    // Fetch existing game info for the user
     let gameInfo = await GameInfo.findOne({ userId });
 
     if (!gameInfo) {
-      // If no game info exists for the user, create a new gameInfo document
+      // Create new game info with tasks
+      const tasksWithDefaults = tasks.map(task => ({
+        name: task.name,
+        difficulty: task.difficulty,
+        side: task.side,
+        notes: task.notes || "", // Default to empty string if notes are not provided
+        createdAt: task.createdAt || new Date(), // Automatically set timestamp if missing
+      }));
+
       gameInfo = new GameInfo({
         userId,
-        tasks: tasks,  // Start with the list of tasks
-        numBananas: numBananas || 0,  // Default numBananas value
+        tasks: tasksWithDefaults,
+        numBananas: numBananas || 0,
       });
-      await gameInfo.save();  // Save the new game info
-      return res.status(201).json({ message: 'Game info created and tasks added', data: gameInfo });
+
+      await gameInfo.save();
+      return res.status(201).json({ message: 'Game info created successfully', data: gameInfo });
     }
 
-    // If game info exists, update the tasks list
-    gameInfo.tasks = tasks;  // Replace tasks with the new list
-    gameInfo.numBananas = numBananas;  // Optionally update numBananas
-    await gameInfo.save();  // Save the updated game info
+    // Update existing game info
+    const updatedTasks = tasks.map(newTask => {
+      const existingTask = gameInfo.tasks.find(t => t._id && t._id.toString() === newTask._id);
 
-    res.status(200).json({ message: 'Tasks updated successfully', data: gameInfo });
+      return existingTask
+        ? { ...newTask, createdAt: existingTask.createdAt } // Preserve original `createdAt`
+        : { ...newTask, createdAt: new Date() }; // Assign timestamp to new tasks
+    });
 
+    gameInfo.tasks = updatedTasks;
+    gameInfo.numBananas = numBananas;
+
+    await gameInfo.save();
+    res.status(200).json({ message: 'Game info updated successfully', data: gameInfo });
   } catch (err) {
     console.error("Error saving game info:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 
 // Catch-all for undefined API routes

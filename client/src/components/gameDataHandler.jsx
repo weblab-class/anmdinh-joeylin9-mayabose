@@ -11,23 +11,21 @@ export const fetchGameInfo = async (userId) => {
   try {
     console.log("Fetching game info for userId:", userId);
     const response = await api.get("/api/gameInfo", {
-      params: { userId: userId },
+      params: { userId },
     });
 
     console.log("Fetched game info from backend:", response.data);
 
-    const { tasks, numBananas } = response.data;
+    const { tasks = [], numBananas = 0 } = response.data;
 
-    console.log("Tasks (gameDataHandler):", tasks);
-    console.log("Number of bananas (gameDataHandler):", numBananas);
+    // Sort tasks by `createdAt` (newest to oldest)
+    const sortedTasks = tasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    const sortedTasksById = tasks.sort((a, b) => a._id.localeCompare(b._id));
-    console.log("Sorted tasks (gameDataHandler):", sortedTasksById);
+    console.log("Sorted tasks (newest to oldest):", sortedTasks);
 
-    // Return the fetched game data so it can be used in Tree.jsx
     return {
-      tasks: sortedTasksById || [],
-      numBananas: numBananas || 0,
+      tasks: sortedTasks,
+      numBananas,
     };
 
   } catch (error) {
@@ -42,35 +40,36 @@ export const fetchGameInfo = async (userId) => {
       console.error("Error message:", error.message);
     }
 
-    throw new Error('An error occurred while fetching game info. Please try again.');
+    throw new Error("An error occurred while fetching game info. Please try again.");
   }
 };
 
 // Function to save player task data to the backend
 export const saveTaskData = async (userId, tasks, numBananas, setTasks) => {
   try {
-    console.log('Saving task data:', tasks);
-    console.log('User ID:', userId);
+    console.log("Saving task data:", tasks);
+    console.log("User ID:", userId);
 
-    // Send the updated task list and numBananas to the backend
-    const response = await axios.post('/api/gameInfo', {
-      userId,               // Ensure the userId is passed
-      tasks,                // Send the updated list of tasks
-      numBananas,           // Send the updated numBananas value
+    const response = await axios.post("/api/gameInfo", {
+      userId, // Ensure the userId is passed
+      tasks,  // Send the updated list of tasks
+      numBananas, // Send the updated numBananas value
     });
 
-    console.log('Backend response:', response);
+    console.log("Backend response:", response);
 
     if (response.status === 200 || response.status === 201) {
-      console.log('Task data saved successfully');
-      // Update the UI state here to reflect changes
+      console.log("Task data saved successfully");
+      // Optionally update tasks in the UI with the saved order
+      const sortedTasks = tasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setTasks(sortedTasks);
     } else {
-      console.error('Failed to save task data', response);
-      alert('Failed to save task data to the server. Please try again.');
+      console.error("Failed to save task data", response);
+      alert("Failed to save task data to the server. Please try again.");
     }
   } catch (error) {
-    console.error('Error saving task data:', error.response || error);
-    alert('There was an error while saving task data. Please try again.');
+    console.error("Error saving task data:", error.response || error);
+    alert("There was an error while saving task data. Please try again.");
   }
 };
 

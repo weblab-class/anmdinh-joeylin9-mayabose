@@ -294,94 +294,85 @@ const Tree = () => {
       console.log('Creating shop and game elements');
 
       // Tree setup based on tasks length
-      const treeBaseHeight = windowHeight*(150/765);
-      const treeHeight = treeBaseHeight + tasks.length * 100; // Dynamic tree height
+const treeBaseHeight = windowHeight * (150 / 765);
+const treeWidth = windowHeight * (50 / 765); // Fixed tree width
+const treeHeight = treeBaseHeight + tasks.length * 100; // Dynamic tree height
 
-      tree = this.add.rectangle(
-        windowWidth / 2,
-        windowHeight * 0.9,
-        windowHeight*(50/765),
-        treeHeight,
-        0x4a3d36
-      );
-      tree.setOrigin(0.5, 1);
-      this.physics.add.existing(tree, true);
+// Create the tree
+const tree = this.add.rectangle(
+  windowWidth / 2,
+  windowHeight * 0.9,
+  treeWidth,
+  treeHeight,
+  0x4a3d36
+);
+tree.setOrigin(0.5, 1);
+this.physics.add.existing(tree, true);
 
-      // Save references for use in growTree
-      this.tree = tree;
-      this.branches = branches;
-      this.bananas = bananas;
-      this.branchSide = branchSide;
+// Save references for use in growTree
+this.tree = tree;
+this.branches = [];
+this.bananas = [];
+this.branchSide = "left"; // Start with left side
 
-      // Initialize branches with tasks, ensuring bananas are added and order is reversed
-      this.branches = [];
-      this.bananas = [];
-      tasks.reverse().forEach((task, index) => {
-        // Assuming tree height is initialized at 0 or a default value
-        const treeObj = this.tree;
-        const branchY = treeObj.y - treeObj.height + windowHeight*(10/765) + (index * 100); // Position relative to tree height
+// Initialize branches with tasks
+console.log("Tasks:", tasks);
+tasks.forEach((task, index) => {
+  const treeObj = this.tree;
 
+  // Calculate branch position
+  const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765) + index * 100;
+  const branchX =
+    task.side === "left"
+      ? treeObj.x - treeObj.displayWidth / 2 - windowWidth * (100 / 1494)
+      : treeObj.x + treeObj.displayWidth / 2 + windowWidth * (100 / 1494);
 
-        // Ensure task.side is used correctly for left/right placement
-        const branchX = task.side === "left" ? treeObj.x - windowWidth*(100/1494) :
-          treeObj.x + windowWidth*(100/1494); // Correct placement based on task.side
+  // Create the branch
+  const branch = this.add.rectangle(
+    branchX,
+    branchY,
+    windowWidth * (200 / 1494),
+    windowHeight * (15 / 765),
+    0x4a3d36
+  );
 
-        // Create the branch
-        const branch = this.add.rectangle(
-          branchX,
-          branchY,
-          windowWidth*(200/1494),
-          windowHeight*(15/765),
-          0x4a3d36
-        );
+  // Add the branch to the branches array and physics world
+  this.branches.push(branch);
+  this.physics.add.existing(branch, true);
+  branch.body.updateFromGameObject();
 
-        // Add the branch to the branches array and physics world
-        if (this && this.branches) {
-          this.branches.push(branch);
-        }
+  // Add task text to the branch
+  const taskName = task.name || "Default Task";
+  this.add.text(
+    branchX - windowWidth * (100 / 1494),
+    branchY - windowHeight * (50 / 765),
+    taskName,
+    {
+      font: `${windowWidth * (20 / 1494)}px Courier New`,
+      fill: "#000",
+      align: "center",
+      fontWeight: `${windowWidth * (80 / 1494)}`,
+    }
+  );
 
-        this.physics.add.existing(branch, true); // Enable physics for the branch
-        branch.body.updateFromGameObject(); // Update the body to reflect the current game object
-        this.physics.add.existing(branch, true); // Enable physics for the branch
-        branch.body.updateFromGameObject(); // Update the body to reflect the current game object
+  // Add bananas based on difficulty
+  const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+  const bananaSpacing = windowWidth * (50 / 1494); // Horizontal spacing between bananas
+  for (let i = 0; i < bananaCount; i++) {
+    const banana = this.add.sprite(
+      branchX + i * bananaSpacing,
+      branchY,
+      "banana"
+    );
+    banana.setOrigin(0.5, 0.5);
+    banana.setDisplaySize(windowHeight * (3 / 50), windowHeight * (3 / 50));
+    banana.setDepth(10); // Ensure it appears in front of other objects
+    this.bananas.push(banana);
+  }
 
-        // Add task text to the branch
-        const taskName = task.name || "Default Task";
-        const bananaStartX =
-          task.side === "left"
-            ? branchX - windowWidth*(100/1494) // Adjust start position for "left" side
-            : branchX + windowWidth*(100/1494) - windowWidth*(50/1494) * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3); // Adjust for "right" side
-
-        this.add.text(bananaStartX - windowWidth*(20/1494), branchY - windowHeight*(50/765), taskName, {
-          font: windowWidth * (20 / 1494),
-          fontFamily: 'Courier New',
-          fill: "#000",
-          align: "center",
-          fontWeight: windowWidth * (80 / 1494),
-        });
-
-      // Add bananas based on difficulty, spaced horizontally
-      const bananaCount =
-        task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-      const bananaSpacing = windowWidth*(50/1494); // Horizontal spacing between bananas
-      for (let i = 0; i < bananaCount; i++) {
-        const banana = this.add.sprite(
-          bananaStartX + i * bananaSpacing,
-          branchY,
-          "banana"
-        );
-        banana.setOrigin(0.5, 0.5);
-        banana.setDisplaySize(windowHeight*(3/50), windowHeight*(3/50)); // Adjust the size as needed
-        banana.setDepth(10); // Ensure it appears in front of other objects
-
-        if (this && this.bananas) {
-          this.bananas.push(banana);
-        }
-      }
-
-      // Alternate branch side for the next branch
-      this.branchSide = this.branchSide === "left" ? "right" : "left";
-      });
+  // Alternate branch side for the next branch
+  this.branchSide = this.branchSide === "left" ? "right" : "left";
+});
 
       //` SHOP SCENE
 
@@ -584,6 +575,7 @@ const Tree = () => {
       setTasks(updatedTasks); // Update the tasks state
       setShowTaskManager(false);
       saveTaskData(userId, updatedTasks, bananaCounter, setTasks); // Pass the updated tasks list to saveTaskData
+      console.log('Updated tasks:', updatedTasks);
     }
   };
 
@@ -749,7 +741,7 @@ const Tree = () => {
   const growTree = (task) => {
     if (scene && scene.tree) {
       const treeObj = scene.tree;
-      const newHeight = treeObj.height + windowHeight * (150/765); // Increased height growth for a more noticeable change
+      const newHeight = treeObj.height + windowHeight * (150 / 765); // Increased height growth for a more noticeable change
 
       scene.tweens.add({
         targets: treeObj,
@@ -762,54 +754,52 @@ const Tree = () => {
           treeObj.body.updateFromGameObject();
         },
         onComplete: () => {
-          const branchY = treeObj.y - treeObj.height + windowHeight*(10/765);
-          const branchX =
-            scene.branchSide === "left" ? treeObj.x - windowWidth*(100/1494) : treeObj.x + windowWidth*(100/1494);
-          const taskName = task.name || "Default Task";
+          const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765);
+const branchX =
+  task.side === "left"
+    ? treeObj.x - treeObj.displayWidth / 2 - windowWidth * (100 / 1494) // Align with left edge of the tree
+    : treeObj.x + treeObj.displayWidth / 2 + windowWidth * (100 / 1494); // Align with right edge of the tree
+const taskName = task.name || "Default Task";
 
-          // Create the branch
-          const branch = scene.add.rectangle(
-            branchX,
-            branchY,
-            windowWidth*(200/1494),
-            windowHeight*(15/765),
-            0x4a3d36
-          );
+// Create the branch
+const branch = scene.add.rectangle(
+  branchX,
+  branchY,
+  windowWidth * (200 / 1494),
+  windowHeight * (15 / 765),
+  0x4a3d36
+);
 
-          // Add the branch to the branches array and physics world
-          if (scene && scene.branches) {
-            scene.branches.push(branch);
-          }
+// Add the branch to the branches array and physics world
+if (scene && scene.branches) {
+  scene.branches.push(branch);
+}
 
-          scene.physics.add.existing(branch, true); // Enable physics for the branch
-          branch.body.updateFromGameObject(); // Update the body to reflect the current game object
+scene.physics.add.existing(branch, true); // Enable physics for the branch
+branch.body.updateFromGameObject(); // Update the body to reflect the current game object
 
-          // // Add a collider between the monkey and the branch
-
-          // Determine the starting x position for bananas based on branch side
+          // Determine the starting x position for bananas based on task.side
           const bananaStartX =
-            scene.branchSide === "left"
-              ? branchX - windowWidth*(100/1494)
-              : branchX + windowWidth*(100/1494) - windowWidth*(50/1494) * (task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3);
+            task.side === "left"
+              ? branchX - windowWidth * (80 / 1494)
+              : branchX + windowWidth * (80 / 1494);
 
           // Add task text to the branch
-          scene.add.text(bananaStartX - windowWidth*(20/1494), branchY - windowHeight*(50/765), taskName, {
-            font: windowWidth*(20/1494),
-            fontFamily: "Courier New",
+          scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (50 / 765), taskName, {
+            font: `${windowWidth * (20 / 1494)}px Courier New`,
             fill: "#000",
             align: "center",
-            fontWeight: windowWidth*(80/1494),
+            fontWeight: "bold",
           });
 
           // Add bananas based on difficulty, spaced horizontally
           const bananaCount =
             task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-          const bananaSpacing = windowWidth*(50/1494); // Horizontal spacing between bananas
+          const bananaSpacing = windowWidth * (50 / 1494); // Horizontal spacing between bananas
           if (!scene.bananas) {
             scene.bananas = [];
           }
 
-          // Inside the `growTree` function (where bananas are created), add each banana to the `scene.bananas` array
           for (let i = 0; i < bananaCount; i++) {
             const banana = scene.add.sprite(
               bananaStartX + i * bananaSpacing,
@@ -817,7 +807,7 @@ const Tree = () => {
               "banana"
             );
             banana.setOrigin(0.5, 0.5);
-            banana.setDisplaySize(windowHeight*(3/50), windowHeight*(3/50)); // Adjust the size as needed
+            banana.setDisplaySize(windowHeight * (3 / 50), windowHeight * (3 / 50)); // Adjust the size as needed
             banana.setDepth(10); // Ensure it appears in front of other objects
 
             scene.physics.add.existing(banana);
@@ -828,15 +818,13 @@ const Tree = () => {
             // Add the banana to the scene's bananas array
             scene.bananas.push(banana);
           }
+
           // Create the updated tree state to pass to saveTreeData
           const updatedTreeState = {
-            height: treeObj.height,  // The updated height of the tree
-            branches: scene.branches,  // All the branches currently on the tree
+            height: treeObj.height, // The updated height of the tree
+            branches: scene.branches, // All the branches currently on the tree
             bananas: scene.bananas,
           };
-
-          // Alternate branch side for the next branch
-          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
         },
       });
     }
@@ -916,7 +904,7 @@ const Tree = () => {
         <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
 
-      <div 
+      <div
         style={{
           position: "absolute",
           top: "0vw",
@@ -1089,6 +1077,7 @@ const Tree = () => {
           />
           <TaskManager
             onAddTask={(task) => {
+              console.log('Adding task (TASKMANAGER):', task);
               growTree(task);
               handleAddTask(task);
             }}
