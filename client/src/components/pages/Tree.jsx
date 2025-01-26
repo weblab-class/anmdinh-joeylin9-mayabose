@@ -169,6 +169,11 @@ const Tree = () => {
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
     let bananas = [];
+    let clouds = [];
+    let cloudSpeed = 1;
+    let cloudWidth = window.innerWidth / 5; // Width of each cloud
+    let cloudHeight = window.innerHeight / 5;
+
 
     //sounds
     let climbSound;
@@ -197,11 +202,24 @@ const Tree = () => {
       this.load.audio("stepSound", step);
       this.load.audio("landSound", land);
       this.load.audio("climbSound", climb);
+      this.load.image('cloud', cloudImg);
     }
 
     function update() {
       // Boundaries for the world
       monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
+
+      clouds.forEach(cloud => {
+        cloud.x -= cloudSpeed;
+   
+        // When a cloud moves off the left side, reposition it to the right side of the screen
+        if (cloud.x + cloud.width < this.cameras.main.scrollX) {
+          cloud.x = this.cameras.main.scrollX + window.innerWidth;
+          cloud.y = Math.random() * window.innerHeight / 2;  // Randomize vertical position
+        }
+      });
+   
+
 
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -384,6 +402,18 @@ const Tree = () => {
     }
 
     function create() {
+      const numberOfClouds = 15; // Number of clouds to generate
+
+
+  // Create cloud sprites at random positions across the screen
+  for (let i = 0; i < numberOfClouds; i++) {
+    let cloud = this.add.sprite(Math.random() * window.innerWidth, (Math.random() - 0.5) * window.innerHeight, 'cloud');
+    cloud.setScale(0.7);  // Make clouds smaller
+    cloud.setDepth(-1);
+    cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
+    clouds.push(cloud);
+  }
+
     // Music volume control
     backgroundMusic = this.sound.add("backgroundMusic", {
       loop: true,
