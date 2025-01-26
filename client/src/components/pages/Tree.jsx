@@ -949,7 +949,7 @@ const Tree = () => {
       {showSettings && (
         <div
           style={{
-            position: "relative",
+            position: "absolute",
             top: "0",
             right: "0",
             width: "18vw",
