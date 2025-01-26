@@ -799,7 +799,8 @@ tasks.forEach((task, index) => {
         ease: "Linear",
         onUpdate: () => {
           // Ensure that the rectangle's size is updated
-          treeObj.setSize(50, treeObj.height);
+          const treeWidth = windowHeight * (50 / 765);
+          treeObj.setSize(treeWidth, treeObj.height);
           treeObj.body.updateFromGameObject();
         },
         onComplete: () => {
