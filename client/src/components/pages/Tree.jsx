@@ -238,7 +238,7 @@ const Tree = () => {
             monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
           ) {
             if (!popupShown) {
-              console.log("Monkey is in the leftmost half of the left branch!");
+              //console.log("Monkey is in the leftmost half of the left branch!");
               setPopupVisible(true); // Show the popup
 
               // Find the text directly above the leftmost half of the left branch
@@ -253,7 +253,7 @@ const Tree = () => {
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
-                console.log('Selected task name:', taskName);
+                //console.log('Selected task name:', taskName);
               }
 
               popupShown = true; // Prevent multiple popups from showing for this branch
@@ -268,7 +268,7 @@ const Tree = () => {
             monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
           ) {
             if (!popupShown) {
-              console.log("Monkey is in the rightmost half of the right branch!");
+              //console.log("Monkey is in the rightmost half of the right branch!");
               setPopupVisible(true); // Show the popup
 
               // Find the text directly above the rightmost half of the right branch
@@ -283,7 +283,7 @@ const Tree = () => {
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
-                console.log('Selected task name:', taskName);
+                //console.log('Selected task name:', taskName);
               }
 
               popupShown = true; // Prevent multiple popups from showing for this branch
@@ -606,6 +606,7 @@ const Tree = () => {
   };
 
   const handleSave = (input) => {
+    console.log("got through!")
     console.log('taskname', selectedTaskName);
     console.log('Updated input:', input);
   
@@ -1039,7 +1040,6 @@ const Tree = () => {
   <Popup
     defaultValue={task.notes}
     name={task.name}
-    inputValue={inputValue}
     onInputChange={handleInputChange}
     onSubmit={handleSave}
     handleCollect={handleCollectBananas}
