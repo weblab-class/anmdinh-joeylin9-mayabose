@@ -48,7 +48,7 @@ const Tree = () => {
     setInputValue(input); // Update the input value state
     handleSave(input);  // Call the handleSave function with updated value
   };
-  
+
 
   // Fetch game info only when userId is available
   useEffect(() => {
@@ -153,8 +153,10 @@ const Tree = () => {
 
     function update() {
       // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
-      monkey.y = Phaser.Math.Clamp(monkey.y, 0, Infinity);
+      monkey.x = Phaser.Math.Clamp(monkey.x, 344.5-2*windowWidth/3, Infinity);
+      camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
+      camera.setBounds(-windowWidth / 2, -5000, Infinity, Infinity);
+      // console.log('Monkey X:', monkey.x, 'Monkey Y:', monkey.y);
 
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -336,7 +338,7 @@ const Tree = () => {
 
 
         // Ensure task.side is used correctly for left/right placement
-        const branchX = task.side === "left" ? treeObj.x - windowWidth*(100/1494) : 
+        const branchX = task.side === "left" ? treeObj.x - windowWidth*(100/1494) :
           treeObj.x + windowWidth*(100/1494); // Correct placement based on task.side
 
         // Create the branch
@@ -452,7 +454,7 @@ const Tree = () => {
       console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-      camera.setBounds(-windowWidth / 2, 0, Infinity, Infinity);
+      camera.setBounds(-windowWidth / 2, -5000, Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
 
       //SHOP//
@@ -609,13 +611,13 @@ const Tree = () => {
     console.log("got through!")
     console.log('taskname', selectedTaskName);
     console.log('Updated input:', input);
-  
+
     // Find the task with the selected name
     const task = tasks.find(t => t.name === selectedTaskName);
-  
+
     if (task) {
       console.log('Found task:', task);
-  
+
       // Use the callback form of setTasks to ensure we're updating the latest state
       setTasks((prevTasks) => {
         // Update the task's notes
@@ -625,17 +627,17 @@ const Tree = () => {
           }
           return existingTask; // Keep the other tasks the same
         });
-  
+
         // Trigger save function to persist the updated task list
         saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
-  
+
         return updatedTasks; // Return the updated tasks to be set
       });
     } else {
       console.log('Task not found!');
     }
   };
-  
+
   let task = tasks.find(t => t.name === selectedTaskName);
 
   const handleCollectBananas = () => {
@@ -761,9 +763,14 @@ const Tree = () => {
 
   const zoomOutHandler = () => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
-    if (camera && camera.zoom > 0.5) {
-      camera.zoom -= 0.1;
-      console.log('Zoom level:', camera.zoom);
+    if (camera) {
+      // Ensure zoom level doesn't go below 0.5, even with floating-point precision issues
+      if (camera.zoom > 0.5) {
+        camera.zoom = Math.max(camera.zoom - 0.1, 0.5);
+        console.log('Zoom level:', camera.zoom);
+      } else {
+        console.log('Zoom level cannot go below 0.5');
+      }
     } else {
       console.log('Camera: ', camera);
       console.log('Game: ', game);
