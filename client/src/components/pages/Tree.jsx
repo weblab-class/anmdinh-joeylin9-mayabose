@@ -627,7 +627,7 @@ const Tree = () => {
 
   let task = tasks.find(t => t.name === selectedTaskName);
 
-  const handleCollectBananas = () => {
+  const handleCollectBananas = (taskName) => {
     const task = tasks.find(t => t.name === selectedTaskName);
     if (task) {
       const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
