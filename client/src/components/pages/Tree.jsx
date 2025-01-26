@@ -13,6 +13,12 @@ import Popup from "../Popup";
 import { useNavigate } from "react-router-dom";
 import { fetchGameInfo, saveTaskData } from '../gameDataHandler';
 
+//sounds
+import track18 from "../../assets/music/track18.mp3";
+import step from "../../assets/music/step.mp3";
+import land from "../../assets/music/land.mp3"
+import climb from "../../assets/music/climb.mp3"
+
 const Tree = () => {
   const navigate = useNavigate();
   const { userId, handleLogout } = useContext(UserContext);  // Access context values
@@ -41,6 +47,8 @@ const Tree = () => {
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
+  const [musicVolume, setMusicVolume] = useState(1);
+  const [soundEffectsVolume, setSoundEffectsVolume] = useState(1);
   const [selectedTaskName, setSelectedTaskName] = useState("")
   const handleInputChange = (input) => {
     setInputValue(input); // Update the input value state
@@ -71,6 +79,33 @@ const Tree = () => {
   }, [userId, navigate]);
 
   useEffect(() => {
+    if (scene) {
+      // Update background music volume
+      if (scene.sound && scene.sound.get('backgroundMusic')) {
+        scene.sound.get('backgroundMusic').setVolume(musicVolume);
+      }
+  
+      // Update sound effects volumes
+      ['stepSound', 'landSound', 'climbSound'].forEach(soundKey => {
+        const soundEffect = scene.sound.get(soundKey);
+        if (soundEffect) {
+          switch(soundKey) {
+            case 'stepSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+            case 'landSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+            case 'climbSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+          }
+        }
+      });
+    }
+  }, [musicVolume, soundEffectsVolume, scene]);
+
+  useEffect(() => {
     if (loading) return;
     if (game) return;
     const config = {
@@ -89,6 +124,9 @@ const Tree = () => {
       scene: [
         { key: 'Tree', preload, create, update }, // Tree scene
       ],
+      audio: {
+        pauseOnBlur: false, // Disable pausing when the window loses focus
+      },
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
@@ -129,6 +167,13 @@ const Tree = () => {
     let lastChangeTime = 0;
     let bananas = [];
 
+    //sounds
+    let climbSound;
+    let landSound;
+    let stepSound;
+    let lastSoundTime = 0;
+    let backgroundMusic;
+
     function preload() {
       console.log('Preloading assets...');
       this.load.image('monkey1', monkeyImg); // Preload the monkey image
@@ -137,6 +182,10 @@ const Tree = () => {
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
       this.load.image("grass", grassImg);
+      this.load.audio("backgroundMusic", track18);
+      this.load.audio("stepSound", step);
+      this.load.audio("landSound", land);
+      this.load.audio("climbSound", climb);
     }
 
     function update() {
@@ -165,11 +214,20 @@ const Tree = () => {
       }
 
       if (monkeyMovementEnabled) {
+        const soundTime = Date.now();
         // Process monkey movement
         if (this.leftKey.isDown) {
           monkey.setVelocityX(-windowWidth/2);
+          if (monkey.body.touching.down && soundTime-lastSoundTime > 750) {
+            stepSound.play()
+            lastSoundTime = soundTime
+          }
         } else if (this.rightKey.isDown) {
           monkey.setVelocityX(windowWidth/2);
+          if (monkey.body.touching.down && soundTime-lastSoundTime > 750) {
+            stepSound.play()
+            lastSoundTime = soundTime
+          }
         } else {
           monkey.setVelocityX(0); // Stop horizontal movement
         }
@@ -178,20 +236,33 @@ const Tree = () => {
           monkey.setVelocityY(-windowHeight); // Jump
         }
       } else {
-        // Disable movement
         monkey.setVelocityX(0);
-        monkey.setVelocityY(0); // Stop vertical movement as well if necessary
+        monkey.setVelocityY(0);
       }
 
-      if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        // Prevent the monkey from moving beneath the ground level
-        if (!this.physics.overlap(monkey, mound)) {
-          monkey.y += windowHeight*(1/75);
+      //landing
+      if (monkey.body.touching.down) {
+        if (!monkey.body.wasTouching.down && 
+          Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth*(1/15)){
+          landSound.play()
         }
       }
 
-      if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        monkey.y -= windowHeight*(1/75);
+      if (this.physics.overlap(monkey, this.tree)) {
+        const soundTime = Date.now();
+        if (this.downKey.isDown && !this.physics.overlap(monkey, mound)) {
+          monkey.y += windowHeight*(1/75);
+          if (soundTime-lastSoundTime > 500) {
+            climbSound.play()
+            lastSoundTime = soundTime
+          }
+        }else if (this.upKey.isDown) {
+          monkey.y -= windowHeight*(1/75);
+          if (soundTime-lastSoundTime > 500) {
+            climbSound.play()
+            lastSoundTime = soundTime
+          }
+        }
       }
 
       // Check if the monkey is on the tree or a branch, and disable gravity
@@ -287,6 +358,27 @@ const Tree = () => {
     }
 
     function create() {
+    // Music volume control
+    backgroundMusic = this.sound.add("backgroundMusic", {
+      loop: true,
+      volume: musicVolume  // Use the React state directly
+    });
+    backgroundMusic.play();
+
+    // Sound effects volume control
+    stepSound = this.sound.add("stepSound", {
+      volume: soundEffectsVolume
+    });
+
+    landSound = this.sound.add("landSound", {
+      volume: soundEffectsVolume
+    });
+
+    climbSound = this.sound.add("climbSound", {
+      volume: soundEffectsVolume
+    });
+
+      //bananas
       if (bananaCounter === undefined) {
         console.error('Banana counter is not initialized.');
         return;
@@ -403,7 +495,7 @@ const Tree = () => {
       ground = this.add.rectangle(
         windowWidth / 2,
         windowHeight * 0.9,
-        windowWidth*3,
+        windowWidth*4,
         windowHeight / 2,
         0x4caf50
       );
@@ -990,6 +1082,51 @@ const Tree = () => {
           >
             Logout
           </button>
+          <div className="mb-4" style={{marginTop: "1vw"}}>
+            <label 
+              htmlFor="musicVolume" 
+              className="block text-sm mb-2"
+            >
+              Music Volume
+            </label>
+            <input 
+              type="range" 
+              id="musicVolume"
+              min="0" 
+              max="1" 
+              step="0.1" 
+              value={musicVolume}
+              onChange={(e) => {
+                const newVolume = parseFloat(e.target.value);
+                setMusicVolume(newVolume);
+              }}
+              className="w-full"
+            />
+            <span className="text-sm">{(musicVolume * 100).toFixed(0)}%</span>
+          </div>
+
+          <div className="mb-4">
+            <label 
+              htmlFor="sfxVolume" 
+              className="block text-sm mb-2"
+            >
+              Sound Effects Volume
+            </label>
+            <input 
+              type="range" 
+              id="sfxVolume"
+              min="0" 
+              max="1" 
+              step="0.1" 
+              value={soundEffectsVolume}
+              onChange={(e) => {
+                const newVolume = parseFloat(e.target.value);
+                setSoundEffectsVolume(newVolume);
+              }}
+              className="w-full"
+            />
+            <span className="text-sm">{(soundEffectsVolume * 100).toFixed(0)}%</span>
+          </div>
         </div>
       )}
 
@@ -1177,20 +1314,7 @@ const Tree = () => {
   />
 )}
 
-      {/* Bananas Display
-      <div
-        style={{
-          position: "fixed",
-          top: "0vw",
-          right: "8vw",
-          fontFamily: "Courier New",
-          fontWeight: "1vw",
-        }}
-      >
-        <p style={{ fontSize: "1vw" }}>
-          <strong>Bananas: {bananaCounter}</strong>
-        </p>
-      </div> */}
+
     </div>
   );
 
