@@ -141,10 +141,7 @@ const Tree = () => {
 
     function update() {
       // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, 344.5-2*windowWidth/3, Infinity);
-      camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-      camera.setBounds(-windowWidth / 2, -5000, Infinity, Infinity);
-      // console.log('Monkey X:', monkey.x, 'Monkey Y:', monkey.y);
+      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
 
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -236,7 +233,7 @@ const Tree = () => {
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
                   child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
-                  Math.abs(child.x - branchBounds.x) <= 50
+                  Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
                 );
               });
 
@@ -266,7 +263,7 @@ const Tree = () => {
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
                   child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
-                  Math.abs(child.x - branchBounds.x) <= 50
+                  Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
                 );
               });
 
@@ -363,27 +360,27 @@ const Tree = () => {
           fontWeight: windowWidth * (80 / 1494),
         });
 
-        // Add bananas based on difficulty, spaced horizontally
-        const bananaCount =
-          task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-        const bananaSpacing = windowWidth*(50/1494); // Horizontal spacing between bananas
-        for (let i = 0; i < bananaCount; i++) {
-          const banana = this.add.sprite(
-            bananaStartX + i * bananaSpacing,
-            branchY,
-            "banana"
-          );
-          banana.setOrigin(0.5, 0.5);
-          banana.setDisplaySize(windowHeight*(3/50), windowHeight*(3/50)); // Adjust the size as needed
-          banana.setDepth(10); // Ensure it appears in front of other objects
+      // Add bananas based on difficulty, spaced horizontally
+      const bananaCount =
+        task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+      const bananaSpacing = windowWidth*(50/1494); // Horizontal spacing between bananas
+      for (let i = 0; i < bananaCount; i++) {
+        const banana = this.add.sprite(
+          bananaStartX + i * bananaSpacing,
+          branchY,
+          "banana"
+        );
+        banana.setOrigin(0.5, 0.5);
+        banana.setDisplaySize(windowHeight*(3/50), windowHeight*(3/50)); // Adjust the size as needed
+        banana.setDepth(10); // Ensure it appears in front of other objects
 
-          if (this && this.bananas) {
-            this.bananas.push(banana);
-          }
+        if (this && this.bananas) {
+          this.bananas.push(banana);
         }
+      }
 
-        // Alternate branch side for the next branch
-        this.branchSide = this.branchSide === "left" ? "right" : "left";
+      // Alternate branch side for the next branch
+      this.branchSide = this.branchSide === "left" ? "right" : "left";
       });
 
       //` SHOP SCENE
@@ -401,7 +398,7 @@ const Tree = () => {
 
       // Create the monkey sprite with physics
       monkey = this.physics.add.sprite(windowWidth /2 , windowHeight * 0.9 - windowHeight*(45/765), "monkey1");
-      monkey.setDisplaySize(windowWidth*.075, windowHeight*.1);
+      monkey.setDisplaySize(windowWidth*.07, windowHeight*.1);
 
       ground = this.add.rectangle(
         windowWidth / 2,
@@ -483,7 +480,7 @@ const Tree = () => {
       shopContainer.add(rightArrow);
 
       monkeyDisplay = this.add.sprite(0, shopBackground.height*-.1, "monkey1");
-      monkeyDisplay.setDisplaySize(windowWidth*.075, windowHeight*.1);
+      monkeyDisplay.setDisplaySize(windowWidth*.07, windowHeight*.1);
       shopContainer.add(monkeyDisplay);
 
       costText = this.add.text(
@@ -891,12 +888,13 @@ const Tree = () => {
       <button
         onClick={() => setShowTaskManager(true)}
         style={{
-          position: "absolute",
-          top: windowHeight*(10/765),
-          left: windowWidth*(10/1494),
-          padding: windowWidth*(10/1494),
+          position: "relative",
+          top: "1vh",
+          left: "1vw",
+          marginRight: "2vw",
+          padding: "0.5vw",
           fontFamily: "Courier New",
-          fontSize: windowWidth*(15/1494),
+          fontSize: "2vh",
           zIndex: 9999,
         }}
       >
@@ -907,48 +905,60 @@ const Tree = () => {
       <button
         onClick={() => setShowAllTasks(!showAllTasks)}
         style={{
-          position: "absolute",
-          top: windowHeight*(10/765),
-          left: windowWidth*(120/1494),
-          padding: windowWidth*(10/1494),
+          position: "relative",
+          top: "1vh",
+          padding: "0.5vw",
           fontFamily: "Courier New",
-          fontSize: windowWidth*(15/1494),
+          fontSize: "2vh",
           zIndex: 9999,
         }}
       >
         <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
       </button>
 
-      {/* Settings Button */}
-      <button
-        onClick={() => setShowSettings(!showSettings)}
+      <div 
         style={{
           position: "absolute",
-          top: windowHeight*(10/765),
-          right: windowWidth*(10/1494),
-          padding: windowWidth * (10/1494),
-          fontFamily: "Courier New",
-          fontSize: windowWidth*(15/1494),
-          zIndex: 9999,
+          top: "0vw",
+          right: "0vw",
+          display: "flex",
+          alignItems: "center",
+          gap: "2vw", // Consistent gap between elements
         }}
       >
-        <strong>Settings</strong>
-      </button>
+        <p style={{ fontSize: "1vw", fontFamily: "Courier New" }}>
+          <strong>Bananas: {bananaCounter}</strong>
+        </p>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          style={{
+            position: "relative",
+            top: "0vw",
+            right: "0.5vw",
+            padding: "0.5vw",
+            fontFamily: "Courier New",
+            fontSize: "2vh",
+            zIndex: 9999,
+          }}
+        >
+          <strong>Settings</strong>
+        </button>
+      </div>
 
       {/* Settings Popup */}
       {showSettings && (
         <div
           style={{
-            position: "fixed",
+            position: "relative",
             top: "0",
             right: "0",
-            width: windowWidth * (300/1494),
-            height: windowWidth * (200/765),
+            width: "18vw",
+            height: "20vw",
             backgroundColor: "white",
-            padding: windowWidth * (20 / 1494),
-            borderRadius: windowWidth * (15 / 1494),
+            padding: "2vw",
+            borderRadius: "1vw",
             zIndex: 2000,
-            fontSize: windowWidth * (16/1494),
+            fontSize: "1vw",
           }}
         >
           <h1>Settings</h1>
@@ -958,10 +968,10 @@ const Tree = () => {
               setShowSettings(false); // Close Settings popup
             }}
             style={{
-              padding: windowWidth * (10 / 1494),
-              margin: windowWidth * (15 / 1494),
+              padding: ".5vw",
+              margin: ".5vw",
               fontFamily: "Courier New",
-              fontSize: windowWidth * (15 / 1494),
+              fontSize: "1vw",
             }}
           >
             Help
@@ -972,10 +982,10 @@ const Tree = () => {
               setShowSettings(false); // Close Settings popup
             }}
             style={{
-              padding: windowWidth * (10 / 1494),
-              margin: windowWidth * (10 / 1494),
+              padding: ".5vw",
+              margin: ".5vw",
               fontFamily: "Courier New",
-              fontSize: windowWidth * (15 / 1494),
+              fontSize: "1vw",
             }}
           >
             Logout
@@ -1092,8 +1102,8 @@ const Tree = () => {
       <div
         style={{
           position: "absolute",
-          bottom: windowHeight * (10 / 765),
-          right: windowWidth * (20 / 1494),
+          bottom: "1vw",
+          right: "1vw",
           display: "flex",
           alignItems: "center",
           zIndex: 9999,
@@ -1102,11 +1112,11 @@ const Tree = () => {
         <button
           onClick={zoomInHandler}
           style={{
-            fontSize: windowWidth * (24 / 1494),
+            fontSize: "1.5vw",
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: windowWidth * (10 / 1494),
+            margin: "0.5vw",
           }}
         >
           +
@@ -1114,11 +1124,11 @@ const Tree = () => {
         <button
           onClick={zoomOutHandler}
           style={{
-            fontSize: windowWidth * (24 / 1494),
+            fontSize: "1.5vw",
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: windowWidth * (10 / 1494),
+            margin: "0.5vw",
           }}
         >
           -
@@ -1126,11 +1136,11 @@ const Tree = () => {
         <button
           onClick={resetZoomHandler}
           style={{
-            fontSize: windowWidth * (18 / 1494),
+            fontSize: "1.5vw",
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: windowWidth * (10 / 1494),
+            margin: "0.5vw",
           }}
         >
           Reset Zoom
@@ -1145,43 +1155,42 @@ const Tree = () => {
                 handleCollect={handleCollectBananas}
                 setPopupVisibility={setPopupVisible}
                 style={{
-                zIndex: 1000, // Ensure this is higher than any other elements
+                zIndex: 1000,
                 }}
               />
       )}
 
 {popupVisible && (
   <Popup
-    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
+    defaultValue={task?.notes}
     name={selectedTaskName}
     onSubmit={handleSave}
     handleCollect={handleCollectBananas}
     setPopupVisibility={setPopupVisible}
     style={{
-      zIndex: 1000, // Ensure this is higher than any other elements
-      width: windowWidth * (100 / 1494), // Adjust the width to be smaller
-      height: 'auto', // Allow height to adjust based on content
-      padding: windowWidth * (15 / 1494), // Reduce the padding to make it smaller
-      border: windowWidth * (5 / 1494),
+      zIndex: 1000,
+      width: "1vw",
+      height: 'auto',
+      padding: "1vw",
+      border: "1vw",
     }}
   />
 )}
 
-      {/* Bananas Display */}
+      {/* Bananas Display
       <div
         style={{
-          position: "absolute",
-          top: 0,
-          right: windowWidth*.085,
+          position: "fixed",
+          top: "0vw",
+          right: "8vw",
           fontFamily: "Courier New",
-          marginTop: windowHeight * (10 / 765),
-          fontWeight: windowWidth * (100 / 1494),
+          fontWeight: "1vw",
         }}
       >
-        <p style={{ fontSize: windowWidth * (18 / 1494) }}>
+        <p style={{ fontSize: "1vw" }}>
           <strong>Bananas: {bananaCounter}</strong>
         </p>
-      </div>
+      </div> */}
     </div>
   );
 
