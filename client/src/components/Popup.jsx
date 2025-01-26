@@ -22,8 +22,8 @@ const Popup = ({
   };
 
   // Button click handler for "Collect Bananas!"
-  const handleButtonClick = () => {
-    if (handleCollect) handleCollect(); // Trigger the "Collect Bananas!" action
+  const handleButtonClick = (param) => {
+    if (handleCollect) handleCollect(param); // Trigger the "Collect Bananas!" action
   };
 
   return (
@@ -114,7 +114,7 @@ const Popup = ({
 
           {/* "Collect Bananas!" button */}
           <button
-            onClick={handleButtonClick} // Trigger "Collect Bananas!" click
+            onClick={() => handleButtonClick(name)} // Trigger "Collect Bananas!" click
             style={{
               fontFamily: "Courier New",
               backgroundColor: "#4CAF50", // Light green

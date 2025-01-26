@@ -640,10 +640,112 @@ const Tree = () => {
 
   let task = tasks.find(t => t.name === selectedTaskName);
 
-  const handleCollectBananas = () => {
-    console.log("Bananas collected!"); // Placeholder for actual action
-    // Add any action you want to trigger when "Collect Bananas!" is clicked
+
+ 
+  const handleCollectBananas = (taskName) => {
+    // Delete the task from the backend first
+  
+    // Now, remove the corresponding branch, text, and bananas from the frontend
+    removeBranchFromFrontend(taskName);
   };
+  
+  const removeBranchFromFrontend = (taskName) => {
+    console.log('starting process')
+    console.log('name', taskName)
+
+        // Improved text search logic
+        const textToRemove = scene.children.list.find(child => {
+          return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
+        });
+
+    console.log('text', textToRemove);
+      if (textToRemove) {
+        const loc = textToRemove.y + windowHeight*(50/765);
+        const bananaY = loc;
+        textToRemove.destroy();
+        console.log('destoryed text')
+      // Iterate through all children in the scene to find and remove the corresponding items
+      const currentBranch = scene.branches.find(branch => Math.abs(branch.y - loc) < 50);
+      if (currentBranch) {
+        // Remove the branch from scene and the branches array
+        scene.branches = scene.branches.filter(branch => branch !== currentBranch);
+        currentBranch.destroy();  // Destroy the branch
+    
+        // Remove bananas corresponding to the task
+        const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
+        console.log('bananas', bananasToRemove)
+        bananasToRemove.forEach(banana => {
+          scene.bananas = scene.bananas.filter(b => b !== banana);  // Remove from bananas array
+          banana.destroy();  // Destroy the banana
+        });
+
+        const shrinkAmount = 150; // Amount by which the tree shrinks (same as the growth in growTree)
+        const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
+
+        scene.tweens.add({
+          targets: treeObj,
+          height: newHeight,
+          duration: 500,
+          ease: "Linear",
+          onUpdate: () => {
+            // Update the tree's size and physics body
+            treeObj.setSize(50, treeObj.height);
+            treeObj.body.updateFromGameObject();
+          },
+          onComplete: () => {
+            // Move each branch down by the same amount the tree shrunk
+            scene.branches.forEach((branch) => {
+              branch.y += shrinkAmount; // Move branch down by the shrink amount
+
+            });
+
+            // Save the updated tree state
+            const updatedTreeState = {
+              height: treeObj.height, // Updated height of the tree
+              branches: scene.branches, // Remaining branches on the tree
+            };
+            saveTreeData(updatedTreeState);
+
+            // Alternate the branch side for the next branch
+            scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+          },
+        });
+    
+        // Reorganize the remaining branches, texts, and bananas
+        updateBranchesAfterDeletion(currentBranch.y);
+      }
+    }
+  };
+  
+  const updateBranchesAfterDeletion = (currentBranchY) => {
+    console.log('step 2');
+    // Adjust positions of remaining branches, texts, and bananas
+    const offsetY = windowHeight * (10 / 765);  // The Y offset to shift down
+  
+    // Move branches above the deleted branch down
+    scene.branches.forEach(branch => {
+      if (branch.y < currentBranchY) {
+        branch.y += offsetY; 
+        console.log('done1')
+      }
+    });
+  
+    // Move task text above the deleted branch down
+    scene.children.list.forEach(child => {
+      if (child.text && child.y < currentBranchY) {
+        child.y += offsetY;
+        console.log('done2')
+      }
+    });
+  
+    // Move bananas above the deleted branch down
+    scene.children.list.forEach(child => {
+      if (child.textureKey === "banana" && child.y < currentBranchY) {
+        child.y += offsetY;
+      }
+    });
+  };
+  
 
   const growTree = (task) => {
     if (scene && scene.tree) {
@@ -722,6 +824,7 @@ const Tree = () => {
             scene.physics.add.existing(banana);
             banana.body.setAllowGravity(false); // Disable gravity if bananas shouldn't fall
             banana.body.setImmovable(true); // Make bananas immovable
+            banana.body.updateFromGameObject();
 
             // Add the banana to the scene's bananas array
             scene.bananas.push(banana);
@@ -777,6 +880,8 @@ const Tree = () => {
       console.error('Camera or Game is not defined');
     }
   };
+
+  const isArrayEmpty = (arr) => Array.isArray(arr) && arr.length === 0;
 
   return (
     <div>
@@ -1030,7 +1135,7 @@ const Tree = () => {
         </button>
       </div>
 
-{popupVisible && (
+{popupVisible && !(isArrayEmpty(branches)) && (
               <Popup
                 inputValue={inputValue}
                 onInputChange={handleInputChange}
