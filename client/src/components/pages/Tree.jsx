@@ -14,6 +14,12 @@ import Popup from "../Popup";
 import { useNavigate } from "react-router-dom";
 import { fetchGameInfo, saveTaskData } from '../gameDataHandler';
 
+//sounds
+import track18 from "../../assets/music/track18.mp3";
+import step from "../../assets/music/step.mp3";
+import land from "../../assets/music/land.mp3"
+import climb from "../../assets/music/climb.mp3"
+
 const Tree = () => {
   const navigate = useNavigate();
   const { userId, handleLogout } = useContext(UserContext);  // Access context values
@@ -42,6 +48,8 @@ const Tree = () => {
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
+  const [musicVolume, setMusicVolume] = useState(1);
+  const [soundEffectsVolume, setSoundEffectsVolume] = useState(1);
   const [selectedTaskName, setSelectedTaskName] = useState("")
   const handleInputChange = (input) => {
     setInputValue(input); // Update the input value state
@@ -73,6 +81,33 @@ const Tree = () => {
   }, [userId, navigate]);
 
   useEffect(() => {
+    if (scene) {
+      // Update background music volume
+      if (scene.sound && scene.sound.get('backgroundMusic')) {
+        scene.sound.get('backgroundMusic').setVolume(musicVolume);
+      }
+  
+      // Update sound effects volumes
+      ['stepSound', 'landSound', 'climbSound'].forEach(soundKey => {
+        const soundEffect = scene.sound.get(soundKey);
+        if (soundEffect) {
+          switch(soundKey) {
+            case 'stepSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+            case 'landSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+            case 'climbSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+          }
+        }
+      });
+    }
+  }, [musicVolume, soundEffectsVolume, scene]);
+
+  useEffect(() => {
     if (loading) return;
     if (game) return;
     
@@ -92,6 +127,9 @@ const Tree = () => {
       scene: [
         { key: 'Tree', preload, create, update }, // Tree scene
       ],
+      audio: {
+        pauseOnBlur: false, // Disable pausing when the window loses focus
+      },
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
@@ -131,10 +169,13 @@ const Tree = () => {
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
     let bananas = [];
-    let clouds = [];
-    let cloudSpeed = 1;
-    let cloudWidth = window.innerWidth / 5; // Width of each cloud
-    let cloudHeight = window.innerHeight / 5; // Height of each cloud
+
+    //sounds
+    let climbSound;
+    let landSound;
+    let stepSound;
+    let lastSoundTime = 0;
+    let backgroundMusic;
 
     // Example: Increment banana count in Phaser
     function collectBanana(numBananasCollected) {
@@ -152,28 +193,218 @@ const Tree = () => {
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
       this.load.image("grass", grassImg);
-      this.load.image("cloud", cloudImg);
+      this.load.audio("backgroundMusic", track18);
+      this.load.audio("stepSound", step);
+      this.load.audio("landSound", land);
+      this.load.audio("climbSound", climb);
+    }
+
+    function update() {
+      // Boundaries for the world
+      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
+
+      // INFINITE BANANA COLLECTION
+      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+      qKey.on("down", () => {
+        setBananaCounter((prevCount) => prevCount + 1);
+      });
+
+      // SHOP UPDATES
+      if (shopOpen) {
+        const currentTime = Date.now(); // Get the current time in milliseconds
+
+        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
+          changeMonkey(-1);
+          lastChangeTime = currentTime; // Update the last change time
+        }
+
+        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
+          changeMonkey(1);
+          lastChangeTime = currentTime; // Update the last change time
+        }
+      }
+
+      if (monkeyMovementEnabled) {
+        const soundTime = Date.now();
+        // Process monkey movement
+        if (this.leftKey.isDown) {
+          monkey.setVelocityX(-windowWidth/2);
+          if (monkey.body.touching.down && soundTime-lastSoundTime > 750) {
+            stepSound.play()
+            lastSoundTime = soundTime
+          }
+        } else if (this.rightKey.isDown) {
+          monkey.setVelocityX(windowWidth/2);
+          if (monkey.body.touching.down && soundTime-lastSoundTime > 750) {
+            stepSound.play()
+            lastSoundTime = soundTime
+          }
+        } else {
+          monkey.setVelocityX(0); // Stop horizontal movement
+        }
+
+        if (this.upKey.isDown && monkey.body.touching.down) {
+          monkey.setVelocityY(-windowHeight); // Jump
+        }
+      } else {
+        monkey.setVelocityX(0);
+        monkey.setVelocityY(0);
+      }
+
+      //landing
+      if (monkey.body.touching.down) {
+        if (!monkey.body.wasTouching.down && 
+          Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth*(1/15)){
+          landSound.play()
+        }
+      }
+
+      if (this.physics.overlap(monkey, this.tree)) {
+        const soundTime = Date.now();
+        if (this.downKey.isDown && !this.physics.overlap(monkey, mound)) {
+          monkey.y += windowHeight*(1/75);
+          if (soundTime-lastSoundTime > 500) {
+            climbSound.play()
+            lastSoundTime = soundTime
+          }
+        }else if (this.upKey.isDown) {
+          monkey.y -= windowHeight*(1/75);
+          if (soundTime-lastSoundTime > 500) {
+            climbSound.play()
+            lastSoundTime = soundTime
+          }
+        }
+      }
+
+      // Check if the monkey is on the tree or a branch, and disable gravity
+      if (this.physics.overlap(monkey, this.tree) ||
+          this.branches.some(branch => this.physics.overlap(monkey, branch))) {
+        monkey.body.setGravityY(-windowHeight*2); // Disable gravity when on tree or branch
+        monkey.setVelocityY(0); // Stop any downward movement
+      } else {
+        monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
+      }
+
+
+       // Flag to track if the popup should be show
+
+       for (const branch of this.branches) {
+        const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
+        const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
+        const branchBounds = branch.getBounds(); // Get branch's bounds
+
+        //const branches = this.children.getChildren().filter(child => child.texture && child.texture.key === "branch");
+        const isOverlapping = this.physics.overlap(monkey, branch);
+        console.log('branching', this.branches)
+        // Check if there are any branches remaining
+        if (this.branches.length === 0) {
+          console.log('entered')
+          setPopupVisible(false); // Hide the popup if there are no branches left
+          isOverlapping = false;
+          return; // Exit early since there's nothing to check for overlaps
+        }
+
+        // Check if the monkey is currently overlapping with the branch
+        console.log('overlap', isOverlapping)
+
+        if (isOverlapping) {
+          // If the monkey is overlapping, we need to display the popup for this branch
+          let popupShown = false;
+
+          // Check leftmost half of left branch
+          if (
+            isLeftBranch &&
+            monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
+            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
+          ) {
+            if (!popupShown) {
+              //console.log("Monkey is in the leftmost half of the left branch!");
+              setPopupVisible(true); // Show the popup
+
+              // Find the text directly above the leftmost half of the left branch
+              const textAboveBranch = this.children.getChildren().find(child => {
+                return (
+                  child instanceof Phaser.GameObjects.Text &&
+                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+                  child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
+                  Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+                );
+              });
+
+              if (textAboveBranch) {
+                const taskName = textAboveBranch.text; // Get the task name from the text
+                setSelectedTaskName(taskName); // Update the selected task name
+                //console.log('Selected task name:', taskName);
+                //console.log('Selected task name:', taskName);
+              }
+
+              popupShown = true; // Prevent multiple popups from showing for this branch
+              break; // Exit the loop once the popup is shown
+            }
+          }
+
+          // Check rightmost half of right branch
+          if (
+            !isLeftBranch &&
+            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
+            monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
+          ) {
+            if (!popupShown) {
+              //console.log("Monkey is in the rightmost half of the right branch!");
+              setPopupVisible(true); // Show the popup
+
+              // Find the text directly above the rightmost half of the right branch
+              const textAboveBranch = this.children.getChildren().find(child => {
+                return (
+                  child instanceof Phaser.GameObjects.Text &&
+                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+                  child.y >= branchBounds.y - windowHeight*(2/25) + 10 // Ensure text is within 60 pixels above the branch
+                  //Math.abs(child.x - branchBounds.x) <= 100
+                );
+              });
+
+              if (textAboveBranch) {
+                const taskName = textAboveBranch.text; // Get the task name from the text
+                setSelectedTaskName(taskName); // Update the selected task name
+                //console.log('Selected task name:', taskName);
+                //console.log('Selected task name:', taskName);
+              }
+
+              popupShown = true; // Prevent multiple popups from showing for this branch
+              break; // Exit the loop once the popup is shown
+            }
+          }
+        }
+
+        // If the monkey is no longer overlapping with any branch, hide the popup
+        if (!isOverlapping) {
+          setPopupVisible(false);
+        }
+      }
     }
 
     function create() {
-      
-      const numberOfClouds = 15; // Number of clouds to generate
+    // Music volume control
+    backgroundMusic = this.sound.add("backgroundMusic", {
+      loop: true,
+      volume: musicVolume  // Use the React state directly
+    });
+    backgroundMusic.play();
 
-  // Create cloud sprites at random positions across the screen
-  for (let i = 0; i < numberOfClouds; i++) {
-    let cloud = this.add.sprite(Math.random() * window.innerWidth, (Math.random() - 0.5) * window.innerHeight, 'cloud');
-    cloud.setScale(0.7);  // Make clouds smaller
-    cloud.setDepth(-1); 
-    cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
-    clouds.push(cloud);
-  }
+    // Sound effects volume control
+    stepSound = this.sound.add("stepSound", {
+      volume: soundEffectsVolume
+    });
 
-  // Adjust clouds based on camera position
-  this.cameras.main.on('camerafollow', () => {
-    adjustCloudsPosition();
-  });
-      
+    landSound = this.sound.add("landSound", {
+      volume: soundEffectsVolume
+    });
 
+    climbSound = this.sound.add("climbSound", {
+      volume: soundEffectsVolume
+    });
+
+      //bananas
       if (bananaCounter === undefined) {
         console.error('Banana counter is not initialized.');
         return;
@@ -281,7 +512,7 @@ tasks.forEach((task, index) => {
       ground = this.add.rectangle(
         windowWidth / 2,
         windowHeight * 0.9,
-        windowWidth*3,
+        windowWidth*4,
         windowHeight / 2,
         0x4caf50
       );
@@ -1076,6 +1307,51 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
           >
             Logout
           </button>
+          <div className="mb-4" style={{marginTop: "1vw"}}>
+            <label 
+              htmlFor="musicVolume" 
+              className="block text-sm mb-2"
+            >
+              Music Volume
+            </label>
+            <input 
+              type="range" 
+              id="musicVolume"
+              min="0" 
+              max="1" 
+              step="0.1" 
+              value={musicVolume}
+              onChange={(e) => {
+                const newVolume = parseFloat(e.target.value);
+                setMusicVolume(newVolume);
+              }}
+              className="w-full"
+            />
+            <span className="text-sm">{(musicVolume * 100).toFixed(0)}%</span>
+          </div>
+
+          <div className="mb-4">
+            <label 
+              htmlFor="sfxVolume" 
+              className="block text-sm mb-2"
+            >
+              Sound Effects Volume
+            </label>
+            <input 
+              type="range" 
+              id="sfxVolume"
+              min="0" 
+              max="1" 
+              step="0.1" 
+              value={soundEffectsVolume}
+              onChange={(e) => {
+                const newVolume = parseFloat(e.target.value);
+                setSoundEffectsVolume(newVolume);
+              }}
+              className="w-full"
+            />
+            <span className="text-sm">{(soundEffectsVolume * 100).toFixed(0)}%</span>
+          </div>
         </div>
       )}
 
@@ -1264,20 +1540,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
   />
 )}
 
-      {/* Bananas Display
-      <div
-        style={{
-          position: "fixed",
-          top: "0vw",
-          right: "8vw",
-          fontFamily: "Courier New",
-          fontWeight: "1vw",
-        }}
-      >
-        <p style={{ fontSize: "1vw" }}>
-          <strong>Bananas: {bananaCounter}</strong>
-        </p>
-      </div> */}
+
     </div>
   );
 
