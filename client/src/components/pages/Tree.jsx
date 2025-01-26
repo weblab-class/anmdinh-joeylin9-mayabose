@@ -132,13 +132,12 @@ const Tree = () => {
     let lastChangeTime = 0;
     let bananas = [];
 
-    const updateBananaCounter = (newCount) => {
-      setBananaCounter(newCount);
-    };
-
     // Example: Increment banana count in Phaser
-    function collectBanana() {
-      setBananaCounter((prev) => prev + 1);
+    function collectBanana(numBananasCollected) {
+      setBananaCounter((prev) => {
+        console.log("Previous bananaCounter value:", prev); // Log the previous state
+        return prev + numBananasCollected;
+      });
     }
 
     function preload() {
@@ -240,7 +239,6 @@ const Tree = () => {
             monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
           ) {
             if (!popupShown) {
-              console.log("Monkey is in the leftmost half of the left branch!");
               setPopupVisible(true); // Show the popup
 
               // Find the text directly above the leftmost half of the left branch
@@ -255,7 +253,7 @@ const Tree = () => {
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
-                console.log('Selected task name:', taskName);
+                // console.log('Selected task name:', taskName);
               }
 
               popupShown = true; // Prevent multiple popups from showing for this branch
@@ -270,7 +268,6 @@ const Tree = () => {
             monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
           ) {
             if (!popupShown) {
-              console.log("Monkey is in the rightmost half of the right branch!");
               setPopupVisible(true); // Show the popup
 
               // Find the text directly above the rightmost half of the right branch
@@ -285,7 +282,7 @@ const Tree = () => {
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text; // Get the task name from the text
                 setSelectedTaskName(taskName); // Update the selected task name
-                console.log('Selected task name:', taskName);
+                // console.log('Selected task name:', taskName);
               }
 
               popupShown = true; // Prevent multiple popups from showing for this branch
@@ -451,7 +448,6 @@ const Tree = () => {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-      console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setBounds(-windowWidth / 2, -5000, Infinity, Infinity);
@@ -640,8 +636,20 @@ const Tree = () => {
   let task = tasks.find(t => t.name === selectedTaskName);
 
   const handleCollectBananas = () => {
-    console.log("Bananas collected!"); // Placeholder for actual action
-    // Add any action you want to trigger when "Collect Bananas!" is clicked
+    if (task) {
+      const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+      collectBanana(bananasToCollect);
+      console.log("Tasks before removal:", tasks);
+      const updatedTasks = tasks.filter(t => t.name !== selectedTaskName);
+      console.log("Tasks after removal:", updatedTasks);
+      setTasks(updatedTasks);
+      // Save the updated task list and banana counter after the update
+      setTimeout(() => {
+        saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+      }, 0); // Trigger saving after state update is complete
+    } else {
+      console.log("No task selected.");
+    }
   };
 
   const growTree = (task) => {
@@ -1044,12 +1052,15 @@ const Tree = () => {
 
 {popupVisible && (
   <Popup
-    defaultValue={task.notes}
-    name={task.name}
+    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
+    name={task?.name}
     inputValue={inputValue}
     onInputChange={handleInputChange}
     onSubmit={handleSave}
-    handleCollect={handleCollectBananas}
+    handleCollect={() => {
+      handleCollectBananas(); // Call your existing logic
+      setPopupVisible(false); // Close the popup when collect is done
+    }}
     setPopupVisibility={setPopupVisible}
     style={{
       zIndex: 1000, // Ensure this is higher than any other elements
@@ -1060,6 +1071,7 @@ const Tree = () => {
     }}
   />
 )}
+
 
 
       {/* Bananas Display */}
