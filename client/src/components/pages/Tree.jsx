@@ -42,35 +42,32 @@ const Tree = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
   const [selectedTaskName, setSelectedTaskName] = useState("")
-
-
   const handleInputChange = (input) => {
     setInputValue(input); // Update the input value state
     handleSave(input);  // Call the handleSave function with updated value
   };
 
-
-  // Fetch game info only when userId is available
+  // ensuring user is logged in and has a userId
   useEffect(() => {
     if (!userId) {
       console.log("Missing userId, redirecting to homepage...");
-      navigate("/"); // Redirect to homepage if userId is not available
+      navigate("/"); // redirect to homepage if userId is not available
       return;
     }
 
     const getGameInfo = async () => {
       try {
         const data = await fetchGameInfo(userId);
+        console.log("Fetched game info:", data);
         setTasks(data.tasks || []);  // Set tasks (empty array for new users)
-        setBananaCounter(data.bananaCounter || 0);  // Set banana counter
+        setBananaCounter(data.numBananas || 0);  // Set banana counter
         setLoading(false); // Set loading to false after data is fetched
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
         setLoading(false); // Set loading to false even on error
       }
     };
-
-    getGameInfo(); // Fetch game info
+    getGameInfo(); // fetching game info
   }, [userId, navigate]);
 
   useEffect(() => {
@@ -131,14 +128,6 @@ const Tree = () => {
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
     let bananas = [];
-
-    // Example: Increment banana count in Phaser
-    function collectBanana(numBananasCollected) {
-      setBananaCounter((prev) => {
-        console.log("Previous bananaCounter value:", prev); // Log the previous state
-        return prev + numBananasCollected;
-      });
-    }
 
     function preload() {
       console.log('Preloading assets...');
@@ -638,25 +627,29 @@ const Tree = () => {
 
   let task = tasks.find(t => t.name === selectedTaskName);
 
-  const handleCollectBananas = (taskName) => {
-    console.log('taskname', taskName)
+  const handleCollectBananas = () => {
+    const task = tasks.find(t => t.name === selectedTaskName);
     if (task) {
       const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-      collectBanana(bananasToCollect);
-      console.log("Tasks before removal:", tasks);
-      const updatedTasks = tasks.filter(t => t.name !== selectedTaskName);
-      console.log("Tasks after removal:", updatedTasks);
+
+      // update tasks and remove the selected task
+      const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
       setTasks(updatedTasks);
-      // Save the updated task list and banana counter after the update
-      setTimeout(() => {
-        saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
-      }, 0); // Trigger saving after state update is complete
+
+      // update banana counter and save task data
+      setBananaCounter((prevCount) => {
+        const newCounter = prevCount + bananasToCollect;
+
+        // save updated task list and banana counter
+        saveTaskData(userId, updatedTasks, newCounter, setTasks);
+        return newCounter;
+      });
     } else {
       console.log("No task selected.");
     }
     removeBranchFromFrontend(taskName);
   };
-  
+
   const removeBranchFromFrontend = (taskName) => {
     console.log('starting process')
     console.log('name', taskName)
@@ -678,7 +671,7 @@ const Tree = () => {
         // Remove the branch from scene and the branches array
         scene.branches = scene.branches.filter(branch => branch !== currentBranch);
         currentBranch.destroy();  // Destroy the branch
-    
+
         // Remove bananas corresponding to the task
         const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
         console.log('bananas', bananasToRemove)
@@ -718,26 +711,26 @@ const Tree = () => {
   //           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
   //         },
   //       });
-    
+
   //       // Reorganize the remaining branches, texts, and bananas
   //       updateBranchesAfterDeletion(currentBranch.y);
   //     }
   //   }
   // };
-  
+
   // const updateBranchesAfterDeletion = (currentBranchY) => {
   //   console.log('step 2');
   //   // Adjust positions of remaining branches, texts, and bananas
   //   const offsetY = windowHeight * (10 / 765);  // The Y offset to shift down
-  
+
   //   // Move branches above the deleted branch down
   //   scene.branches.forEach(branch => {
   //     if (branch.y < currentBranchY) {
-  //       branch.y += offsetY; 
+  //       branch.y += offsetY;
   //       console.log('done1')
   //     }
   //   });
-  
+
   //   // Move task text above the deleted branch down
   //   scene.children.list.forEach(child => {
   //     if (child.text && child.y < currentBranchY) {
@@ -745,7 +738,7 @@ const Tree = () => {
   //       console.log('done2')
   //     }
   //   });
-  
+
   //   // Move bananas above the deleted branch down
   //   scene.children.list.forEach(child => {
   //     if (child.textureKey === "banana" && child.y < currentBranchY) {
@@ -754,7 +747,7 @@ const Tree = () => {
   //   });
 }}
   };
-  
+
 
   const growTree = (task) => {
     if (scene && scene.tree) {
@@ -1173,8 +1166,6 @@ const Tree = () => {
     }}
   />
 )}
-
-
 
       {/* Bananas Display */}
       <div

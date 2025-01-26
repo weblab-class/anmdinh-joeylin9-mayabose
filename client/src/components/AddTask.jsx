@@ -6,22 +6,29 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
   const [taskNotes, setTaskNotes] = useState(""); // State for task notes
 
   const handleSubmit = () => {
-    if (taskName && taskDifficulty && taskNotes) {
-        console.log("Previous tasks:", tasks); // Log the current list of tasks
-        const previousTask = tasks[0]
-        console.log("Previous task:", previousTask); // Log the previous task
-        const taskSide = previousTask && previousTask.side === "left" ? "right" : "left";
-        console.log("Assigned side for new task:", taskSide); // Log the determined side for new task
-        onAddTask({ name: taskName, difficulty: taskDifficulty, notes: taskNotes, side: taskSide });
+    if (taskName && taskDifficulty) {
+      console.log("Previous tasks:", tasks); // Log the current list of tasks
+      const previousTask = tasks[0];
+      console.log("Previous task:", previousTask); // Log the previous task
+      const taskSide = previousTask && previousTask.side === "left" ? "right" : "left";
+      console.log("Assigned side for new task:", taskSide); // Log the determined side for new task
 
-        setTaskName(""); // Reset inputs
-        setTaskDifficulty("");
-        setTaskNotes(""); // Reset task notes
+      // Add task with taskNotes being optional
+      onAddTask({
+        name: taskName,
+        difficulty: taskDifficulty,
+        notes: taskNotes, // This can be an empty string if no notes are provided
+        side: taskSide,
+      });
+
+      // Reset fields after submission
+      setTaskName("");
+      setTaskDifficulty("");
+      setTaskNotes(""); // Reset task notes as well
     } else {
-        alert("Please fill out all fields.");
+      alert("Please fill out the task name and difficulty.");
     }
-};
-
+  };
   return (
     <div
       style={{
