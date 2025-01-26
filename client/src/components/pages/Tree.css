@@ -1,0 +1,4 @@
+#phaser-game canvas {
+    position: absolute;
+    z-index: -1; /* Ensure the canvas is behind other content */
+  }
