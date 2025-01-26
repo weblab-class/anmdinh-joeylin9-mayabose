@@ -706,7 +706,7 @@ tasks.forEach((task, index) => {
           ease: "Linear",
           onUpdate: () => {
             // Update the tree's size and physics body
-            treeObj.setSize(50, treeObj.height);
+            treeObj.setSize(windowHeight * (50 / 765), treeObj.height);
             treeObj.body.updateFromGameObject();
           },
           onComplete: () => {
