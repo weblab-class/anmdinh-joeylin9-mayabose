@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import Phaser from "phaser";
 import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
@@ -7,7 +7,6 @@ import monkeyImg3 from "../../assets/monkeyhat-forward.png";
 import monkeyImg4 from '../../assets/monkeyheadphones-forward.png';
 import marketImg from '../../assets/shop-removebg-preview.png';
 import bananaImg from "../../assets/banana3.png";
-// import grassImg from "../../assets/grass.png";
 import cloudImg from "../../assets/cloud2-removebg-preview.png";
 import groundImg from "../../assets/ground.png";
 import default_monkey from "../../assets/default-monkey-spritesheet.png"
@@ -33,23 +32,18 @@ const Tree = () => {
   const [scene, setScene] = useState(null);
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
-  const [taskName, setTaskName] = useState(""); // Store task name
   // const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
   const [treeState, setTreeState] = useState({
     height: 150, // Initialize height
     branches: [], // Initialize branches
     bananas: [],
   });
-  const gameRef = useRef(null); // Ref to track the Phaser game instance
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
-  const [selectedMonkeyIndex, setSelectedMonkeyIndex] = useState(0); // Current selected monkey in the shop
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false]); // Purchase state for monkeys
   const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
   // Add state to manage popup visibility and input
   const [popupVisible, setPopupVisible] = useState(false);
-  const [userInput, setUserInput] = useState("");
-  const [onBranch, setOnBranch] = useState(false); // Tracks if the monkey is currently on a branch
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
@@ -61,7 +55,6 @@ const Tree = () => {
     setInputValue(input); // Update the input value state
     handleSave(input);  // Call the handleSave function with updated value
   };
-  const [phaserGame, setPhaserGame] = useState(null);
 
   // Fetch game info only when userId is available
   useEffect(() => {
@@ -127,7 +120,7 @@ const Tree = () => {
       physics: {
         default: 'arcade',
         arcade: {
-          gravity: { y: windowHeight*2 },
+          gravity: { y: windowHeight*3 },
           debug: false,
         },
       },
@@ -158,12 +151,8 @@ const Tree = () => {
 
     let windowWidth = window.innerWidth;
     let windowHeight = window.innerHeight;
-    let tree; // Variable to hold the tree object
-    let branches = []; // Array to store branch objects
-    let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
     let ground; // Variable for the ground
-    let mound;
     let camera; // Camera reference
     let market; // Variable for the market image
     let shopContainer; // Container for the shop UI
@@ -175,12 +164,8 @@ const Tree = () => {
     let purchaseButton; // Reference to the purchase button in the shop
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
-    let bananas = [];
     let clouds = [];
     let cloudSpeed = 1;
-    let cloudWidth = window.innerWidth / 5; // Width of each cloud
-    let cloudHeight = window.innerHeight / 5;
-
 
     //sounds
     let climbSound;
@@ -188,14 +173,6 @@ const Tree = () => {
     let stepSound;
     let lastSoundTime = 0;
     let backgroundMusic;
-
-    // Example: Increment banana count in Phaser
-    function collectBanana(numBananasCollected) {
-      setBananaCounter((prev) => {
-        console.log("Previous bananaCounter value:", prev); // Log the previous state
-        return prev + numBananasCollected;
-      });
-    }
 
 
     // PRELOAD
@@ -207,7 +184,6 @@ const Tree = () => {
       this.load.image('monkey4', monkeyImg4);
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
-      // this.load.image("grass", grassImg);
       this.load.audio("backgroundMusic", track18);
       this.load.audio("stepSound", step);
       this.load.audio("landSound", land);
@@ -225,8 +201,6 @@ const Tree = () => {
 
     // CREATE
     function create() {
-      // this.physics.world.setBounds(-4*windowWidth/3, -5000, 8*windowWidth/3, Infinity);  // x, y, width, height
-       // Set background color
       const numberOfClouds = 15; // Number of clouds to generate
 
   // Create cloud sprites at random positions across the screen
@@ -238,13 +212,12 @@ const Tree = () => {
     cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
     console.log(cloud.x, cloud.y, cloud.scale)
     clouds.push(cloud);
-
   }
 
     // Music volume control
     backgroundMusic = this.sound.add("backgroundMusic", {
       loop: true,
-      volume: musicVolume  // Use the React state directly
+      volume: musicVolume
     });
     backgroundMusic.play();
 
@@ -263,10 +236,10 @@ const Tree = () => {
 
       console.log('Creating shop and game elements');
 
-      // Tree setup based on tasks length
+// Tree setup based on tasks length
 const treeBaseHeight = windowHeight * (150 / 765);
-const treeWidth = windowHeight * (90 / 765); // Fixed tree width
-const treeHeight = treeBaseHeight + tasks.length * 100; // Dynamic tree height
+const treeWidth = windowHeight * (90 / 765);
+const treeHeight = treeBaseHeight + tasks.length * 100;
 
 // Create the tree
 const tree = this.add.rectangle(
@@ -328,7 +301,7 @@ tasks.forEach((task, index) => {
 
   // Add bananas based on difficulty
   const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-  const bananaSpacing = windowWidth * (50 / 1494); // Horizontal spacing between bananas
+  const bananaSpacing = windowWidth * (50 / 1494);
   for (let i = 0; i < bananaCount; i++) {
     const banana = this.add.sprite(
       branchX + i * bananaSpacing,
@@ -337,7 +310,7 @@ tasks.forEach((task, index) => {
     );
     banana.setOrigin(0.5, 0.5);
     banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50));
-    banana.setDepth(10); // Ensure it appears in front of other objects
+    banana.setDepth(10);
     this.bananas.push(banana);
   }
 
@@ -365,12 +338,8 @@ tasks.forEach((task, index) => {
       });
       // Preload the default monkey spritesheet
 
-      monkey = this.physics.add.sprite(0 , windowHeight * 0.9 - windowHeight*(45/765), "default_monkey");
+      monkey = this.physics.add.sprite(-windowWidth*.33 , -windowHeight*.25, "default_monkey");
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
-      monkey.setOrigin(0.5, 0.93)
-      monkey.setPosition(0, 0)
-      console.log('monkeyX', monkey.x)
-      console.log('monkeyY', monkey.y)
 
       ground = this.add.image(0, 0, 'ground');
       ground.setScale(0.5); // Scale the image to 50% of its original size
@@ -379,23 +348,6 @@ tasks.forEach((task, index) => {
       this.physics.add.existing(ground, true); // Add static physics to the rectangle
       this.physics.add.collider(monkey, ground);
       ground.setDepth(0)
-
-      // mound = this.add.rectangle(
-      //   0,
-      //   0,
-      //   8*windowWidth/3,
-      //   2*windowHeight,
-      //   0x4caf50
-      // );
-      // mound.setOrigin(0.5, 0);
-      // // this.physics.add.existing(mound, true); // Add static physics to the rectangles
-      // this.physics.add.collider(monkey, mound);
-      // this.physics.world.createDebugGraphic(); // Enable debugging for physics
-
-
-      // Log the windowHeight and the intended ground position
-      console.log('windowHeight:', windowHeight);
-      console.log('Ground position (windowHeight * 0.9):', windowHeight * 0.9);
 
       // Set up custom keys for monkey movement
       this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -407,7 +359,7 @@ tasks.forEach((task, index) => {
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      camera.setBounds(-4*windowWidth/3, -5000, 8*windowWidth/3, Infinity);
+      camera.setBounds(-4*windowWidth/3, -5000, Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
       console.log("Camera bounds:", camera.getBounds());
 
@@ -482,516 +434,424 @@ tasks.forEach((task, index) => {
     let isJumping = false;
     let isClimbing = false;
 
-    // UPDATE
-    function update() {
-      console.log("monkey.y: ", monkey.y)
-      monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
+// UPDATE
+function update() {
+  monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
 
-      // Move clouds
-      clouds.forEach((cloud) => {
-        cloud.x -= cloudSpeed;  // Move cloud to the left
+  // Move clouds
+  clouds.forEach((cloud) => {
+    cloud.x -= cloudSpeed;  // Move cloud to the left
 
-        // When a cloud moves off the left side, reposition it to the right side of the screen
-        if (cloud.x + cloud.width < this.cameras.main.scrollX) {
-          cloud.x = this.cameras.main.scrollX + window.innerWidth * 0.8;
-          cloud.y = Math.random() * -1 * window.innerHeight;  // Randomize vertical position
-        }
-      });
+    // When a cloud moves off the left side, reposition it to the right side of the screen
+    if (cloud.x + cloud.width < this.cameras.main.scrollX) {
+      cloud.x = this.cameras.main.scrollX + window.innerWidth * 0.8;
+      cloud.y = Math.random() * -1 * window.innerHeight;  // Randomize vertical position
+    }
+  });
 
-      // INFINITE BANANA COLLECTION
-      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-      qKey.on("down", () => {
-        setBananaCounter((prevCount) => prevCount + 1);
-      });
+  // INFINITE BANANA COLLECTION
+  const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+  qKey.on("down", () => {
+    setBananaCounter((prevCount) => prevCount + 1);
+  });
 
-      // SHOP UPDATES
-      if (shopOpen) {
-        const currentTime = Date.now(); // Get the current time in milliseconds
+  // SHOP UPDATES
+  if (shopOpen) {
+    const currentTime = Date.now(); // Get the current time in milliseconds
 
-        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(1);
-          lastChangeTime = currentTime; // Update the last change time
-        }
+    if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
+      changeMonkey(1);
+      lastChangeTime = currentTime; // Update the last change time
+    }
 
-        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(1);
-          lastChangeTime = currentTime; // Update the last change time
-        }
+    if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
+      changeMonkey(1);
+      lastChangeTime = currentTime; // Update the last change time
+    }
+  }
+
+  const moveSpeed = windowWidth / 2;
+  const climbSpeed = windowHeight * (1 / 60);
+  // Monkey movement
+  if (monkeyMovementEnabled) {
+    const soundTime = Date.now();
+
+    // Horizontal movement
+    if (this.leftKey.isDown) {
+      monkey.setVelocityX(-moveSpeed);
+      if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+        stepSound.play();
+        lastSoundTime = soundTime;
       }
+      monkey.setFrame(2); // Set frame to face left
+    } else if (this.rightKey.isDown) {
+      monkey.setVelocityX(moveSpeed);
+      if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+        stepSound.play();
+        lastSoundTime = soundTime;
+      }
+      monkey.setFrame(3); // Set frame to face right
+    } else {
+      monkey.setVelocityX(0);
 
-  const groundLevel = 0;
-  const moveSpeed = windowWidth / 4;
-  const climbSpeed = windowHeight * (1 / 300);
-// Monkey movement
-if (monkeyMovementEnabled) {
-  const soundTime = Date.now();
-
-  // Horizontal movement
-  if (this.leftKey.isDown) {
-    monkey.setVelocityX(-moveSpeed);
-    if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-      stepSound.play();
-      lastSoundTime = soundTime;
+      // When standing still on the ground, set frame to "facing forward"
+      if (monkey.body.touching.down) {
+        monkey.setFrame(1); // Set frame to face forward (idle frame)
+      }
     }
-    monkey.setFrame(2); // Set frame to face left
-  } else if (this.rightKey.isDown) {
-    monkey.setVelocityX(moveSpeed);
-    if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-      stepSound.play();
-      lastSoundTime = soundTime;
-    }
-    monkey.setFrame(3); // Set frame to face right
   } else {
     monkey.setVelocityX(0);
+    monkey.setVelocityY(0);
+    monkey.setFrame(1); // Set frame to idle when no movement
+  }
 
-    // When standing still on the ground, set frame to "facing forward"
-    if (monkey.body.touching.down) {
-      monkey.setFrame(1); // Set frame to face forward (idle frame)
+  // Prevent monkey from moving below the ground
+  if (this.physics.overlap(monkey, ground)) {
+    monkey.y -= climbSpeed;
+    monkey.setVelocityY(0); // Prevent falling through the floor
+  }
+
+
+  // Landing sound
+  if (monkey.body.touching.down && !monkey.body.wasTouching.down) {
+    if (Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
+      landSound.play();
     }
   }
 
-  // Jumping logic
-  if (this.upKey.isDown && monkey.body.touching.down) {
-    monkey.setVelocityY(-2 * windowHeight / 3); // Jumping strength
-    monkey.body.setGravityY(windowHeight * 4); // Re-enable gravity for jumping
-    monkey.setFrame(0); // Set frame to jumping
-  }
-} else {
-  monkey.setVelocityX(0);
-  monkey.setVelocityY(0);
-  monkey.setFrame(1); // Set frame to idle when no movement
-}
+  // Tree/branch interaction
+  const onTree = this.physics.overlap(monkey, this.tree);
+  const onBranch = this.branches.some(branch => this.physics.overlap(monkey, branch));
 
-// Prevent monkey from moving below the ground
-if (monkey.y > groundLevel) {
-  monkey.y = groundLevel;
-  monkey.setVelocityY(0); // Prevent falling through the floor
-}
+  if (onTree) {
+    isClimbing = true;
+    monkey.body.allowGravity = false;
+    monkey.setVelocityY(0);
 
+    // Horizontal movement while climbing
+    if (this.leftKey.isDown) {
+      monkey.setVelocityX(-moveSpeed);
+    } else if (this.rightKey.isDown) {
+      monkey.setVelocityX(moveSpeed);
+    } else {
+      monkey.setVelocityX(0);
+    }
 
-// Landing sound
-if (monkey.body.touching.down && !monkey.body.wasTouching.down) {
-  if (Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
-    landSound.play();
-  }
-}
-
-// Tree/branch interaction
-const onTree = this.physics.overlap(monkey, this.tree);
-const onBranch = this.branches.some(branch => this.physics.overlap(monkey, branch));
-
-if (onTree || onBranch) {
-  isClimbing = true; // Enable climbing
-  monkey.body.setGravityY(0); // Disable gravity while climbing on tree/branch
-  monkey.body.allowGravity = false; // Ensure gravity is completely disabled
-  monkey.setVelocityY(0); // Prevent downward movement
-
-  // Horizontal movement while climbing
-  if (this.leftKey.isDown) {
-    monkey.setVelocityX(-moveSpeed);
-  } else if (this.rightKey.isDown) {
-    monkey.setVelocityX(moveSpeed);
-  } else {
-    monkey.setVelocityX(0);
-  }
-
-  // Climbing logic
-  if (this.upKey.isDown) {
-    monkey.y -= climbSpeed; // Climb up
-    monkey.setFrame(0); // Set climbing frame
-    climbSound.play();
-  } else if (this.downKey.isDown) {
-    monkey.y += climbSpeed; // Climb down
-    monkey.setFrame(0); // Set climbing frame
-    climbSound.play();
-  } else {
-    monkey.setFrame(1); // Idle frame when not climbing
-  }
-} else {
-  isClimbing = false; // Disable climbing
-  monkey.body.setGravityY(windowHeight * 4); // Re-enable gravity when not on the tree/branch
-  monkey.body.allowGravity = true; // Re-enable gravity on the monkey when not climbing
-}
-
-// Jumping logic when not climbing
-if (!isClimbing && this.upKey.isDown && monkey.body.touching.down) {
-  monkey.setVelocityY(-2 * windowHeight / 3); // Jumping strength
-  monkey.body.setGravityY(windowHeight * 4); // Re-enable gravity during jump
-}
-
-
- // Flag to track if the popup should be show
-
- for (const branch of this.branches) {
-  const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
-  const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
-  const branchBounds = branch.getBounds(); // Get branch's bounds
-
-  // Check if the monkey is currently overlapping with the branch
-  const isOverlapping = this.physics.overlap(monkey, branch);
-
-  if (isOverlapping) {
-    // If the monkey is overlapping, we need to display the popup for this branch
-    let popupShown = false;
-
-    // Check leftmost half of left branch
-    if (
-      isLeftBranch &&
-      monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
-      monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
-    ) {
-      if (!popupShown) {
-        setPopupVisible(true); // Show the popup
-
-        // Find the text directly above the leftmost half of the left branch
-        const textAboveBranch = this.children.getChildren().find(child => {
-          return (
-            child instanceof Phaser.GameObjects.Text &&
-            child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-            child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
-            Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
-          );
-        });
-
-        if (textAboveBranch) {
-          const taskName = textAboveBranch.text; // Get the task name from the text
-          setSelectedTaskName(taskName); // Update the selected task name
-          console.log('Selected task name:', taskName);
-        }
-
-        popupShown = true; // Prevent multiple popups from showing for this branch
-        break; // Exit the loop once the popup is shown
+    // Climbing logic
+    if (this.physics.overlap(monkey, this.tree) && this.upKey.isDown) {
+      monkey.y -= climbSpeed; // Climb up
+      monkey.setFrame(0); // Set climbing frame
+      climbSound.play();
+    } else if (this.downKey.isDown && !this.physics.overlap(monkey, ground)) {
+        monkey.y += climbSpeed; // Climb down
+        monkey.setFrame(0); // Set climbing frame
+        climbSound.play();
       }
-    }
+  } else {
+    isClimbing = false; // Disable climbing
+    monkey.body.allowGravity = true;
+    // Jumping logic when not climbing
+    if (this.upKey.isDown && monkey.body.touching.down) {
+      monkey.setVelocityY(-1.5 * windowHeight);
+      monkey.body.setGravityY(windowHeight * 3);
+  }
+  }
 
-    // Check rightmost half of right branch
-    if (
-      !isLeftBranch &&
-      monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
-      monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
-    ) {
-      if (!popupShown) {
-        setPopupVisible(true); // Show the popup
+  if (onBranch) {
+    isClimbing = true;
+    monkey.body.allowGravity = false;
+    monkey.setVelocityY(0);
 
-        // Find the text directly above the rightmost half of the right branch
-        const textAboveBranch = this.children.getChildren().find(child => {
-          return (
-            child instanceof Phaser.GameObjects.Text &&
-            child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-            child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
-            Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
-          );
-        });
-
-        if (textAboveBranch) {
-          const taskName = textAboveBranch.text; // Get the task name from the text
-          setSelectedTaskName(taskName); // Update the selected task name
-          console.log('Selected task name:', taskName);
-        }
-
-        popupShown = true; // Prevent multiple popups from showing for this branch
-        break; // Exit the loop once the popup is shown
-      }
+    // Horizontal movement while climbing
+    if (this.leftKey.isDown) {
+      monkey.setVelocityX(-moveSpeed);
+    } else if (this.rightKey.isDown) {
+      monkey.setVelocityX(moveSpeed);
+    } else {
+      monkey.setVelocityX(0);
     }
   }
 
-  // If the monkey is no longer overlapping with any branch, hide the popup
-  if (!isOverlapping) {
-    setPopupVisible(false);
-  }
-}
-}
-    function adjustCloudsPosition() {
-      // Adjust the position of the clouds when the camera moves
-      clouds.forEach(cloud => {
-        cloud.x += this.cameras.main.scrollX;  // Move clouds based on camera scroll position
-        cloud.y += this.cameras.main.scrollY;
-      });
-    }
 
-    function changeMonkey(direction) {
-      setPurchasedMonkeys((currentPurchasedMonkeys) => {
-        let newIndex = monkeyNumber + direction;
+  // Flag to track if the popup should be show
+  for (const branch of this.branches) {
+    const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
+    const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
+    const branchBounds = branch.getBounds(); // Get branch's bounds
 
-        if (newIndex < 0) {
-          newIndex = monkeysAvailable.length - 1;
-        } else if (newIndex >= monkeysAvailable.length) {
-          newIndex = 0;
-        }
+    // Check if the monkey is currently overlapping with the branch
+    const isOverlapping = this.physics.overlap(monkey, branch);
 
-        // Update the button text based on the React state
-        purchaseButton.setText(currentPurchasedMonkeys[newIndex] ? "Purchased" : "Purchase");
+    if (isOverlapping) {
+      // If the monkey is overlapping, we need to display the popup for this branch
+      let popupShown = false;
 
-        monkeyNumber = newIndex;
-        costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
-        monkeyDisplay.setTexture(monkeysAvailable[newIndex]);
-        monkey.setTexture(monkeysAvailable[newIndex]);
+      // Check leftmost half of left branch
+      if (
+        isLeftBranch &&
+        monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
+        monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
+      ) {
+        if (!popupShown) {
+          setPopupVisible(true); // Show the popup
 
-        return currentPurchasedMonkeys;
-      });
-    }
-
-    function purchaseMonkey() {
-      setBananaCounter((prevCounter) => {
-        const price = monkeyPrices[monkeyNumber];
-
-        if (prevCounter < price) {
-          alert('Not enough bananas!')
-          return prevCounter
-        } else if (purchaseButton._text === "Purchased") {
-          alert('Monkey already purchased!')
-          return prevCounter
-        }else{
-          console.log('Purchased!');
-
-          setPurchasedMonkeys((prevPurchasedMonkeys) => {
-            const updatedMonkeys = [...prevPurchasedMonkeys];
-            updatedMonkeys[monkeyNumber] = true;
-            purchaseButton.setText("Purchased"); // Update button immediately
-            return updatedMonkeys;
+          // Find the text directly above the leftmost half of the left branch
+          const textAboveBranch = this.children.getChildren().find(child => {
+            return (
+              child instanceof Phaser.GameObjects.Text &&
+              child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+              child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
+              Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+            );
           });
 
-          return prevCounter - price; // Deduct the price
-        }
-      });
-    }
-
-    function openShop() {
-      console.log('Opening shop...');
-      shopOpen = true;
-      monkeyMovementEnabled = false; // Disable monkey movement
-      monkey.x = windowWidth*1.2
-      monkey.y = windowHeight * .8
-      shopContainer.setVisible(true);
-      camera.stopFollow(); // Stop following the monkey
-      camera.pan(shopContainer.x, shopContainer.y, 500, 'Linear', true); // Pan to shop container
-      lastChangeTime = Date.now() + 500;
-    }
-
-    function closeShop() {
-      setPurchasedMonkeys((prevPurchasedMonkeys) => {
-        if (prevPurchasedMonkeys[monkeyNumber]) {
-          console.log("Closing shop...");
-          shopOpen = false;
-          lastChangeTime = 0;
-          monkeyMovementEnabled = true; // Re-enable monkey movement
-
-          // Set monkey's position to the ground (y = 0)
-          monkey.x = windowWidth * 0.8
-          monkey.y = 0;
-
-          shopContainer.setVisible(false);
-          camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
-
-          camera.once("camerapancomplete", () => {
-            camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
-            camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-          });
-        } else {
-          alert(`You must purchase this monkey first!`);
-        }
-
-        return prevPurchasedMonkeys; // Ensure state remains unchanged
-      });
-    }
-
-  const handleAddTask = (task) => {
-    if (task) {
-      const updatedTasks = [task, ...tasks]; // Add the task to the tasks list
-      setTasks(updatedTasks); // Update the tasks state
-      setShowTaskManager(false);
-      saveTaskData(userId, updatedTasks, bananaCounter, setTasks); // Pass the updated tasks list to saveTaskData
-      console.log('Updated tasks:', updatedTasks);
-    }
-  };
-
-  const handleCancel = () => {
-    setShowTaskManager(false); // Close the TaskManager without adding a task
-  };
-
-  const handleSave = (input) => {
-    console.log("got through!")
-    console.log('taskname', selectedTaskName);
-    console.log('Updated input:', input);
-
-    // Find the task with the selected name
-    const task = tasks.find(t => t.name === selectedTaskName);
-
-    if (task) {
-      console.log('Found task:', task);
-
-      // Use the callback form of setTasks to ensure we're updating the latest state
-      setTasks((prevTasks) => {
-        // Update the task's notes
-        const updatedTasks = prevTasks.map(existingTask => {
-          if (existingTask.name === selectedTaskName) {
-            return { ...existingTask, notes: input }; // Update only the task that matches the selectedTaskName
+          if (textAboveBranch) {
+            const taskName = textAboveBranch.text; // Get the task name from the text
+            setSelectedTaskName(taskName); // Update the selected task name
+            console.log('Selected task name:', taskName);
           }
-          return existingTask; // Keep the other tasks the same
-        });
 
-        // Trigger save function to persist the updated task list
-        saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+          popupShown = true; // Prevent multiple popups from showing for this branch
+          break; // Exit the loop once the popup is shown
+        }
+      }
 
-        return updatedTasks; // Return the updated tasks to be set
-      });
-    } else {
-      console.log('Task not found!');
-    }
-  };
+      // Check rightmost half of right branch
+      if (
+        !isLeftBranch &&
+        monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
+        monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
+      ) {
+        if (!popupShown) {
+          setPopupVisible(true); // Show the popup
 
-  let task = tasks.find(t => t.name === selectedTaskName);
-
-  const handleCollectBananas = (taskName) => {
-    const task = tasks.find(t => t.name === selectedTaskName);
-    if (task) {
-      const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-
-      // update tasks and remove the selected task
-      const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
-      setTasks(updatedTasks);
-
-      // update banana counter and save task data
-      setBananaCounter((prevCount) => {
-        const newCounter = prevCount + bananasToCollect;
-
-        // save updated task list and banana counter
-        saveTaskData(userId, updatedTasks, newCounter, setTasks);
-        return newCounter;
-      });
-    } else {
-      console.log("No task selected.");
-    }
-    removeBranchFromFrontend(selectedTaskName);
-  };
-
-  const removeBranchFromFrontend = (taskName) => {
-    console.log('starting process')
-    console.log('name', taskName)
-
-        // Improved text search logic
-        const textToRemove = scene.children.list.find(child => {
-          return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
-        });
-
-    console.log('text', textToRemove);
-      if (textToRemove) {
-        const textloc = textToRemove.y
-        const loc = textloc + windowHeight*(50/765);
-        const bananaY = loc;
-        textToRemove.destroy();
-        console.log('destoryed text')
-      // Iterate through all children in the scene to find and remove the corresponding items
-      const currentBranch = scene.branches.find(branch => Math.abs(branch.y - loc) < 50);
-      if (currentBranch) {
-        // Remove the branch from scene and the branches array
-        scene.branches = scene.branches.filter(branch => branch !== currentBranch);
-        currentBranch.destroy();  // Destroy the branch
-
-        // Remove bananas corresponding to the task
-        const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
-        console.log('bananas', bananasToRemove)
-        bananasToRemove.forEach(banana => {
-          scene.bananas = scene.bananas.filter(b => b !== banana);  // Remove from bananas array
-          banana.destroy();  // Destroy the banana
-        });
-
-        const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
-        const treeObj = scene.tree;
-        const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
-
-        scene.tweens.add({
-          targets: treeObj,
-          height: newHeight,
-          duration: 500,
-          ease: "Linear",
-          onUpdate: () => {
-            // Update the tree's size and physics body
-            treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
-            treeObj.body.updateFromGameObject();
-          },
-          onComplete: () => {
-            if (scene.branches.length === 0) {
-              console.log('No branches left, resetting state...');
-              setPopupVisible(false); // Ensure popup is closed
-              setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
-            }
-            // Save the updated tree state
-            const updatedTreeState = {
-              height: treeObj.height, // Updated height of the tree
-              branches: scene.branches, // Remaining branches on the tree
-              bananas: scene.bananas,
-            };
-            setTreeState(updatedTreeState);
-
-
-            // Alternate the branch side for the next branch
-            scene.branchSide = scene.branchSide === "left" ? "right" : "left";
-          },
-        });
-
-        const branchesMove = scene.branches.filter(branch => branch.y < loc);
-
-        // Create a tween for moving branches, bananas, and text
-        branchesMove.forEach((branch) => {
-          scene.tweens.add({
-            targets: branch,
-            y: branch.y + shrinkAmount,
-            duration: 500,
-            ease: "Linear",
-            onComplete: () => {
-              // Ensure physics body is finalized at the new position
-              if (branch.body) {
-                branch.body.updateFromGameObject();
-              }
-            }
+          // Find the text directly above the rightmost half of the right branch
+          const textAboveBranch = this.children.getChildren().find(child => {
+            return (
+              child instanceof Phaser.GameObjects.Text &&
+              child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+              child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
+              Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+            );
           });
-        });
 
-        const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
+          if (textAboveBranch) {
+            const taskName = textAboveBranch.text; // Get the task name from the text
+            setSelectedTaskName(taskName); // Update the selected task name
+            console.log('Selected task name:', taskName);
+          }
 
-        bananasMove.forEach((banana) => {
-          scene.tweens.add({
-            targets: banana,
-            y: banana.y + shrinkAmount,
-            duration: 500,
-            ease: "Linear",
-            onComplete: () => {
-              // Ensure physics body is finalized at the new position
-              if (banana.body) {
-                banana.body.updateFromGameObject();
-              }
-            }
-          });
-        });
-
-        const textMove = scene.children.list.filter(
-          (child) => child instanceof Phaser.GameObjects.Text && child.y < textloc
-        );
-        textMove.forEach((text) => {
-          scene.tweens.add({
-            targets: text,
-            y: text.y + shrinkAmount,
-            duration: 500,
-            ease: "Linear",
-            onComplete: () => {
-              // Ensure physics body is finalized at the new position
-              if (text.body) {
-                text.body.updateFromGameObject();
-              }
-            }
-          });
-        });
-
+          popupShown = true; // Prevent multiple popups from showing for this branch
+          break; // Exit the loop once the popup is shown
+        }
       }
     }
-  };
+    // If the monkey is no longer overlapping with any branch, hide the popup
+    if (!isOverlapping) {
+      setPopupVisible(false);
+    }
+  }
+}
 
+function adjustCloudsPosition() {
+  // Adjust the position of the clouds when the camera moves
+  clouds.forEach(cloud => {
+    cloud.x += this.cameras.main.scrollX;  // Move clouds based on camera scroll position
+    cloud.y += this.cameras.main.scrollY;
+  });
+}
 
-  const growTree = (task) => {
-    if (scene && scene.tree) {
+function changeMonkey(direction) {
+  setPurchasedMonkeys((currentPurchasedMonkeys) => {
+    let newIndex = monkeyNumber + direction;
+
+    if (newIndex < 0) {
+      newIndex = monkeysAvailable.length - 1;
+    } else if (newIndex >= monkeysAvailable.length) {
+      newIndex = 0;
+    }
+
+    // Update the button text based on the React state
+    purchaseButton.setText(currentPurchasedMonkeys[newIndex] ? "Purchased" : "Purchase");
+
+    monkeyNumber = newIndex;
+    costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
+    monkeyDisplay.setTexture(monkeysAvailable[newIndex]);
+    monkey.setTexture(monkeysAvailable[newIndex]);
+
+    return currentPurchasedMonkeys;
+  });
+}
+
+function purchaseMonkey() {
+  setBananaCounter((prevCounter) => {
+    const price = monkeyPrices[monkeyNumber];
+
+    if (prevCounter < price) {
+      alert('Not enough bananas!')
+      return prevCounter
+    } else if (purchaseButton._text === "Purchased") {
+      alert('Monkey already purchased!')
+      return prevCounter
+    }else{
+      console.log('Purchased!');
+
+      setPurchasedMonkeys((prevPurchasedMonkeys) => {
+        const updatedMonkeys = [...prevPurchasedMonkeys];
+        updatedMonkeys[monkeyNumber] = true;
+        purchaseButton.setText("Purchased"); // Update button immediately
+        return updatedMonkeys;
+      });
+
+      return prevCounter - price; // Deduct the price
+    }
+  });
+}
+
+function openShop() {
+  console.log('Opening shop...');
+  shopOpen = true;
+  monkeyMovementEnabled = false; // Disable monkey movement
+  monkey.body.setGravityY(-windowHeight*3)
+  monkey.x = windowWidth*10
+  monkey.y = -windowHeight*.25
+  shopContainer.setVisible(true);
+  camera.stopFollow(); // Stop following the monkey
+  camera.pan(windowWidth, shopContainer.y, 500, 'Linear', true); // Pan to shop container
+  lastChangeTime = Date.now() + 500;
+}
+
+function closeShop() {
+  setPurchasedMonkeys((prevPurchasedMonkeys) => {
+    if (prevPurchasedMonkeys[monkeyNumber]) {
+      console.log("Closing shop...");
+      shopOpen = false;
+      lastChangeTime = 0;
+      monkeyMovementEnabled = true; // Re-enable monkey movement
+
+      monkey.body.setGravityY(windowHeight*3)
+      monkey.x = windowWidth * 0.8
+      monkey.y = -windowHeight*.2
+
+      shopContainer.setVisible(false);
+      camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
+
+      camera.once("camerapancomplete", () => {
+        camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
+        camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
+      });
+    } else {
+      alert(`You must purchase this monkey first!`);
+    }
+
+    return prevPurchasedMonkeys; // Ensure state remains unchanged
+  });
+}
+
+const handleAddTask = (task) => {
+  if (task) {
+    const updatedTasks = [task, ...tasks]; // Add the task to the tasks list
+    setTasks(updatedTasks); // Update the tasks state
+    setShowTaskManager(false);
+    saveTaskData(userId, updatedTasks, bananaCounter, setTasks); // Pass the updated tasks list to saveTaskData
+    console.log('Updated tasks:', updatedTasks);
+  }
+};
+
+const handleCancel = () => {
+  setShowTaskManager(false); // Close the TaskManager without adding a task
+};
+
+const handleSave = (input) => {
+  console.log("got through!")
+  console.log('taskname', selectedTaskName);
+  console.log('Updated input:', input);
+
+  // Find the task with the selected name
+  const task = tasks.find(t => t.name === selectedTaskName);
+
+  if (task) {
+    console.log('Found task:', task);
+
+    // Use the callback form of setTasks to ensure we're updating the latest state
+    setTasks((prevTasks) => {
+      // Update the task's notes
+      const updatedTasks = prevTasks.map(existingTask => {
+        if (existingTask.name === selectedTaskName) {
+          return { ...existingTask, notes: input }; // Update only the task that matches the selectedTaskName
+        }
+        return existingTask; // Keep the other tasks the same
+      });
+
+      // Trigger save function to persist the updated task list
+      saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+
+      return updatedTasks; // Return the updated tasks to be set
+    });
+  } else {
+    console.log('Task not found!');
+  }
+};
+
+let task = tasks.find(t => t.name === selectedTaskName);
+
+const handleCollectBananas = (taskName) => {
+  const task = tasks.find(t => t.name === selectedTaskName);
+  if (task) {
+    const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+
+    // update tasks and remove the selected task
+    const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
+    setTasks(updatedTasks);
+
+    // update banana counter and save task data
+    setBananaCounter((prevCount) => {
+      const newCounter = prevCount + bananasToCollect;
+
+      // save updated task list and banana counter
+      saveTaskData(userId, updatedTasks, newCounter, setTasks);
+      return newCounter;
+    });
+  } else {
+    console.log("No task selected.");
+  }
+  removeBranchFromFrontend(selectedTaskName);
+};
+
+const removeBranchFromFrontend = (taskName) => {
+  console.log('starting process')
+  console.log('name', taskName)
+
+  // Improved text search logic
+  const textToRemove = scene.children.list.find(child => {
+    return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
+  });
+
+  console.log('text', textToRemove);
+  if (textToRemove) {
+    const textloc = textToRemove.y
+    const loc = textloc + windowHeight*(50/765);
+    const bananaY = loc;
+    textToRemove.destroy();
+    console.log('destoryed text')
+    // Iterate through all children in the scene to find and remove the corresponding items
+    const currentBranch = scene.branches.find(branch => Math.abs(branch.y - loc) < 50);
+    if (currentBranch) {
+      // Remove the branch from scene and the branches array
+      scene.branches = scene.branches.filter(branch => branch !== currentBranch);
+      currentBranch.destroy();  // Destroy the branch
+
+      // Remove bananas corresponding to the task
+      const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
+      console.log('bananas', bananasToRemove)
+      bananasToRemove.forEach(banana => {
+        scene.bananas = scene.bananas.filter(b => b !== banana);  // Remove from bananas array
+        banana.destroy();  // Destroy the banana
+      });
+
+      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
-      const newHeight = treeObj.height + windowHeight * (150 / 765); // Increased height growth for a more noticeable change
+      const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
       scene.tweens.add({
         targets: treeObj,
@@ -999,92 +859,181 @@ if (!isClimbing && this.upKey.isDown && monkey.body.touching.down) {
         duration: 500,
         ease: "Linear",
         onUpdate: () => {
-          // Ensure that the rectangle's size is updated
-          const treeWidth = windowHeight * (90 / 765);
-          treeObj.setSize(treeWidth, treeObj.height);
+          // Update the tree's size and physics body
+          treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
           treeObj.body.updateFromGameObject();
         },
         onComplete: () => {
-          const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765);
-const branchX =
-  task.side === "left"
-    ? treeObj.x - treeObj.displayWidth / 2 - windowWidth * (100 / 1494) // Align with left edge of the tree
-    : treeObj.x + treeObj.displayWidth / 2 + windowWidth * (100 / 1494); // Align with right edge of the tree
-const taskName = task.name || "Default Task";
-
-// Create the branch
-const branch = scene.add.rectangle(
-  branchX,
-  branchY,
-  windowWidth * (200 / 1494),
-  windowHeight * (20 / 765),
-  0x4a3d36
-);
-
-// Add the branch to the branches array and physics world
-if (scene && scene.branches) {
-  scene.branches.push(branch);
-}
-
-scene.physics.add.existing(branch, true); // Enable physics for the branch
-branch.body.updateFromGameObject(); // Update the body to reflect the current game object
-
-          // Determine the starting x position for bananas based on task.side
-          const bananaStartX =
-            task.side === "left"
-              ? branchX - windowWidth * (80 / 1494)
-              : branchX + windowWidth * (80 / 1494);
-
-          // Add task text to the branch
-          scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (90 / 765), taskName, {
-            font: `${windowWidth * (20 / 1494)}px Courier New`,
-            fill: "#000",
-            align: "center",
-            fontWeight: "bold",
-          });
-
-          // Add bananas based on difficulty, spaced horizontally
-          const bananaCount =
-            task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-          const bananaSpacing = windowWidth * (50 / 1494); // Horizontal spacing between bananas
-          if (!scene.bananas) {
-            scene.bananas = [];
+          if (scene.branches.length === 0) {
+            console.log('No branches left, resetting state...');
+            setPopupVisible(false); // Ensure popup is closed
+            setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
           }
-
-          for (let i = 0; i < bananaCount; i++) {
-            const banana = scene.add.sprite(
-              bananaStartX + i * bananaSpacing,
-              branchY,
-              "banana"
-            );
-            banana.setOrigin(0.5, 0.5);
-            banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50)); // Adjust the size as needed
-            banana.setDepth(10); // Ensure it appears in front of other objects
-
-            scene.physics.add.existing(banana);
-            banana.body.setAllowGravity(false); // Disable gravity if bananas shouldn't fall
-            banana.body.setImmovable(true); // Make bananas immovable
-            banana.body.updateFromGameObject();
-
-            // Add the banana to the scene's bananas array
-            scene.bananas.push(banana);
-          }
-
-          // Create the updated tree state to pass to saveTreeData
+          // Save the updated tree state
           const updatedTreeState = {
-            height: treeObj.height, // The updated height of the tree
-            branches: scene.branches, // All the branches currently on the tree
+            height: treeObj.height, // Updated height of the tree
+            branches: scene.branches, // Remaining branches on the tree
             bananas: scene.bananas,
           };
+          setTreeState(updatedTreeState);
 
-          setTreeState(updatedTreeState)
 
-          // Alternate branch side for the next branch
+          // Alternate the branch side for the next branch
           scene.branchSide = scene.branchSide === "left" ? "right" : "left";
         },
       });
+
+      const branchesMove = scene.branches.filter(branch => branch.y < loc);
+
+      // Create a tween for moving branches, bananas, and text
+      branchesMove.forEach((branch) => {
+        scene.tweens.add({
+          targets: branch,
+          y: branch.y + shrinkAmount,
+          duration: 500,
+          ease: "Linear",
+          onComplete: () => {
+            // Ensure physics body is finalized at the new position
+            if (branch.body) {
+              branch.body.updateFromGameObject();
+            }
+          }
+        });
+      });
+
+      const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
+
+      bananasMove.forEach((banana) => {
+        scene.tweens.add({
+          targets: banana,
+          y: banana.y + shrinkAmount,
+          duration: 500,
+          ease: "Linear",
+          onComplete: () => {
+            // Ensure physics body is finalized at the new position
+            if (banana.body) {
+              banana.body.updateFromGameObject();
+            }
+          }
+        });
+      });
+
+      const textMove = scene.children.list.filter(
+        (child) => child instanceof Phaser.GameObjects.Text && child.y < textloc
+      );
+      textMove.forEach((text) => {
+        scene.tweens.add({
+          targets: text,
+          y: text.y + shrinkAmount,
+          duration: 500,
+          ease: "Linear",
+          onComplete: () => {
+            // Ensure physics body is finalized at the new position
+            if (text.body) {
+              text.body.updateFromGameObject();
+            }
+          }
+        });
+      });
     }
-  };
+  }
+};
+
+const growTree = (task) => {
+  if (scene && scene.tree) {
+    const treeObj = scene.tree;
+    const newHeight = treeObj.height + windowHeight * (150 / 765); // Increased height growth for a more noticeable change
+
+    scene.tweens.add({
+      targets: treeObj,
+      height: newHeight,
+      duration: 500,
+      ease: "Linear",
+      onUpdate: () => {
+        // Ensure that the rectangle's size is updated
+        const treeWidth = windowHeight * (90 / 765);
+        treeObj.setSize(treeWidth, treeObj.height);
+        treeObj.body.updateFromGameObject();
+      },
+      onComplete: () => {
+        const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765);
+
+        const branchX =
+          task.side === "left"
+            ? treeObj.x - treeObj.displayWidth / 2 - windowWidth * (100 / 1494) // Align with left edge of the tree
+            : treeObj.x + treeObj.displayWidth / 2 + windowWidth * (100 / 1494); // Align with right edge of the tree
+        const taskName = task.name || "Default Task";
+
+        // Create the branch
+        const branch = scene.add.rectangle(
+          branchX,
+          branchY,
+          windowWidth * (200 / 1494),
+          windowHeight * (20 / 765),
+          0x4a3d36
+        );
+
+        // Add the branch to the branches array and physics world
+        if (scene && scene.branches) {
+          scene.branches.push(branch);
+        }
+
+        scene.physics.add.existing(branch, true); // Enable physics for the branch
+        branch.body.updateFromGameObject(); // Update the body to reflect the current game object
+
+        // Determine the starting x position for bananas based on task.side
+        const bananaStartX = task.side === "left" ? branchX - windowWidth * (80 / 1494) : branchX + windowWidth * (80 / 1494);
+
+        // Add task text to the branch
+        scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (90 / 765), taskName, {
+          font: `${windowWidth * (20 / 1494)}px Courier New`,
+          fill: "#000",
+          align: "center",
+          fontWeight: "bold",
+        });
+
+        // Add bananas based on difficulty, spaced horizontally
+        const bananaCount =
+          task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+        const bananaSpacing = windowWidth * (50 / 1494); // Horizontal spacing between bananas
+        if (!scene.bananas) {
+          scene.bananas = [];
+        }
+
+        for (let i = 0; i < bananaCount; i++) {
+          const banana = scene.add.sprite(
+            bananaStartX + i * bananaSpacing,
+            branchY,
+            "banana"
+          );
+          banana.setOrigin(0.5, 0.5);
+          banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50)); // Adjust the size as needed
+          banana.setDepth(10); // Ensure it appears in front of other objects
+
+          scene.physics.add.existing(banana);
+          banana.body.setAllowGravity(false); // Disable gravity if bananas shouldn't fall
+          banana.body.setImmovable(true); // Make bananas immovable
+          banana.body.updateFromGameObject();
+
+          // Add the banana to the scene's bananas array
+          scene.bananas.push(banana);
+        }
+
+        // Create the updated tree state to pass to saveTreeData
+        const updatedTreeState = {
+          height: treeObj.height, // The updated height of the tree
+          branches: scene.branches, // All the branches currently on the tree
+          bananas: scene.bananas,
+        };
+
+        setTreeState(updatedTreeState)
+
+        // Alternate branch side for the next branch
+        scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+      },
+    });
+  }
+};
 
   const resetZoomHandler = () => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
