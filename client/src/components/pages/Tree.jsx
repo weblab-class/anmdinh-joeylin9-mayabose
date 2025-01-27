@@ -485,8 +485,8 @@ tasks.forEach((task, index) => {
 
         // When a cloud moves off the left side, reposition it to the right side of the screen
         if (cloud.x + cloud.width < this.cameras.main.scrollX) {
-          cloud.x = this.cameras.main.scrollX + window.innerWidth;
-          cloud.y = Math.random() * window.innerHeight;  // Randomize vertical position
+          cloud.x = this.cameras.main.scrollX + window.innerWidth * 0.8;
+          cloud.y = Math.random() * -1 * window.innerHeight;  // Randomize vertical position
         }
       });
 
