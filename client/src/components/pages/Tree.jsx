@@ -213,7 +213,7 @@ const Tree = () => {
       // Handle Cloud Movement
       clouds.forEach((cloud) => {
         cloud.x -= cloudSpeed;  // Move cloud to the left
-    
+
         // When a cloud moves off the left side, reposition it to the right side of the screen
         if (cloud.x + cloud.width < this.cameras.main.scrollX) {
           cloud.x = this.cameras.main.scrollX + window.innerWidth;
@@ -221,15 +221,15 @@ const Tree = () => {
           // cloud.y = Math.random() * window.innerHeight * 0.3;  // This line is no longer needed every frame
         }
       });
-    
+
       // Handle Monkey Movement
-      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
-    
+      monkey.x = Phaser.Math.Clamp(monkey.x, -4*windowWidth/3, 8*windowWidth/3);
+
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
       qKey.on("down", () => {
         setBananaCounter((prevCount) => prevCount + 1);
       });
-    
+
       // Shop Updates
       if (shopOpen) {
         const currentTime = Date.now();
@@ -237,62 +237,67 @@ const Tree = () => {
           changeMonkey(-1);
           lastChangeTime = currentTime;
         }
-    
+
         if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
           changeMonkey(1);
           lastChangeTime = currentTime;
         }
       }
-    
+
       if (monkeyMovementEnabled) {
         const soundTime = Date.now();
+
+        // Horizontal movement
         if (this.leftKey.isDown) {
-          monkey.setVelocityX(-windowWidth / 2);
-          if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-            stepSound.play();
-            lastSoundTime = soundTime;
-          }
+            monkey.setVelocityX(-windowWidth / 2);
+            if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+                stepSound.play();
+                lastSoundTime = soundTime;
+            }
         } else if (this.rightKey.isDown) {
-          monkey.setVelocityX(windowWidth / 2);
-          if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-            stepSound.play();
-            lastSoundTime = soundTime;
-          }
+            monkey.setVelocityX(windowWidth / 2);
+            if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+                stepSound.play();
+                lastSoundTime = soundTime;
+            }
         } else {
-          monkey.setVelocityX(0);
+            monkey.setVelocityX(0); // Stop horizontal movement
         }
-    
+
+        // Jumping
         if (this.upKey.isDown && monkey.body.touching.down) {
-          monkey.setVelocityY(-windowHeight);
+            monkey.setVelocityY(-4*windowHeight/3);
         }
-      } else {
+    } else {
+        // Disable movement when not allowed
         monkey.setVelocityX(0);
         monkey.setVelocityY(0);
-      }
-    
-      // Landing Sound
-      if (monkey.body.touching.down) {
+    }
+
+    // Landing sound logic
+    if (monkey.body.touching.down) {
         if (!monkey.body.wasTouching.down &&
-          Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
-          landSound.play();
+            Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
+            landSound.play();
         }
-      }
-    
+    }
+
+
       // Branch Interaction
       for (const branch of this.branches) {
         const isLeftBranch = branch.x < this.tree.x;
         const monkeyBounds = monkey.getBounds();
         const branchBounds = branch.getBounds();
         const isOverlapping = this.physics.overlap(monkey, branch);
-    
+
         if (this.branches.length === 0) {
           setPopupVisible(false);
           return;
         }
-    
+
         if (isOverlapping) {
           let popupShown = false;
-          
+
           // Check leftmost half of left branch
           if (
             isLeftBranch &&
@@ -309,17 +314,17 @@ const Tree = () => {
                   Math.abs(child.x - branchBounds.x) <= windowWidth * (50 / 1494)
                 );
               });
-    
+
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text;
                 setSelectedTaskName(taskName);
               }
-    
+
               popupShown = true;
               break;
             }
           }
-    
+
           // Check rightmost half of right branch
           if (
             !isLeftBranch &&
@@ -335,24 +340,24 @@ const Tree = () => {
                   child.y >= branchBounds.y - windowHeight * (2 / 25) + windowHeight(10/765)
                 );
               });
-    
+
               if (textAboveBranch) {
                 const taskName = textAboveBranch.text;
                 setSelectedTaskName(taskName);
               }
-    
+
               popupShown = true;
               break;
             }
           }
         }
-    
+
         if (!isOverlapping) {
           setPopupVisible(false);
         }
       }
     }
-    
+
     function create() {
        // Set background color
       const numberOfClouds = 15; // Number of clouds to generate
@@ -493,8 +498,8 @@ tasks.forEach((task, index) => {
 
       // Create the monkey sprite with physics
       monkey = this.physics.add.sprite(0 , windowHeight * 0.9 - windowHeight*(45/765), "monkey1");
-      monkey.setDisplaySize(windowWidth*.07, windowHeight*.1);
-      monkey.setOrigin(0.5, 1)
+      monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
+      monkey.setOrigin(0.5, 0.93)
       monkey.setPosition(0, 0)
       console.log('monkeyX', monkey.x)
       console.log('monkeyY', monkey.y)
@@ -544,7 +549,7 @@ tasks.forEach((task, index) => {
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      camera.setBounds(-windowWidth/2, windowHeight*(-5000/765), Infinity, Infinity);
+      camera.setBounds(-4*windowWidth/3, -5000, 8*windowWidth/3, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
       console.log("Camera bounds:", camera.getBounds());
 
@@ -626,10 +631,10 @@ tasks.forEach((task, index) => {
 
     function update() {
       // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
+      monkey.x = Phaser.Math.Clamp(monkey.x, -4*windowWidth/3, 8*windowWidth/3);
       clouds.forEach((cloud) => {
         cloud.x -= cloudSpeed;  // Move cloud to the left
-    
+
         // When a cloud moves off the left side, reposition it to the right side of the screen
         if (cloud.x + cloud.width < this.cameras.main.scrollX) {
           cloud.x = this.cameras.main.scrollX + window.innerWidth;
@@ -660,47 +665,100 @@ tasks.forEach((task, index) => {
         }
       }
 
-      if (monkeyMovementEnabled) {
-        // Process monkey movement
-        if (this.leftKey.isDown) {
-          monkey.setVelocityX(-windowWidth/2);
-        } else if (this.rightKey.isDown) {
-          monkey.setVelocityX(windowWidth/2);
-        } else {
-          monkey.setVelocityX(0); // Stop horizontal movement
-        }
+      const groundLevel = 0; // Define the ground level (adjust as necessary)
+      const moveSpeed = windowWidth / 4; // Adjust horizontal speed
+const climbSpeed = windowHeight * (1 / 200); // Adjust climbing speed
 
-        if (this.upKey.isDown && monkey.body.touching.down) {
-          monkey.setVelocityY(-windowHeight); // Jump
-        }
-      } else {
-        // Disable movement
-        monkey.setVelocityX(0);
-        monkey.setVelocityY(0); // Stop vertical movement as well if necessary
+if (monkeyMovementEnabled) {
+  const soundTime = Date.now();
+
+  // Horizontal movement
+  if (this.leftKey.isDown) {
+      monkey.setVelocityX(-moveSpeed);
+      if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+          stepSound.play();
+          lastSoundTime = soundTime;
       }
-
-      if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        // Prevent the monkey from moving beneath the ground level
-        if (monkey.y < 0) {
-
-          monkey.y += windowHeight*(1/75);
-        }
+  } else if (this.rightKey.isDown) {
+      monkey.setVelocityX(moveSpeed);
+      if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+          stepSound.play();
+          lastSoundTime = soundTime;
       }
+  } else {
+      monkey.setVelocityX(0);
+  }
 
-      if (this.upKey.isDown && this.physics.overlap(monkey, this.tree)) {
-        monkey.y -= windowHeight*(1/75);
-      }
+  // Jumping
+  if (this.upKey.isDown && monkey.body.touching.down) {
+    monkey.setVelocityY(-4*windowHeight/3); // Jump
+  }
+} else {
+  // Disable movement
+  monkey.setVelocityX(0);
+  monkey.setVelocityY(0);
+}
 
-      // Check if the monkey is on the tree or a branch, and disable gravity
-      if (this.physics.overlap(monkey, this.tree) ||
-          this.branches.some(branch => this.physics.overlap(monkey, branch))) {
-        monkey.body.setGravityY(-windowHeight*2); // Disable gravity when on tree or branch
-        monkey.setVelocityY(0); // Stop any downward movement
-      } else {
-        monkey.body.setGravityY(0); // Re-enable gravity when not on the tree/branch
-      }
+// Enforce consistent floor behavior
+if (monkey.y > groundLevel) {
+  monkey.y = groundLevel; // Reset monkey's position to the floor
+  monkey.setVelocityY(0); // Stop downward motion
+}
 
+// Check for tree or branch
+const onTree = this.physics.overlap(monkey, this.tree);
+const onBranch = this.branches.some(branch => this.physics.overlap(monkey, branch));
 
+// Debugging logs
+console.log("On Tree:", onTree);
+console.log("On Branch:", onBranch);
+
+if (onTree || onBranch) {
+  console.log("Gravity should be disabled.");
+
+  // Disable gravity when overlapping with the tree or branch
+  monkey.body.setGravityY(-windowHeight*2); // Gravity disabled on tree or branch
+
+  // Stop vertical velocity to prevent falling
+  monkey.setVelocityY(0); // Ensure the monkey isn't moving down
+
+  // Horizontal movement while on the tree or branch
+  if (this.leftKey.isDown) {
+      monkey.setVelocityX(-moveSpeed);
+  } else if (this.rightKey.isDown) {
+      monkey.setVelocityX(moveSpeed);
+  } else {
+      monkey.setVelocityX(0);
+  }
+
+  // Vertical climbing on the tree or branch
+  if (this.upKey.isDown) {
+      monkey.y -= climbSpeed; // Climb up
+      climbSound.play();
+  } else if (this.downKey.isDown) {
+      monkey.y += climbSpeed; // Climb down
+      climbSound.play();
+  }
+} else {
+  console.log("Gravity should be re-enabled.");
+
+  // Apply gravity when not on tree or branches
+  monkey.body.setGravityY(windowHeight * 4); // Normal gravity
+
+  // Ground collision check to prevent falling below ground
+  if (monkey.y > groundLevel) {
+      monkey.y = groundLevel; // Stop at the ground level
+      monkey.setVelocityY(0); // Prevent falling through
+  }
+}
+
+// Landing sound
+if (monkey.body.touching.down) {
+  if (!monkey.body.wasTouching.down &&
+      Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
+      landSound.play();
+  }
+}
        // Flag to track if the popup should be show
 
        for (const branch of this.branches) {
