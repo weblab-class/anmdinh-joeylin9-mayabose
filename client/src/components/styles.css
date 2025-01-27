@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'joystix monospace';
+    src: url('assets/fonts/joystix monospace.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
+  body {
+    font-family: 'joystix monospace', sans-serif;
+  }
+
+  h1 {
+    font-size: 2em;
+  }

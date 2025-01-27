@@ -6,14 +6,15 @@ import monkeyImg2 from "../../assets/monkey2.png";
 import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana3.png";
-import grassImg from "../../assets/grass.png";
+// import grassImg from "../../assets/grass.png";
 import cloudImg from "../../assets/cloud2-removebg-preview.png";
 import groundImg from "../../assets/ground.png";
+import default_monkey from "../../assets/default-monkey-spritesheet.png"
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
-// import Shop from './Shop'; // Import Shop scene
 import { useNavigate } from "react-router-dom";
 import { fetchGameInfo, saveTaskData } from '../gameDataHandler';
+import "../../public/styles/custom-font.css";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -57,8 +58,6 @@ const Tree = () => {
     handleSave(input);  // Call the handleSave function with updated value
   };
   const [phaserGame, setPhaserGame] = useState(null);
-
-
 
   // Fetch game info only when userId is available
   useEffect(() => {
@@ -160,6 +159,7 @@ const Tree = () => {
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
     let ground; // Variable for the ground
+    let mound;
     let camera; // Camera reference
     let market; // Variable for the market image
     let shopContainer; // Container for the shop UI
@@ -193,6 +193,8 @@ const Tree = () => {
       });
     }
 
+
+    // PRELOAD
     function preload() {
       console.log('Preloading assets...');
       this.load.image('monkey1', monkeyImg); // Preload the monkey image
@@ -200,165 +202,22 @@ const Tree = () => {
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
-      this.load.image("grass", grassImg);
+      // this.load.image("grass", grassImg);
       this.load.audio("backgroundMusic", track18);
       this.load.audio("stepSound", step);
       this.load.audio("landSound", land);
       this.load.audio("climbSound", climb);
       this.load.image('cloud', cloudImg);
       this.load.image("ground", groundImg);
-    }
-
-    function update() {
-      // Handle Cloud Movement
-      clouds.forEach((cloud) => {
-        cloud.x -= cloudSpeed;  // Move cloud to the left
-
-        // When a cloud moves off the left side, reposition it to the right side of the screen
-        if (cloud.x + cloud.width < this.cameras.main.scrollX) {
-          cloud.x = this.cameras.main.scrollX + window.innerWidth;
-          // Optionally adjust the cloud's y position only if you want it to move vertically as well
-          // cloud.y = Math.random() * window.innerHeight * 0.3;  // This line is no longer needed every frame
-        }
+      this.load.spritesheet('default_monkey', default_monkey, {
+        frameWidth: 224,  // width of each frame in the spritesheet
+        frameHeight: 228 // height of each frame in the spritesheet
       });
-
-      // Handle Monkey Movement
-      monkey.x = Phaser.Math.Clamp(monkey.x, -4*windowWidth/3, 8*windowWidth/3);
-
-      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-      qKey.on("down", () => {
-        setBananaCounter((prevCount) => prevCount + 1);
-      });
-
-      // Shop Updates
-      if (shopOpen) {
-        const currentTime = Date.now();
-        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(-1);
-          lastChangeTime = currentTime;
-        }
-
-        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(1);
-          lastChangeTime = currentTime;
-        }
-      }
-
-      if (monkeyMovementEnabled) {
-        const soundTime = Date.now();
-
-        // Horizontal movement
-        if (this.leftKey.isDown) {
-            monkey.setVelocityX(-windowWidth / 2);
-            if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-                stepSound.play();
-                lastSoundTime = soundTime;
-            }
-        } else if (this.rightKey.isDown) {
-            monkey.setVelocityX(windowWidth / 2);
-            if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-                stepSound.play();
-                lastSoundTime = soundTime;
-            }
-        } else {
-            monkey.setVelocityX(0); // Stop horizontal movement
-        }
-
-        // Jumping
-        if (this.upKey.isDown && monkey.body.touching.down) {
-            monkey.setVelocityY(-4*windowHeight/3);
-        }
-    } else {
-        // Disable movement when not allowed
-        monkey.setVelocityX(0);
-        monkey.setVelocityY(0);
     }
 
-    // Landing sound logic
-    if (monkey.body.touching.down) {
-        if (!monkey.body.wasTouching.down &&
-            Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
-            landSound.play();
-        }
-    }
-
-
-      // Branch Interaction
-      for (const branch of this.branches) {
-        const isLeftBranch = branch.x < this.tree.x;
-        const monkeyBounds = monkey.getBounds();
-        const branchBounds = branch.getBounds();
-        const isOverlapping = this.physics.overlap(monkey, branch);
-
-        if (this.branches.length === 0) {
-          setPopupVisible(false);
-          return;
-        }
-
-        if (isOverlapping) {
-          let popupShown = false;
-
-          // Check leftmost half of left branch
-          if (
-            isLeftBranch &&
-            monkeyBounds.right >= branchBounds.left &&
-            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2
-          ) {
-            if (!popupShown) {
-              setPopupVisible(true);
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y &&
-                  child.y >= branchBounds.y - windowHeight * (2 / 25) &&
-                  Math.abs(child.x - branchBounds.x) <= windowWidth * (50 / 1494)
-                );
-              });
-
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text;
-                setSelectedTaskName(taskName);
-              }
-
-              popupShown = true;
-              break;
-            }
-          }
-
-          // Check rightmost half of right branch
-          if (
-            !isLeftBranch &&
-            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 &&
-            monkeyBounds.left <= branchBounds.right
-          ) {
-            if (!popupShown) {
-              setPopupVisible(true);
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y &&
-                  child.y >= branchBounds.y - windowHeight * (2 / 25) + windowHeight(10/765)
-                );
-              });
-
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text;
-                setSelectedTaskName(taskName);
-              }
-
-              popupShown = true;
-              break;
-            }
-          }
-        }
-
-        if (!isOverlapping) {
-          setPopupVisible(false);
-        }
-      }
-    }
-
+    // CREATE
     function create() {
+      // this.physics.world.setBounds(-4*windowWidth/3, -5000, 8*windowWidth/3, Infinity);  // x, y, width, height
        // Set background color
       const numberOfClouds = 15; // Number of clouds to generate
 
@@ -394,11 +253,6 @@ const Tree = () => {
       volume: soundEffectsVolume
     });
 
-      //bananas
-      // if (bananaCounter === undefined) {
-      //   console.error('Banana counter is not initialized.');
-      //   return;
-      // }
       console.log('Creating shop and game elements');
 
       // Tree setup based on tasks length
@@ -497,7 +351,13 @@ tasks.forEach((task, index) => {
       this.physics.add.existing(market, true);
 
       // Create the monkey sprite with physics
-      monkey = this.physics.add.sprite(0 , windowHeight * 0.9 - windowHeight*(45/765), "monkey1");
+      this.load.spritesheet('default_monkey', 'path/to/sprite_sheet.png', {
+        frameWidth: 64, // width of each frame (based on your sprite sheet design)
+        frameHeight: 64 // height of each frame
+      });
+      // Preload the default monkey spritesheet
+
+      monkey = this.physics.add.sprite(0 , windowHeight * 0.9 - windowHeight*(45/765), "default_monkey");
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
       monkey.setOrigin(0.5, 0.93)
       monkey.setPosition(0, 0)
@@ -512,32 +372,22 @@ tasks.forEach((task, index) => {
       this.physics.add.collider(monkey, ground);
       ground.setDepth(0)
 
+      // mound = this.add.rectangle(
+      //   0,
+      //   0,
+      //   8*windowWidth/3,
+      //   2*windowHeight,
+      //   0x4caf50
+      // );
+      // mound.setOrigin(0.5, 0);
+      // // this.physics.add.existing(mound, true); // Add static physics to the rectangles
+      // this.physics.add.collider(monkey, mound);
+      // this.physics.world.createDebugGraphic(); // Enable debugging for physics
+
+
       // Log the windowHeight and the intended ground position
       console.log('windowHeight:', windowHeight);
       console.log('Ground position (windowHeight * 0.9):', windowHeight * 0.9);
-
-      // // Add grass patches with random y-position between 0 and 300
-      // for (let i = 0; i < 100; i++) {
-      //   const randomX = Math.random() * windowWidth * 5; // Random X within a larger range for randomness
-      //   const randomWidth = Math.random() * (windowWidth * (3 / 40) - windowWidth * (3 / 100)) + (windowWidth * (3 / 100));
-      //   const randomHeight = Math.random() * (windowHeight * (1 / 10) - windowHeight * (1 / 20)) + (windowHeight * (1 / 25));
-
-      //   // Add the grass patch at the random position
-      //   const grassPatch = this.add.image(randomX - windowWidth, windowHeight * 0.875, 'grass');
-      //   grassPatch.setDisplaySize(randomWidth, randomHeight);
-
-      //   // Set origin to bottom center and position the grass at a random y between 0 and 300
-      //   grassPatch.setOrigin(0.5, 1); // Bottom-center origin
-      //   const randomY = Math.random() * 50;  // Random Y position between 0 and 300
-      //   grassPatch.setPosition(grassPatch.x, randomY);
-
-      //   // Adjust for slight position discrepancy
-      //   grassPatch.y = Math.floor(grassPatch.y); // Ensure the Y position is a whole number
-
-      //   // Set the grass's depth to be above the ground (layered on top)
-      //   grassPatch.setDepth(1); // Grass above the ground
-      // }
-
 
       // Set up custom keys for monkey movement
       this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -620,29 +470,25 @@ tasks.forEach((task, index) => {
       setScene(this);
     };
 
-    function adjustCloudsPosition() {
-      // Adjust the position of the clouds when the camera moves
-      clouds.forEach(cloud => {
-        cloud.x += this.cameras.main.scrollX;  // Move clouds based on camera scroll position
-        cloud.y += this.cameras.main.scrollY;
-      });
-    }
+    let isCrouching = false;  // Flag to track if the monkey is crouching
+    let isJumping = false;
+    let isClimbing = false;
 
-
+    // UPDATE
     function update() {
-      // Boundaries for the world
-      monkey.x = Phaser.Math.Clamp(monkey.x, -4*windowWidth/3, 8*windowWidth/3);
+      console.log("monkey.y: ", monkey.y)
+      monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
+
+      // Move clouds
       clouds.forEach((cloud) => {
         cloud.x -= cloudSpeed;  // Move cloud to the left
 
         // When a cloud moves off the left side, reposition it to the right side of the screen
         if (cloud.x + cloud.width < this.cameras.main.scrollX) {
           cloud.x = this.cameras.main.scrollX + window.innerWidth;
-          cloud.y = Math.random() * window.innerHeight;  // Clouds appear in the top 30% of the screen
- // Randomize vertical position
+          cloud.y = Math.random() * window.innerHeight;  // Randomize vertical position
         }
       });
-
 
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -655,7 +501,7 @@ tasks.forEach((task, index) => {
         const currentTime = Date.now(); // Get the current time in milliseconds
 
         if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(-1);
+          changeMonkey(1);
           lastChangeTime = currentTime; // Update the last change time
         }
 
@@ -665,195 +511,194 @@ tasks.forEach((task, index) => {
         }
       }
 
-      const groundLevel = 0; // Define the ground level (adjust as necessary)
-      const moveSpeed = windowWidth / 4; // Adjust horizontal speed
-const climbSpeed = windowHeight * (1 / 200); // Adjust climbing speed
-
+  const groundLevel = 0;
+  const moveSpeed = windowWidth / 4;
+  const climbSpeed = windowHeight * (1 / 300);
+// Monkey movement
 if (monkeyMovementEnabled) {
   const soundTime = Date.now();
 
   // Horizontal movement
   if (this.leftKey.isDown) {
-      monkey.setVelocityX(-moveSpeed);
-      if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-          stepSound.play();
-          lastSoundTime = soundTime;
-      }
+    monkey.setVelocityX(-moveSpeed);
+    if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+      stepSound.play();
+      lastSoundTime = soundTime;
+    }
+    monkey.setFrame(2); // Set frame to face left
   } else if (this.rightKey.isDown) {
-      monkey.setVelocityX(moveSpeed);
-      if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-          stepSound.play();
-          lastSoundTime = soundTime;
-      }
+    monkey.setVelocityX(moveSpeed);
+    if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+      stepSound.play();
+      lastSoundTime = soundTime;
+    }
+    monkey.setFrame(3); // Set frame to face right
   } else {
-      monkey.setVelocityX(0);
+    monkey.setVelocityX(0);
+
+    // When standing still on the ground, set frame to "facing forward"
+    if (monkey.body.touching.down) {
+      monkey.setFrame(1); // Set frame to face forward (idle frame)
+    }
   }
 
-  // Jumping
+  // Jumping logic
   if (this.upKey.isDown && monkey.body.touching.down) {
-    monkey.setVelocityY(-4*windowHeight/3); // Jump
+    monkey.setVelocityY(-2 * windowHeight / 3); // Jumping strength
+    monkey.body.setGravityY(windowHeight * 4); // Re-enable gravity for jumping
+    monkey.setFrame(0); // Set frame to jumping
   }
 } else {
-  // Disable movement
   monkey.setVelocityX(0);
   monkey.setVelocityY(0);
+  monkey.setFrame(1); // Set frame to idle when no movement
 }
 
-// Enforce consistent floor behavior
+// Prevent monkey from moving below the ground
 if (monkey.y > groundLevel) {
-  monkey.y = groundLevel; // Reset monkey's position to the floor
-  monkey.setVelocityY(0); // Stop downward motion
+  monkey.y = groundLevel;
+  monkey.setVelocityY(0); // Prevent falling through the floor
 }
 
-// Check for tree or branch
+
+// Landing sound
+if (monkey.body.touching.down && !monkey.body.wasTouching.down) {
+  if (Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
+    landSound.play();
+  }
+}
+
+// Tree/branch interaction
 const onTree = this.physics.overlap(monkey, this.tree);
 const onBranch = this.branches.some(branch => this.physics.overlap(monkey, branch));
 
-// Debugging logs
-console.log("On Tree:", onTree);
-console.log("On Branch:", onBranch);
-
 if (onTree || onBranch) {
-  console.log("Gravity should be disabled.");
+  isClimbing = true; // Enable climbing
+  monkey.body.setGravityY(0); // Disable gravity while climbing on tree/branch
+  monkey.body.allowGravity = false; // Ensure gravity is completely disabled
+  monkey.setVelocityY(0); // Prevent downward movement
 
-  // Disable gravity when overlapping with the tree or branch
-  monkey.body.setGravityY(-windowHeight*2); // Gravity disabled on tree or branch
-
-  // Stop vertical velocity to prevent falling
-  monkey.setVelocityY(0); // Ensure the monkey isn't moving down
-
-  // Horizontal movement while on the tree or branch
+  // Horizontal movement while climbing
   if (this.leftKey.isDown) {
-      monkey.setVelocityX(-moveSpeed);
+    monkey.setVelocityX(-moveSpeed);
   } else if (this.rightKey.isDown) {
-      monkey.setVelocityX(moveSpeed);
+    monkey.setVelocityX(moveSpeed);
   } else {
-      monkey.setVelocityX(0);
+    monkey.setVelocityX(0);
   }
 
-  // Vertical climbing on the tree or branch
+  // Climbing logic
   if (this.upKey.isDown) {
-      monkey.y -= climbSpeed; // Climb up
-      climbSound.play();
+    monkey.y -= climbSpeed; // Climb up
+    monkey.setFrame(0); // Set climbing frame
+    climbSound.play();
   } else if (this.downKey.isDown) {
-      monkey.y += climbSpeed; // Climb down
-      climbSound.play();
+    monkey.y += climbSpeed; // Climb down
+    monkey.setFrame(0); // Set climbing frame
+    climbSound.play();
+  } else {
+    monkey.setFrame(1); // Idle frame when not climbing
   }
 } else {
-  console.log("Gravity should be re-enabled.");
-
-  // Apply gravity when not on tree or branches
-  monkey.body.setGravityY(windowHeight * 4); // Normal gravity
-
-  // Ground collision check to prevent falling below ground
-  if (monkey.y > groundLevel) {
-      monkey.y = groundLevel; // Stop at the ground level
-      monkey.setVelocityY(0); // Prevent falling through
-  }
+  isClimbing = false; // Disable climbing
+  monkey.body.setGravityY(windowHeight * 4); // Re-enable gravity when not on the tree/branch
+  monkey.body.allowGravity = true; // Re-enable gravity on the monkey when not climbing
 }
 
-// Landing sound
-if (monkey.body.touching.down) {
-  if (!monkey.body.wasTouching.down &&
-      Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
-      landSound.play();
-  }
+// Jumping logic when not climbing
+if (!isClimbing && this.upKey.isDown && monkey.body.touching.down) {
+  monkey.setVelocityY(-2 * windowHeight / 3); // Jumping strength
+  monkey.body.setGravityY(windowHeight * 4); // Re-enable gravity during jump
 }
-       // Flag to track if the popup should be show
 
-       for (const branch of this.branches) {
-        const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
-        const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
-        const branchBounds = branch.getBounds(); // Get branch's bounds
 
-        //const branches = this.children.getChildren().filter(child => child.texture && child.texture.key === "branch");
-        const isOverlapping = this.physics.overlap(monkey, branch);
-        // console.log('branching', this.branches)
-        // Check if there are any branches remaining
-        if (this.branches.length === 0) {
-          console.log('entered')
-          setPopupVisible(false); // Hide the popup if there are no branches left
-          isOverlapping = false;
-          return; // Exit early since there's nothing to check for overlaps
+ // Flag to track if the popup should be show
+
+ for (const branch of this.branches) {
+  const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
+  const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
+  const branchBounds = branch.getBounds(); // Get branch's bounds
+
+  // Check if the monkey is currently overlapping with the branch
+  const isOverlapping = this.physics.overlap(monkey, branch);
+
+  if (isOverlapping) {
+    // If the monkey is overlapping, we need to display the popup for this branch
+    let popupShown = false;
+
+    // Check leftmost half of left branch
+    if (
+      isLeftBranch &&
+      monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
+      monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
+    ) {
+      if (!popupShown) {
+        setPopupVisible(true); // Show the popup
+
+        // Find the text directly above the leftmost half of the left branch
+        const textAboveBranch = this.children.getChildren().find(child => {
+          return (
+            child instanceof Phaser.GameObjects.Text &&
+            child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+            child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
+            Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+          );
+        });
+
+        if (textAboveBranch) {
+          const taskName = textAboveBranch.text; // Get the task name from the text
+          setSelectedTaskName(taskName); // Update the selected task name
+          console.log('Selected task name:', taskName);
         }
 
-        // Check if the monkey is currently overlapping with the branch
-        // console.log('overlap', isOverlapping)
-
-        if (isOverlapping) {
-          // If the monkey is overlapping, we need to display the popup for this branch
-          let popupShown = false;
-
-          // Check leftmost half of left branch
-          if (
-            isLeftBranch &&
-            monkeyBounds.right >= branchBounds.left && // Monkey's right side touches branch's left
-            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2 // Within the left half
-          ) {
-            if (!popupShown) {
-              //console.log("Monkey is in the leftmost half of the left branch!");
-              setPopupVisible(true); // Show the popup
-
-              // Find the text directly above the leftmost half of the left branch
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
-                  Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
-                );
-              });
-
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text; // Get the task name from the text
-                setSelectedTaskName(taskName); // Update the selected task name
-                //console.log('Selected task name:', taskName);
-                //console.log('Selected task name:', taskName);
-              }
-
-              popupShown = true; // Prevent multiple popups from showing for this branch
-              break; // Exit the loop once the popup is shown
-            }
-          }
-
-          // Check rightmost half of right branch
-          if (
-            !isLeftBranch &&
-            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
-            monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
-          ) {
-            if (!popupShown) {
-              //console.log("Monkey is in the rightmost half of the right branch!");
-              setPopupVisible(true); // Show the popup
-
-              // Find the text directly above the rightmost half of the right branch
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - windowHeight*(2/25) + windowHeight*(10/765) // Ensure text is within 60 pixels above the branch
-                  //Math.abs(child.x - branchBounds.x) <= 100
-                );
-              });
-
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text; // Get the task name from the text
-                setSelectedTaskName(taskName); // Update the selected task name
-                //console.log('Selected task name:', taskName);
-                //console.log('Selected task name:', taskName);
-              }
-
-              popupShown = true; // Prevent multiple popups from showing for this branch
-              break; // Exit the loop once the popup is shown
-            }
-          }
-        }
-
-        // If the monkey is no longer overlapping with any branch, hide the popup
-        if (!isOverlapping) {
-          setPopupVisible(false);
-        }
+        popupShown = true; // Prevent multiple popups from showing for this branch
+        break; // Exit the loop once the popup is shown
       }
+    }
+
+    // Check rightmost half of right branch
+    if (
+      !isLeftBranch &&
+      monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
+      monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
+    ) {
+      if (!popupShown) {
+        setPopupVisible(true); // Show the popup
+
+        // Find the text directly above the rightmost half of the right branch
+        const textAboveBranch = this.children.getChildren().find(child => {
+          return (
+            child instanceof Phaser.GameObjects.Text &&
+            child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
+            child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
+            Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+          );
+        });
+
+        if (textAboveBranch) {
+          const taskName = textAboveBranch.text; // Get the task name from the text
+          setSelectedTaskName(taskName); // Update the selected task name
+          console.log('Selected task name:', taskName);
+        }
+
+        popupShown = true; // Prevent multiple popups from showing for this branch
+        break; // Exit the loop once the popup is shown
+      }
+    }
+  }
+
+  // If the monkey is no longer overlapping with any branch, hide the popup
+  if (!isOverlapping) {
+    setPopupVisible(false);
+  }
+}
+}
+    function adjustCloudsPosition() {
+      // Adjust the position of the clouds when the camera moves
+      clouds.forEach(cloud => {
+        cloud.x += this.cameras.main.scrollX;  // Move clouds based on camera scroll position
+        cloud.y += this.cameras.main.scrollY;
+      });
     }
 
     function changeMonkey(direction) {
