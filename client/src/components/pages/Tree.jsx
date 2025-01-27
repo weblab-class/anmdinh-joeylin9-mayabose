@@ -68,7 +68,7 @@ const Tree = () => {
       try {
         const data = await fetchGameInfo(userId);
         setTasks(data.tasks || []);  // Set tasks (empty array for new users)
-        setBananaCounter(data.bananaCounter || 0);  // Set banana counter
+        setBananaCounter(data.numBananas || 0);  // Set banana counter
         setLoading(false); // Set loading to false after da?
         // ta is fetched
       } catch (error) {
@@ -803,10 +803,12 @@ const handleCollectBananas = (taskName) => {
     // update tasks and remove the selected task
     const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
     setTasks(updatedTasks);
+    console.log("Previous banana count: ", bananaCounter)
 
     // update banana counter and save task data
     setBananaCounter((prevCount) => {
       const newCounter = prevCount + bananasToCollect;
+      console.log("New banana count: ", newCounter)
 
       // save updated task list and banana counter
       saveTaskData(userId, updatedTasks, newCounter, setTasks);
