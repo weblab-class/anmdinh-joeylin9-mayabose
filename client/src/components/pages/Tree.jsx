@@ -2,9 +2,10 @@ import React, { useEffect, useState, useRef, useContext } from "react";
 import Phaser from "phaser";
 import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
-import monkeyImg2 from "../../assets/monkey2.png";
-import monkeyImg3 from "../../assets/monkey3.png";
-import marketImg from '../../assets/market.png';
+import monkeyImg2 from "../../assets/monkeybow-forward.png";
+import monkeyImg3 from "../../assets/monkeyhat-forward.png";
+import monkeyImg4 from '../../assets/monkeyheadphones-forward.png';
+import marketImg from '../../assets/shop-removebg-preview.png';
 import bananaImg from "../../assets/banana3.png";
 // import grassImg from "../../assets/grass.png";
 import cloudImg from "../../assets/cloud2-removebg-preview.png";
@@ -41,7 +42,7 @@ const Tree = () => {
   const [bananaCounter, setBananaCounter] = useState(0);
   const [selectedMonkeyIndex, setSelectedMonkeyIndex] = useState(0); // Current selected monkey in the shop
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false]); // Purchase state for monkeys
-  const monkeyPrices = [0, 10, 20]; // Prices for each monkey
+  const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
   // Add state to manage popup visibility and input
   const [popupVisible, setPopupVisible] = useState(false);
   const [userInput, setUserInput] = useState("");
@@ -165,7 +166,7 @@ const Tree = () => {
     let shopContainer; // Container for the shop UI
     let monkeyMovementEnabled = true;
     let monkeyDisplay; // Reference to the monkey display in the shop
-    let monkeysAvailable = ['monkey1', 'monkey2', 'monkey3']; // Reference to the monkey number in the shop
+    let monkeysAvailable = ['monkey1', 'monkey2', 'monkey3', 'monkey4']; // Reference to the monkey number in the shop
     let monkeyNumber = 0; // Reference to the monkey number in the shop
     let costText; // Reference to the cost text in the shop
     let purchaseButton; // Reference to the purchase button in the shop
@@ -200,6 +201,7 @@ const Tree = () => {
       this.load.image('monkey1', monkeyImg); // Preload the monkey image
       this.load.image('monkey2', monkeyImg2); // Preload the monkey image
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
+      this.load.image('monkey4', monkeyImg4);
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
       // this.load.image("grass", grassImg);
@@ -346,7 +348,7 @@ tasks.forEach((task, index) => {
       welcomeText.setOrigin(0.5, 0.5); // Center the text
 
       market = this.add.image(windowWidth, 0, 'market');
-      market.setDisplaySize(windowWidth/5, windowHeight/2.5);
+      market.setDisplaySize(windowWidth/4.8, windowHeight/2.2);
       market.setOrigin(0.5, 1); // Center the image
       this.physics.add.existing(market, true);
 
@@ -449,7 +451,7 @@ tasks.forEach((task, index) => {
 
       // Monkey display sprite
       monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, "monkey1");
-      monkeyDisplay.setDisplaySize(windowWidth * 0.07, windowHeight * 0.1);
+      monkeyDisplay.setDisplaySize(windowWidth * 0.1, windowHeight * 0.13);
       shopContainer.add(monkeyDisplay);
 
       // Cost text
