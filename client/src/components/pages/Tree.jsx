@@ -16,6 +16,9 @@ import Popup from "../Popup";
 import { useNavigate } from "react-router-dom";
 import { fetchGameInfo, saveTaskData } from '../gameDataHandler';
 import "../../public/styles/custom-font.css";
+import add_icon from "../../assets/add-icon.png";
+import settings_icon from "../../assets/settings-icon.png";
+import showalltasks_icon from "../../assets/showalltasks-icon.png";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -211,6 +214,9 @@ const Tree = () => {
       this.load.audio("climbSound", climb);
       this.load.image('cloud', cloudImg);
       this.load.image("ground", groundImg);
+      this.load.image("add_icon", add_icon);
+      this.load.image("settings_icon", settings_icon);
+      this.load.image("showalltasks_icon", showalltasks_icon);
       this.load.spritesheet('default_monkey', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
@@ -1120,38 +1126,83 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
 
 
   return (
-    <div>
-      {/* Add Task Button */}
-      <button
-        onClick={() => setShowTaskManager(true)}
+    <>
+      <div
         style={{
-          position: "relative",
-          top: "1vh",
-          left: "1vw",
-          marginRight: "2vw",
-          padding: "0.5vw",
-          fontFamily: "Courier New",
-          fontSize: "2vh",
-          zIndex: 9999,
+          display: "flex", // Arrange buttons horizontally
+          alignItems: "center", // Ensure buttons align vertically
+          gap: "1vw", // Add spacing between buttons
         }}
       >
-        <strong>Add Task</strong>
-      </button>
+        {/* Add Task Button */}
+        <button
+          onClick={() => setShowTaskManager(true)}
+          style={{
+            position: "relative",
+            // marginRight: "2vw",
+            padding: "0.5vw",
+            fontFamily: "Courier New",
+            fontSize: "2vh",
+            zIndex: 9999,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <img
+            src={add_icon}
+            alt="Add Task"
+            style={{
+              width: "2.5vw",
+              height: "2.5vw",
+            }}
+          />
+        </button>
 
-      {/* Show All Tasks Button */}
-      <button
-        onClick={() => setShowAllTasks(!showAllTasks)}
-        style={{
-          position: "relative",
-          top: "1vh",
-          padding: "0.5vw",
-          fontFamily: "Courier New",
-          fontSize: "2vh",
-          zIndex: 9999,
-        }}
-      >
-        <strong>{showAllTasks ? "Hide Tasks" : "Show All Tasks"}</strong>
-      </button>
+        {/* Show All Tasks Button */}
+        <button
+          onClick={() => setShowAllTasks(!showAllTasks)}
+          style={{
+            position: "relative",
+            width: "calc(4 * 2.5vw)", // Maintain 1:4 ratio
+            height: "2.5vw", // Match height with other icons
+            padding: "0",
+            margin: "0",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center", // Center text vertically
+            justifyContent: "center", // Center text horizontally
+          }}
+        >
+          {/* Icon */}
+          <img
+            src={showalltasks_icon}
+            alt="Show All Tasks"
+            style={{
+              width: "100%", // Icon fills the button
+              height: "100%", // Icon fills the button
+              objectFit: "contain", // Maintain aspect ratio
+              position: "absolute", // Keep the icon as background
+            }}
+          />
+          {/* Text */}
+          <span
+            style={{
+              fontFamily: "joystix monospace", // Ensure the custom font is applied
+              fontSize: "0.75vw", // Adjust the size for a better fit
+              fontWeight: "bold",
+              color: "black",
+              zIndex: 1, // Ensure the text is above the icon
+              whiteSpace: "nowrap", // Prevent text wrapping
+              pointerEvents: "none", // Allow clicks to pass through text
+            }}
+          >
+            {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
+          </span>
+        </button>
+      </div>
 
       <div
         style={{
@@ -1160,7 +1211,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
           right: "0vw",
           display: "flex",
           alignItems: "center",
-          gap: "2vw", // Consistent gap between elements
+          gap: "2vw",
         }}
       >
         <p style={{ fontSize: "1vw", fontFamily: "Courier New" }}>
@@ -1170,15 +1221,26 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
           onClick={() => setShowSettings(!showSettings)}
           style={{
             position: "relative",
-            top: "0vw",
-            right: "0.5vw",
+            top: "1vh",
+            left: "1vw",
+            marginRight: "2vw",
             padding: "0.5vw",
             fontFamily: "Courier New",
             fontSize: "2vh",
             zIndex: 9999,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
           }}
         >
-          <strong>Settings</strong>
+          <img
+            src={settings_icon}
+            alt="Settings"
+            style={{
+              width: "2.5vw",
+              height: "2.5vw",
+            }}
+          />
         </button>
       </div>
 
@@ -1227,11 +1289,8 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
           >
             Logout
           </button>
-          <div className="mb-4" style={{marginTop: "1vw"}}>
-            <label
-              htmlFor="musicVolume"
-              className="block text-sm mb-2"
-            >
+          <div className="mb-4" style={{ marginTop: "1vw" }}>
+            <label htmlFor="musicVolume" className="block text-sm mb-2">
               Music Volume
             </label>
             <input
@@ -1251,10 +1310,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
           </div>
 
           <div className="mb-4">
-            <label
-              htmlFor="sfxVolume"
-              className="block text-sm mb-2"
-            >
+            <label htmlFor="sfxVolume" className="block text-sm mb-2">
               Sound Effects Volume
             </label>
             <input
@@ -1307,7 +1363,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
               onClick={() => setShowHelp(false)}
               style={{
                 position: "absolute",
-                top: windowHeight*(10/765),
+                top: windowHeight * (10 / 765),
                 right: windowWidth * (10 / 1494),
                 fontSize: windowWidth * (24 / 1494),
                 background: "none",
@@ -1332,19 +1388,18 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
 
       {/* Show All Tasks Section */}
       {showAllTasks && (
-  <div style={{ marginTop: windowHeight * (20 / 765), padding: windowWidth * (10 / 1494), backgroundColor: "#f4f4f4" }}>
-    <h4>All Tasks</h4>
-    <ul>
-      {tasks.map((task, index) => (
-        <li key={index}>
-          <strong>{task.name}</strong> - {task.difficulty} <br />
-          <em>Notes:</em> {task.notes || "No notes available"} {/* Display task notes */}
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
-
+        <div style={{ marginTop: windowHeight * (20 / 765), padding: windowWidth * (10 / 1494), backgroundColor: "#f4f4f4" }}>
+          <h4>All Tasks</h4>
+          <ul>
+            {tasks.map((task, index) => (
+              <li key={index}>
+                <strong>{task.name}</strong> - {task.difficulty} <br />
+                <em>Notes:</em> {task.notes || "No notes available"} {/* Display task notes */}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Game and Task Manager */}
       <div
@@ -1399,7 +1454,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: "0.5vw",
+            marginRight: "1vw",
           }}
         >
           +
@@ -1411,59 +1466,13 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
             background: "none",
             border: "none",
             cursor: "pointer",
-            margin: "0.5vw",
           }}
         >
           -
         </button>
-        <button
-          onClick={resetZoomHandler}
-          style={{
-            fontSize: "1.5vw",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            margin: "0.5vw",
-          }}
-        >
-          Reset Zoom
-        </button>
       </div>
-
-{popupVisible && (
-              <Popup
-                inputValue={inputValue}
-                onInputChange={handleInputChange}
-                onSubmit={handleSave}
-                handleCollect={handleCollectBananas}
-                setPopupVisibility={setPopupVisible}
-                style={{
-                zIndex: 1000,
-                }}
-              />
-      )}
-
-{popupVisible && (
-  <Popup
-    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
-    name={task?.name}
-    onSubmit={handleSave}
-    handleCollect={handleCollectBananas}
-    setPopupVisibility={setPopupVisible}
-    style={{
-      zIndex: 1000,
-      width: "1vw",
-      height: 'auto',
-      padding: "1vw",
-      border: "1vw",
-    }}
-  />
-)}
-
-
-    </div>
+    </>
   );
-
 }
 
 
