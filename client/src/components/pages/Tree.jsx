@@ -8,6 +8,7 @@ import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana3.png";
 import grassImg from "../../assets/grass.png";
 import cloudImg from "../../assets/cloud2-removebg-preview.png";
+import groundImg from "../../assets/ground.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
 // import Shop from './Shop'; // Import Shop scene
@@ -86,7 +87,7 @@ const Tree = () => {
       if (scene.sound && scene.sound.get('backgroundMusic')) {
         scene.sound.get('backgroundMusic').setVolume(musicVolume);
       }
-  
+
       // Update sound effects volumes
       ['stepSound', 'landSound', 'climbSound'].forEach(soundKey => {
         const soundEffect = scene.sound.get(soundKey);
@@ -110,7 +111,7 @@ const Tree = () => {
   useEffect(() => {
     if (loading) return;
     if (game) return;
-    
+
     const config = {
       type: Phaser.AUTO,
       width: window.innerWidth,
@@ -156,7 +157,6 @@ const Tree = () => {
     let branchSide = "left"; // Track which side the next branch will appear
     let monkey; // Variable for the monkey sprite
     let ground; // Variable for the ground
-    let mound; // Variable for the mound
     let camera; // Camera reference
     let market; // Variable for the market image
     let shopContainer; // Container for the shop UI
@@ -203,6 +203,7 @@ const Tree = () => {
       this.load.audio("landSound", land);
       this.load.audio("climbSound", climb);
       this.load.image('cloud', cloudImg);
+      this.load.image("ground", groundImg);
     }
 
     function update() {
@@ -218,7 +219,7 @@ const Tree = () => {
           cloud.y = Math.random() * window.innerHeight / 2;  // Randomize vertical position
         }
       });
-   
+
 
    
       // INFINITE BANANA COLLECTION
@@ -271,7 +272,7 @@ const Tree = () => {
 
       //landing
       if (monkey.body.touching.down) {
-        if (!monkey.body.wasTouching.down && 
+        if (!monkey.body.wasTouching.down &&
           Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth*(1/15)){
           landSound.play()
         }
@@ -279,7 +280,7 @@ const Tree = () => {
 
       if (this.physics.overlap(monkey, this.tree)) {
         const soundTime = Date.now();
-        if (this.downKey.isDown && !this.physics.overlap(monkey, mound)) {
+        if (this.downKey.isDown && monkey.y < 0) {
           monkey.y += windowHeight*(1/75);
           if (soundTime-lastSoundTime > 500) {
             climbSound.play()
@@ -313,7 +314,7 @@ const Tree = () => {
 
         //const branches = this.children.getChildren().filter(child => child.texture && child.texture.key === "branch");
         const isOverlapping = this.physics.overlap(monkey, branch);
-        console.log('branching', this.branches)
+        // console.log('branching', this.branches)
         // Check if there are any branches remaining
         if (this.branches.length === 0) {
           console.log('entered')
@@ -323,7 +324,7 @@ const Tree = () => {
         }
 
         // Check if the monkey is currently overlapping with the branch
-        console.log('overlap', isOverlapping)
+        // console.log('overlap', isOverlapping)
 
         if (isOverlapping) {
           // If the monkey is overlapping, we need to display the popup for this branch
@@ -435,10 +436,10 @@ const Tree = () => {
     });
 
       //bananas
-      if (bananaCounter === undefined) {
-        console.error('Banana counter is not initialized.');
-        return;
-      }
+      // if (bananaCounter === undefined) {
+      //   console.error('Banana counter is not initialized.');
+      //   return;
+      // }
       console.log('Creating shop and game elements');
 
       // Tree setup based on tasks length
@@ -455,6 +456,7 @@ const tree = this.add.rectangle(
   0x4a3d36
 );
 tree.setOrigin(0.5, 1);
+tree.setPosition(0, 0)
 this.physics.add.existing(tree, true);
 
 // Save references for use in growTree
@@ -530,44 +532,53 @@ tasks.forEach((task, index) => {
       });
       welcomeText.setOrigin(0.5, 0.5); // Center the text
 
-      market = this.add.image(windowWidth * 1.5, windowHeight * .75, 'market');
+      market = this.add.image(windowWidth, 0, 'market');
       market.setDisplaySize(windowWidth/5, windowHeight/2.5);
-      market.setOrigin(0.5, 0.5); // Center the image
+      market.setOrigin(0.5, 1); // Center the image
       this.physics.add.existing(market, true);
 
       // Create the monkey sprite with physics
-      monkey = this.physics.add.sprite(windowWidth /2 , windowHeight * 0.9 - windowHeight*(45/765), "monkey1");
+      monkey = this.physics.add.sprite(0 , windowHeight * 0.9 - windowHeight*(45/765), "monkey1");
       monkey.setDisplaySize(windowWidth*.07, windowHeight*.1);
+      monkey.setOrigin(0.5, 1)
+      monkey.setPosition(0, 0)
+      console.log('monkeyX', monkey.x)
+      console.log('monkeyY', monkey.y)
 
-      ground = this.add.rectangle(
-        windowWidth / 2,
-        windowHeight * 0.9,
-        windowWidth*4,
-        windowHeight / 2,
-        0x4caf50
-      );
+      ground = this.add.image(0, 0, 'ground');
+      ground.setScale(0.5); // Scale the image to 50% of its original size
       ground.setOrigin(0.5, 0);
+      ground.setPosition(0, 0)
       this.physics.add.existing(ground, true); // Add static physics to the rectangle
       this.physics.add.collider(monkey, ground);
+      ground.setDepth(0)
 
-      mound = this.add.rectangle(
-        windowWidth / 2,
-        windowHeight * 0.89,
-        windowWidth*3,
-        windowHeight / 2,
-        0x4caf50
-      );
-      mound.setOrigin(0.5, 0);
-      this.physics.add.existing(mound, true); // Add static physics to the rectangles
+// Log the windowHeight and the intended ground position
+console.log('windowHeight:', windowHeight);
+console.log('Ground position (windowHeight * 0.9):', windowHeight * 0.9);
 
-      for (let i = 0; i < 100; i++) {
-        const randomX = Math.random() * windowWidth*5 // Random X within screen width
-        const randomWidth = Math.random() * (windowWidth*(3/40)-windowWidth*(3/100)) + (windowWidth*(3/100));
-        const randomHeight = Math.random() * (windowHeight*(1/10)-windowHeight*(1/20)) + (windowHeight*(1/25));
-        // Add the grass patch at the random position
-        const grassPatch = this.add.image(randomX-windowWidth, windowHeight*.875, 'grass');
-        grassPatch.setDisplaySize(randomWidth, randomHeight)
-      }
+// // Add grass patches with random y-position between 0 and 300
+// for (let i = 0; i < 100; i++) {
+//   const randomX = Math.random() * windowWidth * 5; // Random X within a larger range for randomness
+//   const randomWidth = Math.random() * (windowWidth * (3 / 40) - windowWidth * (3 / 100)) + (windowWidth * (3 / 100));
+//   const randomHeight = Math.random() * (windowHeight * (1 / 10) - windowHeight * (1 / 20)) + (windowHeight * (1 / 25));
+
+//   // Add the grass patch at the random position
+//   const grassPatch = this.add.image(randomX - windowWidth, windowHeight * 0.875, 'grass');
+//   grassPatch.setDisplaySize(randomWidth, randomHeight);
+
+//   // Set origin to bottom center and position the grass at a random y between 0 and 300
+//   grassPatch.setOrigin(0.5, 1); // Bottom-center origin
+//   const randomY = Math.random() * 50;  // Random Y position between 0 and 300
+//   grassPatch.setPosition(grassPatch.x, randomY);
+
+//   // Adjust for slight position discrepancy
+//   grassPatch.y = Math.floor(grassPatch.y); // Ensure the Y position is a whole number
+
+//   // Set the grass's depth to be above the ground (layered on top)
+//   grassPatch.setDepth(1); // Grass above the ground
+// }
+
 
       // Set up custom keys for monkey movement
       this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
@@ -578,63 +589,74 @@ tasks.forEach((task, index) => {
       console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-      camera.setBounds(-windowWidth / 2, -5000, Infinity, Infinity);
+      camera.setFollowOffset(0, 200); // Offset the camera to be 200 pixels higher
+      camera.setBounds(-4*windowWidth/3, -5000, 8*windowWidth/3, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
+      console.log("Camera bounds:", camera.getBounds());
 
       //SHOP//
-      shopContainer = this.add.container(windowWidth * 1.5, windowHeight / 2);
-      shopContainer.setVisible(false);
+shopContainer = this.add.container(windowWidth, -windowHeight / 4); // Initially position it above the ground
+shopContainer.setVisible(false); // Initially hidden
 
-      const shopBackground = this.add.rectangle(0, 0, windowWidth/2.5, windowHeight/2, 0xffffff, 1);
-      shopBackground.setOrigin(0.5, 0.5);
-      shopContainer.add(shopBackground);
+// Background for the shop
+const shopBackground = this.add.rectangle(0, 0, windowWidth / 2.5, windowHeight / 2, 0xffffff, 1);
+shopBackground.setOrigin(0.5, 0.5); // Centered on the container
+shopContainer.add(shopBackground);
 
-      const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: windowWidth*(32/1494), fill: '#000' });
-      shopText.setOrigin(0.5, -0.5);
-      shopContainer.add(shopText);
+// Shop title text
+const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+shopText.setOrigin(0.5, -0.5); // Position above the shop background
+shopContainer.add(shopText);
 
-      const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth*(24/1494), fill: '#000' });
-      closeButton.setOrigin(2, -0.5);
-      closeButton.setInteractive();
-      closeButton.on('pointerdown', () => {
-        closeShop();
-      });
-      shopContainer.add(closeButton);
+// Close button (top-right corner)
+const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
+closeButton.setOrigin(2, -0.5);
+closeButton.setInteractive();
+closeButton.on('pointerdown', () => {
+  closeShop();
+});
+shopContainer.add(closeButton);
 
-      purchaseButton = this.add.text(0, shopBackground.height*.4, "Purchased", { fontSize: windowWidth*(16/1494), fill: "#000" });
-      purchaseButton.setOrigin(0.5, 0.5);
-      purchaseButton.setInteractive();
-      purchaseButton.on("pointerdown", () => purchaseMonkey());
-      shopContainer.add(purchaseButton);
+// Purchase button
+purchaseButton = this.add.text(0, shopBackground.height * 0.4, "Purchased", { fontSize: windowWidth * (16 / 1494), fill: "#000" });
+purchaseButton.setOrigin(0.5, 0.5);
+purchaseButton.setInteractive();
+purchaseButton.on("pointerdown", () => purchaseMonkey());
+shopContainer.add(purchaseButton);
 
-      const leftArrow = this.add.text(-shopBackground.width*.15, shopBackground.height*-.1, '<', { fontSize: windowWidth*(32/1494), fill: '#000' });
-      leftArrow.setOrigin(1, 0.5);
-      leftArrow.setInteractive();
-      leftArrow.on('pointerdown', () => changeMonkey(-1)); // Change monkey to previous image
-      shopContainer.add(leftArrow);
+// Left arrow (change to previous monkey)
+const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+leftArrow.setOrigin(1, 0.5);
+leftArrow.setInteractive();
+leftArrow.on('pointerdown', () => changeMonkey(-1));
+shopContainer.add(leftArrow);
 
-      const rightArrow = this.add.text(shopBackground.width*.15, shopBackground.height*-.1, '>', { fontSize: windowWidth*(32/1494), fill: '#000' });
-      rightArrow.setOrigin(0, 0.5);
-      rightArrow.setInteractive();
-      rightArrow.on('pointerdown', () => changeMonkey(1)); // Change monkey to next image
-      shopContainer.add(rightArrow);
+// Right arrow (change to next monkey)
+const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+rightArrow.setOrigin(0, 0.5);
+rightArrow.setInteractive();
+rightArrow.on('pointerdown', () => changeMonkey(1));
+shopContainer.add(rightArrow);
 
-      monkeyDisplay = this.add.sprite(0, shopBackground.height*-.1, "monkey1");
-      monkeyDisplay.setDisplaySize(windowWidth*.07, windowHeight*.1);
-      shopContainer.add(monkeyDisplay);
+// Monkey display sprite
+monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, "monkey1");
+monkeyDisplay.setDisplaySize(windowWidth * 0.07, windowHeight * 0.1);
+shopContainer.add(monkeyDisplay);
 
-      costText = this.add.text(
-        0,
-        windowHeight*(80/765),
-        `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-        { fontSize: windowWidth*(16/1494), fill: "#000" }
-      );
-      costText.setOrigin(0.5, 0.5); // Center the text
-      shopContainer.add(costText);
+// Cost text
+costText = this.add.text(
+  0,
+  windowHeight * (80 / 765),
+  `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
+  { fontSize: windowWidth * (16 / 1494), fill: "#000" }
+);
+costText.setOrigin(0.5, 0.5); // Centered text
+shopContainer.add(costText);
 
-      this.physics.add.overlap(monkey, market, () => {
-        openShop();
-      });
+// Overlap check for opening shop when the monkey reaches the market
+this.physics.add.overlap(monkey, market, () => {
+  openShop();
+});
 
       setScene(this);
     };
@@ -660,7 +682,7 @@ tasks.forEach((task, index) => {
           cloud.y = Math.random() * window.innerHeight / 2;  // Randomize vertical position
         }
       });
-    
+
 
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -704,7 +726,8 @@ tasks.forEach((task, index) => {
 
       if (this.downKey.isDown && this.physics.overlap(monkey, this.tree)) {
         // Prevent the monkey from moving beneath the ground level
-        if (!this.physics.overlap(monkey, mound)) {
+        if (monkey.y < 0) {
+
           monkey.y += windowHeight*(1/75);
         }
       }
@@ -732,7 +755,7 @@ tasks.forEach((task, index) => {
 
         //const branches = this.children.getChildren().filter(child => child.texture && child.texture.key === "branch");
         const isOverlapping = this.physics.overlap(monkey, branch);
-        console.log('branching', this.branches)
+        // console.log('branching', this.branches)
         // Check if there are any branches remaining
         if (this.branches.length === 0) {
           console.log('entered')
@@ -742,7 +765,7 @@ tasks.forEach((task, index) => {
         }
 
         // Check if the monkey is currently overlapping with the branch
-        console.log('overlap', isOverlapping)
+        // console.log('overlap', isOverlapping)
 
         if (isOverlapping) {
           // If the monkey is overlapping, we need to display the popup for this branch
@@ -886,10 +909,17 @@ tasks.forEach((task, index) => {
           shopOpen = false;
           lastChangeTime = 0;
           monkeyMovementEnabled = true; // Re-enable monkey movement
+
+          // Set monkey's position to the ground (y = 0)
+          monkey.x = windowWidth * 0.8
+          monkey.y = 0;
+
           shopContainer.setVisible(false);
           camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
+
           camera.once("camerapancomplete", () => {
             camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
+            camera.setFollowOffset(0, 200); // Offset the camera to be 200 pixels higher
           });
         } else {
           alert(`You must purchase this monkey first!`);
@@ -1338,18 +1368,18 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
             Logout
           </button>
           <div className="mb-4" style={{marginTop: "1vw"}}>
-            <label 
-              htmlFor="musicVolume" 
+            <label
+              htmlFor="musicVolume"
               className="block text-sm mb-2"
             >
               Music Volume
             </label>
-            <input 
-              type="range" 
+            <input
+              type="range"
               id="musicVolume"
-              min="0" 
-              max="1" 
-              step="0.1" 
+              min="0"
+              max="1"
+              step="0.1"
               value={musicVolume}
               onChange={(e) => {
                 const newVolume = parseFloat(e.target.value);
@@ -1361,18 +1391,18 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
           </div>
 
           <div className="mb-4">
-            <label 
-              htmlFor="sfxVolume" 
+            <label
+              htmlFor="sfxVolume"
               className="block text-sm mb-2"
             >
               Sound Effects Volume
             </label>
-            <input 
-              type="range" 
+            <input
+              type="range"
               id="sfxVolume"
-              min="0" 
-              max="1" 
-              step="0.1" 
+              min="0"
+              max="1"
+              step="0.1"
               value={soundEffectsVolume}
               onChange={(e) => {
                 const newVolume = parseFloat(e.target.value);
