@@ -5,9 +5,9 @@ import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkey2.png";
 import monkeyImg3 from "../../assets/monkey3.png";
 import marketImg from '../../assets/market.png';
-import bananaImg from "../../assets/banana.png";
+import bananaImg from "../../assets/banana3.png";
 import grassImg from "../../assets/grass.png";
-import cloudImg from "../../assets/gifcloud.png";
+import cloudImg from "../../assets/cloud2-removebg-preview.png";
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
 // import Shop from './Shop'; // Import Shop scene
@@ -211,7 +211,7 @@ const Tree = () => {
 
       clouds.forEach(cloud => {
         cloud.x -= cloudSpeed;
-   
+    
         // When a cloud moves off the left side, reposition it to the right side of the screen
         if (cloud.x + cloud.width < this.cameras.main.scrollX) {
           cloud.x = this.cameras.main.scrollX + window.innerWidth;
@@ -220,7 +220,7 @@ const Tree = () => {
       });
    
 
-
+   
       // INFINITE BANANA COLLECTION
       const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
       qKey.on("down", () => {
@@ -407,8 +407,8 @@ const Tree = () => {
 
   // Create cloud sprites at random positions across the screen
   for (let i = 0; i < numberOfClouds; i++) {
-    let cloud = this.add.sprite(Math.random() * window.innerWidth, (Math.random() - 0.5) * window.innerHeight, 'cloud');
-    cloud.setScale(0.7);  // Make clouds smaller
+    let cloud = this.add.sprite(Math.random() * window.innerWidth, Math.random() * window.innerHeight, 'cloud');
+    cloud.setScale(0.42);  // Make clouds smaller
     cloud.setDepth(-1);
     cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
     clouds.push(cloud);
@@ -443,7 +443,7 @@ const Tree = () => {
 
       // Tree setup based on tasks length
 const treeBaseHeight = windowHeight * (150 / 765);
-const treeWidth = windowHeight * (50 / 765); // Fixed tree width
+const treeWidth = windowHeight * (90 / 765); // Fixed tree width
 const treeHeight = treeBaseHeight + tasks.length * 100; // Dynamic tree height
 
 // Create the tree
@@ -480,7 +480,7 @@ tasks.forEach((task, index) => {
     branchX,
     branchY,
     windowWidth * (200 / 1494),
-    windowHeight * (15 / 765),
+    windowHeight * (20 / 765),
     0x4a3d36
   );
 
@@ -513,7 +513,7 @@ tasks.forEach((task, index) => {
       "banana"
     );
     banana.setOrigin(0.5, 0.5);
-    banana.setDisplaySize(windowHeight * (3 / 50), windowHeight * (3 / 50));
+    banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50));
     banana.setDepth(10); // Ensure it appears in front of other objects
     this.bananas.push(banana);
   }
@@ -651,8 +651,8 @@ tasks.forEach((task, index) => {
     function update() {
       // Boundaries for the world
       monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
-      clouds.forEach(cloud => {
-        cloud.x -= cloudSpeed;
+      clouds.forEach((cloud) => {
+        cloud.x -= cloudSpeed;  // Move cloud to the left
     
         // When a cloud moves off the left side, reposition it to the right side of the screen
         if (cloud.x + cloud.width < this.cameras.main.scrollX) {
@@ -1011,7 +1011,7 @@ tasks.forEach((task, index) => {
           ease: "Linear",
           onUpdate: () => {
             // Update the tree's size and physics body
-            treeObj.setSize(windowHeight * (50 / 765), treeObj.height);
+            treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
             treeObj.body.updateFromGameObject();
           },
           onComplete: () => {
@@ -1104,7 +1104,7 @@ tasks.forEach((task, index) => {
         ease: "Linear",
         onUpdate: () => {
           // Ensure that the rectangle's size is updated
-          const treeWidth = windowHeight * (50 / 765);
+          const treeWidth = windowHeight * (90 / 765);
           treeObj.setSize(treeWidth, treeObj.height);
           treeObj.body.updateFromGameObject();
         },
@@ -1121,7 +1121,7 @@ const branch = scene.add.rectangle(
   branchX,
   branchY,
   windowWidth * (200 / 1494),
-  windowHeight * (15 / 765),
+  windowHeight * (20 / 765),
   0x4a3d36
 );
 
@@ -1140,7 +1140,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
               : branchX + windowWidth * (80 / 1494);
 
           // Add task text to the branch
-          scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (50 / 765), taskName, {
+          scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (90 / 765), taskName, {
             font: `${windowWidth * (20 / 1494)}px Courier New`,
             fill: "#000",
             align: "center",
@@ -1162,7 +1162,7 @@ branch.body.updateFromGameObject(); // Update the body to reflect the current ga
               "banana"
             );
             banana.setOrigin(0.5, 0.5);
-            banana.setDisplaySize(windowHeight * (3 / 50), windowHeight * (3 / 50)); // Adjust the size as needed
+            banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50)); // Adjust the size as needed
             banana.setDepth(10); // Ensure it appears in front of other objects
 
             scene.physics.add.existing(banana);
