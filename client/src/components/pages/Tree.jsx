@@ -1386,43 +1386,85 @@ const growTree = (task) => {
       )}
 
       {/* Zoom Controls */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: "1vw",
-          right: "1vw",
-          display: "flex",
-          alignItems: "center",
-          zIndex: 9999,
-        }}
-      >
-        <button
-          onClick={zoomInHandler}
-          style={{
-            fontSize: "1.5vw",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            marginRight: "1vw",
-          }}
-        >
-          +
-        </button>
-        <button
-          onClick={zoomOutHandler}
-          style={{
-            fontSize: "1.5vw",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          -
-        </button>
-      </div>
-    </>
-  );
-}
+<div
+  style={{
+    position: "absolute",
+    bottom: "1vw",
+    right: "1vw",
+    display: "flex",
+    alignItems: "center",
+    zIndex: 9999,
+  }}
+>
+  <button
+    onClick={zoomInHandler}
+    style={{
+      fontSize: "1.5vw",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      marginRight: "1vw",
+    }}
+  >
+    +
+  </button>
+  <button
+    onClick={zoomOutHandler}
+    style={{
+      fontSize: "1.5vw",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+    }}
+  >
+    -
+  </button> {/* Closing tag was incorrectly indented here */}
+  <button
+    onClick={resetZoomHandler}
+    style={{
+      fontSize: "1.5vw",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      margin: "0.5vw",
+    }}
+  >
+    Reset Zoom
+  </button>
+</div>
 
+{popupVisible && (
+  <Popup
+    inputValue={inputValue}
+    onInputChange={handleInputChange}
+    onSubmit={handleSave}
+    handleCollect={handleCollectBananas}
+    setPopupVisibility={setPopupVisible}
+    style={{
+      zIndex: 1000,
+    }}
+  />
+)}
 
+{popupVisible && (
+  <Popup
+    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
+    name={task?.name}
+    onSubmit={handleSave}
+    handleCollect={handleCollectBananas}
+    setPopupVisibility={setPopupVisible}
+    style={{
+      zIndex: 1000,
+      width: "1vw",
+      height: 'auto',
+      padding: "1vw",
+      border: "1vw",
+    }}
+    />
+  )}
+</>
+);
+};
+
+// Export the Tree component at the end
 export default Tree;
