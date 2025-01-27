@@ -56,6 +56,8 @@ const Tree = () => {
     setInputValue(input); // Update the input value state
     handleSave(input);  // Call the handleSave function with updated value
   };
+  const [phaserGame, setPhaserGame] = useState(null);
+
 
 
   // Fetch game info only when userId is available
@@ -71,7 +73,8 @@ const Tree = () => {
         const data = await fetchGameInfo(userId);
         setTasks(data.tasks || []);  // Set tasks (empty array for new users)
         setBananaCounter(data.bananaCounter || 0);  // Set banana counter
-        setLoading(false); // Set loading to false after data is fetched
+        setLoading(false); // Set loading to false after da?
+        // ta is fetched
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
         setLoading(false); // Set loading to false even on error
@@ -205,159 +208,15 @@ const Tree = () => {
       this.load.image('cloud', cloudImg);
       this.load.image("ground", groundImg);
     }
-
-    function update() {
-      // Handle Cloud Movement
-      clouds.forEach((cloud) => {
-        cloud.x -= cloudSpeed;  // Move cloud to the left
-    
-        // When a cloud moves off the left side, reposition it to the right side of the screen
-        if (cloud.x + cloud.width < this.cameras.main.scrollX) {
-          cloud.x = this.cameras.main.scrollX + window.innerWidth;
-          // Optionally adjust the cloud's y position only if you want it to move vertically as well
-          // cloud.y = Math.random() * window.innerHeight * 0.3;  // This line is no longer needed every frame
-        }
-      });
-    
-      // Handle Monkey Movement
-      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
-    
-      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-      qKey.on("down", () => {
-        setBananaCounter((prevCount) => prevCount + 1);
-      });
-    
-      // Shop Updates
-      if (shopOpen) {
-        const currentTime = Date.now();
-        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(-1);
-          lastChangeTime = currentTime;
-        }
-    
-        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
-          changeMonkey(1);
-          lastChangeTime = currentTime;
-        }
-      }
-    
-      if (monkeyMovementEnabled) {
-        const soundTime = Date.now();
-        if (this.leftKey.isDown) {
-          monkey.setVelocityX(-windowWidth / 2);
-          if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-            stepSound.play();
-            lastSoundTime = soundTime;
-          }
-        } else if (this.rightKey.isDown) {
-          monkey.setVelocityX(windowWidth / 2);
-          if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
-            stepSound.play();
-            lastSoundTime = soundTime;
-          }
-        } else {
-          monkey.setVelocityX(0);
-        }
-    
-        if (this.upKey.isDown && monkey.body.touching.down) {
-          monkey.setVelocityY(-windowHeight);
-        }
-      } else {
-        monkey.setVelocityX(0);
-        monkey.setVelocityY(0);
-      }
-    
-      // Landing Sound
-      if (monkey.body.touching.down) {
-        if (!monkey.body.wasTouching.down &&
-          Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
-          landSound.play();
-        }
-      }
-    
-      // Branch Interaction
-      for (const branch of this.branches) {
-        const isLeftBranch = branch.x < this.tree.x;
-        const monkeyBounds = monkey.getBounds();
-        const branchBounds = branch.getBounds();
-        const isOverlapping = this.physics.overlap(monkey, branch);
-    
-        if (this.branches.length === 0) {
-          setPopupVisible(false);
-          return;
-        }
-    
-        if (isOverlapping) {
-          let popupShown = false;
-          
-          // Check leftmost half of left branch
-          if (
-            isLeftBranch &&
-            monkeyBounds.right >= branchBounds.left &&
-            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2
-          ) {
-            if (!popupShown) {
-              setPopupVisible(true);
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y &&
-                  child.y >= branchBounds.y - windowHeight * (2 / 25) &&
-                  Math.abs(child.x - branchBounds.x) <= windowWidth * (50 / 1494)
-                );
-              });
-    
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text;
-                setSelectedTaskName(taskName);
-              }
-    
-              popupShown = true;
-              break;
-            }
-          }
-    
-          // Check rightmost half of right branch
-          if (
-            !isLeftBranch &&
-            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 &&
-            monkeyBounds.left <= branchBounds.right
-          ) {
-            if (!popupShown) {
-              setPopupVisible(true);
-              const textAboveBranch = this.children.getChildren().find(child => {
-                return (
-                  child instanceof Phaser.GameObjects.Text &&
-                  child.y <= branchBounds.y &&
-                  child.y >= branchBounds.y - windowHeight * (2 / 25) + 10
-                );
-              });
-    
-              if (textAboveBranch) {
-                const taskName = textAboveBranch.text;
-                setSelectedTaskName(taskName);
-              }
-    
-              popupShown = true;
-              break;
-            }
-          }
-        }
-    
-        if (!isOverlapping) {
-          setPopupVisible(false);
-        }
-      }
-    }
     
     function create() {
-      
+       // Set background color
       const numberOfClouds = 15; // Number of clouds to generate
 
   // Create cloud sprites at random positions across the screen
   for (let i = 0; i < numberOfClouds; i++) {
     console.log('cloud')
-    let cloud = this.add.sprite(Math.random() * window.innerWidth, (window.innerHeight), 'cloud');
+    let cloud = this.add.sprite(Math.random() * window.innerWidth, -1 * Math.random() * (window.innerHeight), 'cloud');
     cloud.setScale(0.42);  // Make clouds smaller
     cloud.setDepth(-1);
     cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
