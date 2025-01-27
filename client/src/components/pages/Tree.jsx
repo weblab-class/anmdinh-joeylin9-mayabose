@@ -208,6 +208,150 @@ const Tree = () => {
       this.load.image('cloud', cloudImg);
       this.load.image("ground", groundImg);
     }
+
+    function update() {
+      // Handle Cloud Movement
+      clouds.forEach((cloud) => {
+        cloud.x -= cloudSpeed;  // Move cloud to the left
+    
+        // When a cloud moves off the left side, reposition it to the right side of the screen
+        if (cloud.x + cloud.width < this.cameras.main.scrollX) {
+          cloud.x = this.cameras.main.scrollX + window.innerWidth;
+          // Optionally adjust the cloud's y position only if you want it to move vertically as well
+          // cloud.y = Math.random() * window.innerHeight * 0.3;  // This line is no longer needed every frame
+        }
+      });
+    
+      // Handle Monkey Movement
+      monkey.x = Phaser.Math.Clamp(monkey.x, -windowWidth/2, Infinity);
+    
+      const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
+      qKey.on("down", () => {
+        setBananaCounter((prevCount) => prevCount + 1);
+      });
+    
+      // Shop Updates
+      if (shopOpen) {
+        const currentTime = Date.now();
+        if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
+          changeMonkey(-1);
+          lastChangeTime = currentTime;
+        }
+    
+        if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
+          changeMonkey(1);
+          lastChangeTime = currentTime;
+        }
+      }
+    
+      if (monkeyMovementEnabled) {
+        const soundTime = Date.now();
+        if (this.leftKey.isDown) {
+          monkey.setVelocityX(-windowWidth / 2);
+          if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+            stepSound.play();
+            lastSoundTime = soundTime;
+          }
+        } else if (this.rightKey.isDown) {
+          monkey.setVelocityX(windowWidth / 2);
+          if (monkey.body.touching.down && soundTime - lastSoundTime > 750) {
+            stepSound.play();
+            lastSoundTime = soundTime;
+          }
+        } else {
+          monkey.setVelocityX(0);
+        }
+    
+        if (this.upKey.isDown && monkey.body.touching.down) {
+          monkey.setVelocityY(-windowHeight);
+        }
+      } else {
+        monkey.setVelocityX(0);
+        monkey.setVelocityY(0);
+      }
+    
+      // Landing Sound
+      if (monkey.body.touching.down) {
+        if (!monkey.body.wasTouching.down &&
+          Phaser.Math.Distance.Between(monkey.x, monkey.y, this.tree.x, this.tree.y) > windowWidth * (1 / 15)) {
+          landSound.play();
+        }
+      }
+    
+      // Branch Interaction
+      for (const branch of this.branches) {
+        const isLeftBranch = branch.x < this.tree.x;
+        const monkeyBounds = monkey.getBounds();
+        const branchBounds = branch.getBounds();
+        const isOverlapping = this.physics.overlap(monkey, branch);
+    
+        if (this.branches.length === 0) {
+          setPopupVisible(false);
+          return;
+        }
+    
+        if (isOverlapping) {
+          let popupShown = false;
+          
+          // Check leftmost half of left branch
+          if (
+            isLeftBranch &&
+            monkeyBounds.right >= branchBounds.left &&
+            monkeyBounds.right <= branchBounds.left + branchBounds.width / 2
+          ) {
+            if (!popupShown) {
+              setPopupVisible(true);
+              const textAboveBranch = this.children.getChildren().find(child => {
+                return (
+                  child instanceof Phaser.GameObjects.Text &&
+                  child.y <= branchBounds.y &&
+                  child.y >= branchBounds.y - windowHeight * (2 / 25) &&
+                  Math.abs(child.x - branchBounds.x) <= windowWidth * (50 / 1494)
+                );
+              });
+    
+              if (textAboveBranch) {
+                const taskName = textAboveBranch.text;
+                setSelectedTaskName(taskName);
+              }
+    
+              popupShown = true;
+              break;
+            }
+          }
+    
+          // Check rightmost half of right branch
+          if (
+            !isLeftBranch &&
+            monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 &&
+            monkeyBounds.left <= branchBounds.right
+          ) {
+            if (!popupShown) {
+              setPopupVisible(true);
+              const textAboveBranch = this.children.getChildren().find(child => {
+                return (
+                  child instanceof Phaser.GameObjects.Text &&
+                  child.y <= branchBounds.y &&
+                  child.y >= branchBounds.y - windowHeight * (2 / 25) + windowHeight(10/765)
+                );
+              });
+    
+              if (textAboveBranch) {
+                const taskName = textAboveBranch.text;
+                setSelectedTaskName(taskName);
+              }
+    
+              popupShown = true;
+              break;
+            }
+          }
+        }
+    
+        if (!isOverlapping) {
+          setPopupVisible(false);
+        }
+      }
+    }
     
     function create() {
        // Set background color
@@ -332,7 +476,7 @@ tasks.forEach((task, index) => {
 
   // Alternate branch side for the next branch
   this.branchSide = this.branchSide === "left" ? "right" : "left";
-});
+  });
 
       //` SHOP SCENE
 
@@ -363,31 +507,31 @@ tasks.forEach((task, index) => {
       this.physics.add.collider(monkey, ground);
       ground.setDepth(0)
 
-// Log the windowHeight and the intended ground position
-console.log('windowHeight:', windowHeight);
-console.log('Ground position (windowHeight * 0.9):', windowHeight * 0.9);
+      // Log the windowHeight and the intended ground position
+      console.log('windowHeight:', windowHeight);
+      console.log('Ground position (windowHeight * 0.9):', windowHeight * 0.9);
 
-// // Add grass patches with random y-position between 0 and 300
-// for (let i = 0; i < 100; i++) {
-//   const randomX = Math.random() * windowWidth * 5; // Random X within a larger range for randomness
-//   const randomWidth = Math.random() * (windowWidth * (3 / 40) - windowWidth * (3 / 100)) + (windowWidth * (3 / 100));
-//   const randomHeight = Math.random() * (windowHeight * (1 / 10) - windowHeight * (1 / 20)) + (windowHeight * (1 / 25));
+      // // Add grass patches with random y-position between 0 and 300
+      // for (let i = 0; i < 100; i++) {
+      //   const randomX = Math.random() * windowWidth * 5; // Random X within a larger range for randomness
+      //   const randomWidth = Math.random() * (windowWidth * (3 / 40) - windowWidth * (3 / 100)) + (windowWidth * (3 / 100));
+      //   const randomHeight = Math.random() * (windowHeight * (1 / 10) - windowHeight * (1 / 20)) + (windowHeight * (1 / 25));
 
-//   // Add the grass patch at the random position
-//   const grassPatch = this.add.image(randomX - windowWidth, windowHeight * 0.875, 'grass');
-//   grassPatch.setDisplaySize(randomWidth, randomHeight);
+      //   // Add the grass patch at the random position
+      //   const grassPatch = this.add.image(randomX - windowWidth, windowHeight * 0.875, 'grass');
+      //   grassPatch.setDisplaySize(randomWidth, randomHeight);
 
-//   // Set origin to bottom center and position the grass at a random y between 0 and 300
-//   grassPatch.setOrigin(0.5, 1); // Bottom-center origin
-//   const randomY = Math.random() * 50;  // Random Y position between 0 and 300
-//   grassPatch.setPosition(grassPatch.x, randomY);
+      //   // Set origin to bottom center and position the grass at a random y between 0 and 300
+      //   grassPatch.setOrigin(0.5, 1); // Bottom-center origin
+      //   const randomY = Math.random() * 50;  // Random Y position between 0 and 300
+      //   grassPatch.setPosition(grassPatch.x, randomY);
 
-//   // Adjust for slight position discrepancy
-//   grassPatch.y = Math.floor(grassPatch.y); // Ensure the Y position is a whole number
+      //   // Adjust for slight position discrepancy
+      //   grassPatch.y = Math.floor(grassPatch.y); // Ensure the Y position is a whole number
 
-//   // Set the grass's depth to be above the ground (layered on top)
-//   grassPatch.setDepth(1); // Grass above the ground
-// }
+      //   // Set the grass's depth to be above the ground (layered on top)
+      //   grassPatch.setDepth(1); // Grass above the ground
+      // }
 
 
       // Set up custom keys for monkey movement
@@ -399,74 +543,74 @@ console.log('Ground position (windowHeight * 0.9):', windowHeight * 0.9);
       console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
-      camera.setFollowOffset(0, 200); // Offset the camera to be 200 pixels higher
-      camera.setBounds(-4*windowWidth/3, -5000, 8*windowWidth/3, Infinity);
+      camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
+      camera.setBounds(-windowWidth/2, windowHeight*(-5000/765), Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
       console.log("Camera bounds:", camera.getBounds());
 
       //SHOP//
-shopContainer = this.add.container(windowWidth, -windowHeight / 4); // Initially position it above the ground
-shopContainer.setVisible(false); // Initially hidden
+      shopContainer = this.add.container(windowWidth, -windowHeight / 4); // Initially position it above the ground
+      shopContainer.setVisible(false); // Initially hidden
 
-// Background for the shop
-const shopBackground = this.add.rectangle(0, 0, windowWidth / 2.5, windowHeight / 2, 0xffffff, 1);
-shopBackground.setOrigin(0.5, 0.5); // Centered on the container
-shopContainer.add(shopBackground);
+      // Background for the shop
+      const shopBackground = this.add.rectangle(0, 0, windowWidth / 2.5, windowHeight / 2, 0xffffff, 1);
+      shopBackground.setOrigin(0.5, 0.5); // Centered on the container
+      shopContainer.add(shopBackground);
 
-// Shop title text
-const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
-shopText.setOrigin(0.5, -0.5); // Position above the shop background
-shopContainer.add(shopText);
+      // Shop title text
+      const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+      shopText.setOrigin(0.5, -0.5); // Position above the shop background
+      shopContainer.add(shopText);
 
-// Close button (top-right corner)
-const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
-closeButton.setOrigin(2, -0.5);
-closeButton.setInteractive();
-closeButton.on('pointerdown', () => {
-  closeShop();
-});
-shopContainer.add(closeButton);
+      // Close button (top-right corner)
+      const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
+      closeButton.setOrigin(2, -0.5);
+      closeButton.setInteractive();
+      closeButton.on('pointerdown', () => {
+        closeShop();
+      });
+      shopContainer.add(closeButton);
 
-// Purchase button
-purchaseButton = this.add.text(0, shopBackground.height * 0.4, "Purchased", { fontSize: windowWidth * (16 / 1494), fill: "#000" });
-purchaseButton.setOrigin(0.5, 0.5);
-purchaseButton.setInteractive();
-purchaseButton.on("pointerdown", () => purchaseMonkey());
-shopContainer.add(purchaseButton);
+      // Purchase button
+      purchaseButton = this.add.text(0, shopBackground.height * 0.4, "Purchased", { fontSize: windowWidth * (16 / 1494), fill: "#000" });
+      purchaseButton.setOrigin(0.5, 0.5);
+      purchaseButton.setInteractive();
+      purchaseButton.on("pointerdown", () => purchaseMonkey());
+      shopContainer.add(purchaseButton);
 
-// Left arrow (change to previous monkey)
-const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
-leftArrow.setOrigin(1, 0.5);
-leftArrow.setInteractive();
-leftArrow.on('pointerdown', () => changeMonkey(-1));
-shopContainer.add(leftArrow);
+      // Left arrow (change to previous monkey)
+      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+      leftArrow.setOrigin(1, 0.5);
+      leftArrow.setInteractive();
+      leftArrow.on('pointerdown', () => changeMonkey(-1));
+      shopContainer.add(leftArrow);
 
-// Right arrow (change to next monkey)
-const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
-rightArrow.setOrigin(0, 0.5);
-rightArrow.setInteractive();
-rightArrow.on('pointerdown', () => changeMonkey(1));
-shopContainer.add(rightArrow);
+      // Right arrow (change to next monkey)
+      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+      rightArrow.setOrigin(0, 0.5);
+      rightArrow.setInteractive();
+      rightArrow.on('pointerdown', () => changeMonkey(1));
+      shopContainer.add(rightArrow);
 
-// Monkey display sprite
-monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, "monkey1");
-monkeyDisplay.setDisplaySize(windowWidth * 0.07, windowHeight * 0.1);
-shopContainer.add(monkeyDisplay);
+      // Monkey display sprite
+      monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, "monkey1");
+      monkeyDisplay.setDisplaySize(windowWidth * 0.07, windowHeight * 0.1);
+      shopContainer.add(monkeyDisplay);
 
-// Cost text
-costText = this.add.text(
-  0,
-  windowHeight * (80 / 765),
-  `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-  { fontSize: windowWidth * (16 / 1494), fill: "#000" }
-);
-costText.setOrigin(0.5, 0.5); // Centered text
-shopContainer.add(costText);
+      // Cost text
+      costText = this.add.text(
+        0,
+        windowHeight * (80 / 765),
+        `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
+        { fontSize: windowWidth * (16 / 1494), fill: "#000" }
+      );
+      costText.setOrigin(0.5, 0.5); // Centered text
+      shopContainer.add(costText);
 
-// Overlap check for opening shop when the monkey reaches the market
-this.physics.add.overlap(monkey, market, () => {
-  openShop();
-});
+      // Overlap check for opening shop when the monkey reaches the market
+      this.physics.add.overlap(monkey, market, () => {
+        openShop();
+      });
 
       setScene(this);
     };
@@ -629,7 +773,7 @@ this.physics.add.overlap(monkey, market, () => {
                 return (
                   child instanceof Phaser.GameObjects.Text &&
                   child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-                  child.y >= branchBounds.y - windowHeight*(2/25) + 10 // Ensure text is within 60 pixels above the branch
+                  child.y >= branchBounds.y - windowHeight*(2/25) + windowHeight*(10/765) // Ensure text is within 60 pixels above the branch
                   //Math.abs(child.x - branchBounds.x) <= 100
                 );
               });
@@ -730,7 +874,7 @@ this.physics.add.overlap(monkey, market, () => {
 
           camera.once("camerapancomplete", () => {
             camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
-            camera.setFollowOffset(0, 200); // Offset the camera to be 200 pixels higher
+            camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
           });
         } else {
           alert(`You must purchase this monkey first!`);
