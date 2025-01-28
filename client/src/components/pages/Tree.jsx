@@ -893,7 +893,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: banana,
           x: banana.x * -1,
-          y: banana.y + shrinkAmount,
+          y: banana.y + shrinkAmount*1.5,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -912,7 +912,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: text,
           x: text.x * -1,
-          y: text.y + shrinkAmount,
+          y: text.y + shrinkAmount*1.5,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
