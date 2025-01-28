@@ -9,9 +9,13 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
-      if (taskName in tasks) {
-        setAlertMessage('Please use a new name for this task.')
-      }
+        // Check if a task with the same name already exists
+  const taskExists = tasks.some((task) => task.name === taskName);
+  if (taskExists) {
+    alert("A task with this name already exists. Please choose a different name.");
+    return;
+  }
+
       console.log("Previous tasks:", tasks); // Log the current list of tasks
       const previousTask = tasks[0];
       console.log("Previous task:", previousTask); // Log the previous task
