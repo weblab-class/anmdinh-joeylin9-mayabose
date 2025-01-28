@@ -150,8 +150,8 @@ const Tree = () => {
   }, [loading]);
 
     let windowWidth = window.innerWidth;
-    let windowHeight = window.innerHeight;
-    let monkey; // Variable for the monkey sprite
+    let windowHeight = window.innerHeight; // Variable for the monkey sprite
+    let monkey;
     let ground; // Variable for the ground
     let camera; // Camera reference
     let market; // Variable for the market image
@@ -174,7 +174,7 @@ const Tree = () => {
     let lastSoundTime = 0;
     let backgroundMusic;
 
-
+    const [monkeyPosition, setMonkeyPosition] = useState({x:-windowWidth*.33 , y:-windowHeight*.25});
     // PRELOAD
     function preload() {
       console.log('Preloading assets...');
@@ -288,7 +288,7 @@ tasks.forEach((task, index) => {
   // Add task text to the branch
   const taskName = task.name || "Default Task";
   this.add.text(
-    branchX - windowWidth * (100 / 1494),
+    branchX,
     branchY - windowHeight * (50 / 765),
     taskName,
     {
@@ -337,8 +337,7 @@ tasks.forEach((task, index) => {
         frameHeight: 64 // height of each frame
       });
       // Preload the default monkey spritesheet
-
-      monkey = this.physics.add.sprite(-windowWidth*.33 , -windowHeight*.25, "default_monkey");
+      monkey = this.physics.add.sprite(monkeyPosition.x, monkeyPosition.y, "default_monkey");
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
 
       ground = this.add.image(0, 0, 'ground');
@@ -494,6 +493,8 @@ function update() {
     } else {
       monkey.setVelocityX(0);
 
+
+
       // When standing still on the ground, set frame to "facing forward"
       if (monkey.body.touching.down) {
         monkey.setFrame(1); // Set frame to face forward (idle frame)
@@ -561,6 +562,7 @@ function update() {
     isClimbing = true;
     monkey.body.allowGravity = false;
     monkey.setVelocityY(0);
+    console.log('here')
 
     // Horizontal movement while climbing
     if (this.leftKey.isDown) {
@@ -600,8 +602,7 @@ function update() {
             return (
               child instanceof Phaser.GameObjects.Text &&
               child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-              child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
-              Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+              child.y >= branchBounds.y - windowHeight*0.2
             );
           });
 
@@ -630,8 +631,7 @@ function update() {
             return (
               child instanceof Phaser.GameObjects.Text &&
               child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-              child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
-              Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
+              child.y >= branchBounds.y - windowHeight*0.2
             );
           });
 
@@ -795,10 +795,26 @@ const handleSave = (input) => {
 
 let task = tasks.find(t => t.name === selectedTaskName);
 
+const switchTaskSidesBefore = (tasks, taskName) => {
+  let foundTask = false;
+
+  tasks.forEach((task) => {
+    if (task.name === taskName) {
+      foundTask = true; // Stop toggling sides once the task is found
+    }
+
+    if (!foundTask) {
+      // Switch side: If "left", make it "right", and vice versa
+      task.side = task.side === "left" ? "right" : "left";
+    }
+  });
+};
+
 const handleCollectBananas = (taskName) => {
   const task = tasks.find(t => t.name === selectedTaskName);
   if (task) {
     const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+    switchTaskSidesBefore(tasks, taskName);
 
     // update tasks and remove the selected task
     const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
@@ -817,14 +833,12 @@ const handleCollectBananas = (taskName) => {
   } else {
     console.log("No task selected.");
   }
-  removeBranchFromFrontend(selectedTaskName);
+  moveBranchesDown(selectedTaskName)
 };
 
-const removeBranchFromFrontend = (taskName) => {
-  console.log('starting process')
-  console.log('name', taskName)
-
+const moveBranchesDown = (taskName) => {
   // Improved text search logic
+  console.log('taskname', taskName)
   const textToRemove = scene.children.list.find(child => {
     return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
   });
@@ -837,11 +851,6 @@ const removeBranchFromFrontend = (taskName) => {
     textToRemove.destroy();
     console.log('destoryed text')
     // Iterate through all children in the scene to find and remove the corresponding items
-    const currentBranch = scene.branches.find(branch => Math.abs(branch.y - loc) < 50);
-    if (currentBranch) {
-      // Remove the branch from scene and the branches array
-      scene.branches = scene.branches.filter(branch => branch !== currentBranch);
-      currentBranch.destroy();  // Destroy the branch
 
       // Remove bananas corresponding to the task
       const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
@@ -851,63 +860,34 @@ const removeBranchFromFrontend = (taskName) => {
         banana.destroy();  // Destroy the banana
       });
 
-      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
+      let highestBranchIndex = 0;
+          let highestBranchY = Infinity; // Start with the maximum possible value
+
+          scene.branches.forEach((branch, index) => {
+            if (branch.y < highestBranchY) {
+              highestBranchY = branch.y;
+              highestBranchIndex = index;
+            }
+          });
+
+          // Remove the branch from the branches array
+          const branchToRemove = scene.branches.splice(highestBranchIndex, 1)[0];
+
+          if (branchToRemove) {
+            branchToRemove.destroy(); // Destroy the branch in the game
+            console.log('Removed branch:', branchToRemove);
+          }
+
+      const shrinkAmount = windowHeight * (100/765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
       const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
-
-      scene.tweens.add({
-        targets: treeObj,
-        height: newHeight,
-        duration: 500,
-        ease: "Linear",
-        onUpdate: () => {
-          // Update the tree's size and physics body
-          treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
-          treeObj.body.updateFromGameObject();
-        },
-        onComplete: () => {
-          if (scene.branches.length === 0) {
-            console.log('No branches left, resetting state...');
-            setPopupVisible(false); // Ensure popup is closed
-            setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
-          }
-          // Save the updated tree state
-          const updatedTreeState = {
-            height: treeObj.height, // Updated height of the tree
-            branches: scene.branches, // Remaining branches on the tree
-            bananas: scene.bananas,
-          };
-          setTreeState(updatedTreeState);
-
-
-          // Alternate the branch side for the next branch
-          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
-        },
-      });
-
-      const branchesMove = scene.branches.filter(branch => branch.y < loc);
-
-      // Create a tween for moving branches, bananas, and text
-      branchesMove.forEach((branch) => {
-        scene.tweens.add({
-          targets: branch,
-          y: branch.y + shrinkAmount,
-          duration: 500,
-          ease: "Linear",
-          onComplete: () => {
-            // Ensure physics body is finalized at the new position
-            if (branch.body) {
-              branch.body.updateFromGameObject();
-            }
-          }
-        });
-      });
 
       const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
 
       bananasMove.forEach((banana) => {
         scene.tweens.add({
           targets: banana,
+          x: banana.x * -1,
           y: banana.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
@@ -926,6 +906,7 @@ const removeBranchFromFrontend = (taskName) => {
       textMove.forEach((text) => {
         scene.tweens.add({
           targets: text,
+          x: text.x * -1,
           y: text.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
@@ -937,9 +918,43 @@ const removeBranchFromFrontend = (taskName) => {
           }
         });
       });
+
+      scene.tweens.add({
+        targets: treeObj,
+        height: newHeight,
+        duration: 500,
+        ease: "Linear",
+        onUpdate: () => {
+          // Update the tree's size and physics body
+          treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
+          treeObj.body.updateFromGameObject();
+        },
+        onComplete: () => {
+          
+          if (scene.branches.length === 0) {
+            console.log('No branches left, resetting state...');
+            setPopupVisible(false); // Ensure popup is closed
+            setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
+          }
+          // Save the updated tree state
+          const updatedTreeState = {
+            height: treeObj.height, // Updated height of the tree
+            branches: scene.branches, // Remaining branches on the tree
+            bananas: scene.bananas,
+          };
+          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+          setTreeState(updatedTreeState);
+
+
+          // Alternate the branch side for the next branch
+          
+        },
+      });
+
+
     }
-  }
-};
+}
+
 
 const growTree = (task) => {
   if (scene && scene.tree) {
@@ -987,7 +1002,7 @@ const growTree = (task) => {
         const bananaStartX = task.side === "left" ? branchX - windowWidth * (80 / 1494) : branchX + windowWidth * (80 / 1494);
 
         // Add task text to the branch
-        scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (90 / 765), taskName, {
+        scene.add.text(branchX, branchY - windowHeight * (50 / 765), taskName, {
           font: `${windowWidth * (20 / 1494)}px Courier New`,
           fill: "#000",
           align: "center",
