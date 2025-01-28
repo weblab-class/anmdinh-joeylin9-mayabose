@@ -48,6 +48,7 @@ const Tree = () => {
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false]); // Purchase state for monkeys
+  const [selectedMonkey, setSelectedMonkey] = useState(0);
   const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
   // Add state to manage popup visibility and input
   const [popupVisible, setPopupVisible] = useState(false);
@@ -77,6 +78,7 @@ const Tree = () => {
         setTasks(data.tasks || []);
         setBananaCounter(data.numBananas || 0);
         setPurchasedMonkeys(data.purchasedMonkeys || [true, false, false, false]);
+        setSelectedMonkey(data.selectedMonkey || 0);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
@@ -167,13 +169,13 @@ const Tree = () => {
     let monkeyMovementEnabled = true;
     let monkeyDisplay; // Reference to the monkey display in the shop
     let monkeysAvailable = ['monkey1', 'monkey2', 'monkey3', 'monkey4']; // Reference to the monkey number in the shop
-    let monkeyNumber = 0; // Reference to the monkey number in the shop
+    let monkeyNumber = selectedMonkey; // Reference to the monkey number in the shop
+    let oldMonkeyNumber = selectedMonkey;
     let costText; // Reference to the cost text in the shop
     let purchaseButton; // Reference to the purchase button in the shop
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
     let clouds = [];
-    let cloudSpeed = 1;
 
     //sounds
     let climbSound;
@@ -243,18 +245,15 @@ const Tree = () => {
       // this.add.graphics()
       //     .lineStyle(2, 0xff0000) // Red color for debug lines
       //     .strokeRect(0, 0, gameWidth, gameHeight); // Outline the game area
-      const numberOfClouds = 15; // Number of clouds to generate
-
-  // Create cloud sprites at random positions across the screen
-  for (let i = 0; i < numberOfClouds; i++) {
-    console.log('cloud')
-    let cloud = this.add.sprite(Math.random() * window.innerWidth, -1 * Math.random() * (window.innerHeight), 'cloud');
-    cloud.setScale(0.42);  // Make clouds smaller
-    cloud.setDepth(-1);
-    cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
-    console.log(cloud.x, cloud.y, cloud.scale)
-    clouds.push(cloud);
-  }
+      for (let i = 0; i < 50; i++) {
+        const randomX = Math.random() * (windowHeight*3 + windowHeight*3) - windowHeight*3;
+        const randomY = Math.random() * (-windowHeight*3 - windowHeight) + windowHeight; // Constrain to upper half of the screen
+      
+        const cloud = this.add.image(randomX, randomY, 'cloud');
+        cloud.setScale(0.67); // Adjust scale as needed
+        cloud.setDepth(-1); // Ensure visibility in the scene
+        clouds.push(cloud)
+      }
 
     // Music volume control
     backgroundMusic = this.sound.add("backgroundMusic", {
@@ -379,7 +378,11 @@ tasks.forEach((task, index) => {
         frameHeight: 64 // height of each frame
       });
       // Preload the default monkey spritesheet
-      monkey = this.physics.add.sprite(monkeyPosition.x, monkeyPosition.y, "default_monkey");
+      monkey = this.physics.add.sprite(
+        -windowWidth * 0.33, 
+        -windowHeight * 0.25, 
+        monkeysAvailable[selectedMonkey] // Use the selected monkey
+      );
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
 
       ground = this.add.image(0, 0, 'ground');
@@ -449,7 +452,7 @@ tasks.forEach((task, index) => {
       shopContainer.add(rightArrow);
 
       // Monkey display sprite
-      monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, "monkey1");
+      monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, monkeysAvailable[selectedMonkey]);
       monkeyDisplay.setDisplaySize(windowWidth * 0.1, windowHeight * 0.13);
       shopContainer.add(monkeyDisplay);
 
@@ -479,14 +482,11 @@ tasks.forEach((task, index) => {
 function update() {
   monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
 
-  // Move clouds
   clouds.forEach((cloud) => {
-    cloud.x -= cloudSpeed;  // Move cloud to the left
-
-    // When a cloud moves off the left side, reposition it to the right side of the screen
-    if (cloud.x + cloud.width < this.cameras.main.scrollX) {
-      cloud.x = this.cameras.main.scrollX + window.innerWidth * 0.8;
-      cloud.y = Math.random() * -1 * window.innerHeight;  // Randomize vertical position
+    cloud.x -= windowWidth*(1/1464);
+    if (cloud.x < -windowWidth*1.5) {
+      cloud.x = windowWidth*2
+      cloud.y =  Math.random() * (-windowHeight*3 - windowHeight) + windowHeight;
     }
   });
 
@@ -501,7 +501,7 @@ function update() {
     const currentTime = Date.now(); // Get the current time in milliseconds
 
     if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-      changeMonkey(1);
+      changeMonkey(-1);
       lastChangeTime = currentTime; // Update the last change time
     }
 
@@ -695,14 +695,6 @@ function update() {
   }
 }
 
-function adjustCloudsPosition() {
-  // Adjust the position of the clouds when the camera moves
-  clouds.forEach(cloud => {
-    cloud.x += this.cameras.main.scrollX;  // Move clouds based on camera scroll position
-    cloud.y += this.cameras.main.scrollY;
-  });
-}
-
 function changeMonkey(direction) {
   setPurchasedMonkeys((currentPurchasedMonkeys) => {
     let newIndex = monkeyNumber + direction;
@@ -719,7 +711,6 @@ function changeMonkey(direction) {
     monkeyNumber = newIndex;
     costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
     monkeyDisplay.setTexture(monkeysAvailable[newIndex]);
-    monkey.setTexture(monkeysAvailable[newIndex]);
 
     return currentPurchasedMonkeys;
   });
@@ -744,7 +735,7 @@ function purchaseMonkey() {
         purchaseButton.setText("Purchased");
 
         // Save the updated state to the backend
-        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, setTasks);
+        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, monkeyNumber, setTasks);
 
         return updatedMonkeys;
       });
@@ -755,6 +746,14 @@ function purchaseMonkey() {
 }
 
 function openShop() {
+  // Update monkeyNumber to match the currently selected monkey
+  monkeyNumber = oldMonkeyNumber;
+
+  // Update display with current monkey's information
+  monkeyDisplay.setTexture(monkeysAvailable[monkeyNumber]);
+  purchaseButton.setText(purchasedMonkeys[monkeyNumber] ? "Purchased" : "Purchase");
+  costText.setText(`Cost: ${monkeyPrices[monkeyNumber]} Bananas`);
+
   console.log('Opening shop...');
   shopOpen = true;
   monkeyMovementEnabled = false; // Disable monkey movement
@@ -770,27 +769,38 @@ function openShop() {
 function closeShop() {
   setPurchasedMonkeys((prevPurchasedMonkeys) => {
     if (prevPurchasedMonkeys[monkeyNumber]) {
-      console.log("Closing shop...");
-      shopOpen = false;
-      lastChangeTime = 0;
-      monkeyMovementEnabled = true; // Re-enable monkey movement
-
-      monkey.body.setGravityY(windowHeight*3)
-      monkey.x = windowWidth * 0.8
-      monkey.y = -windowHeight*.2
-
-      shopContainer.setVisible(false);
-      camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
-
-      camera.once("camerapancomplete", () => {
-        camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
-        camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      });
+      // If the current monkey is purchased
+      oldMonkeyNumber = monkeyNumber;
+      saveTaskData(userId, tasks, bananaCounter, prevPurchasedMonkeys, monkeyNumber, setTasks);
     } else {
-      setAlertMessage(`You must purchase this monkey first!`);
+      monkeyNumber = oldMonkeyNumber;
     }
 
-    return prevPurchasedMonkeys; // Ensure state remains unchanged
+    // Always update the monkey texture when closing the shop
+    monkey.setTexture(monkeysAvailable[monkeyNumber]);
+    console.log("Setting monkey texture to:", monkeysAvailable[monkeyNumber]);
+
+    console.log("Closing shop...");
+    shopOpen = false;
+    lastChangeTime = 0;
+    monkeyMovementEnabled = true; // Re-enable monkey movement
+
+    monkey.body.setGravityY(windowHeight*3)
+    monkey.x = windowWidth * 0.5
+    monkey.y = -windowHeight*.2
+
+    shopContainer.setVisible(false);
+    camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
+
+    camera.once("camerapancomplete", () => {
+      camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
+      camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
+      
+      // Double-check texture after camera pan is complete
+      monkey.setTexture(monkeysAvailable[monkeyNumber]);
+    });
+    
+    return prevPurchasedMonkeys;
   });
 }
 
@@ -799,7 +809,7 @@ const handleAddTask = (task) => {
     const updatedTasks = [task, ...tasks]; // Add the task to the tasks list
     setTasks(updatedTasks); // Update the tasks state
     setShowTaskManager(false);
-    saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, setTasks); // Pass the updated tasks list to saveTaskData
+    saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, selectedMonkey, setTasks); // Pass the updated tasks list to saveTaskData
     console.log('Updated tasks:', updatedTasks);
   }
 };
@@ -830,7 +840,7 @@ const handleSave = (input) => {
       });
 
       // Trigger save function to persist the updated task list
-      saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, setTasks);
+      saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, selectedMonkey, setTasks);
 
       return updatedTasks; // Return the updated tasks to be set
     });
