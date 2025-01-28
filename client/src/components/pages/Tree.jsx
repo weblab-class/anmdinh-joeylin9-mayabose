@@ -19,6 +19,7 @@ import add_icon from "../../assets/add-icon.png";
 import settings_icon from "../../assets/settings-icon.png";
 import showalltasks_icon from "../../assets/showalltasks-icon.png";
 import bananacount_icon from "../../assets/bananacount-icon.png";
+import background from "../../assets/background.png";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -196,6 +197,7 @@ const Tree = () => {
       this.load.image("settings_icon", settings_icon);
       this.load.image("showalltasks_icon", showalltasks_icon);
       this.load.image("bananacount_icon", bananacount_icon);
+      this.load.image("background", background);
       this.load.spritesheet('default_monkey', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
@@ -204,6 +206,38 @@ const Tree = () => {
 
     // CREATE
     function create() {
+      const gameWidth = this.sys.game.config.width;
+        const gameHeight = this.sys.game.config.height;
+      // Add the background image at y = 0
+      const bg = this.add.image(gameWidth / 2, 0, 'background');
+
+      // Ensure the background image scales properly and maintains the aspect ratio
+      const bgAspectRatio = bg.width / bg.height;
+      const screenAspectRatio = gameWidth / gameHeight;
+
+      if (bgAspectRatio > screenAspectRatio) {
+          // Image is wider than the screen, scale by width
+          bg.setScale(3*gameWidth / bg.width);
+      } else {
+          // Image is taller than the screen, scale by height
+          bg.setScale(4*gameHeight / bg.height);
+      }
+
+      // Adjust position to make sure it aligns at the top of the screen
+      bg.setOrigin(0.5, 1);  // Set origin to top-center
+      bg.y = 0;  // Set image starting at y = 0 (top of the screen)
+      bg.x = 0;
+      bg.setDepth(-100);
+
+      // Optional: Adjust the bottom part of the background (if needed)
+      // if (bg.height < gameHeight) {
+      //     bg.y = gameHeight - bg.height; // Ensure the image fits the screen
+      // }
+
+      // // Optional: Debug graphics to see the boundaries
+      // this.add.graphics()
+      //     .lineStyle(2, 0xff0000) // Red color for debug lines
+      //     .strokeRect(0, 0, gameWidth, gameHeight); // Outline the game area
       const numberOfClouds = 15; // Number of clouds to generate
 
   // Create cloud sprites at random positions across the screen
