@@ -16,7 +16,7 @@ export const fetchGameInfo = async (userId) => {
 
     console.log("Fetched game info from backend:", response.data);
 
-    const { tasks = [], numBananas = 0, purchasedMonkeys = [true, false, false, false] } = response.data;
+    const { tasks = [], numBananas = 0, purchasedMonkeys = [true, false, false, false], selectedMonkey = 0,} = response.data;
 
     // Sort tasks by `createdAt` (newest to oldest)
     const sortedTasks = tasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -27,6 +27,7 @@ export const fetchGameInfo = async (userId) => {
       tasks: sortedTasks,
       numBananas,
       purchasedMonkeys,
+      selectedMonkey,
     };
 
   } catch (error) {
@@ -46,9 +47,9 @@ export const fetchGameInfo = async (userId) => {
 };
 
 // Function to save player task data to the backend
-export const saveTaskData = async (userId, tasks, numBananas, purchasedMonkeys, setTasks) => {
+export const saveTaskData = async (userId, tasks, numBananas, purchasedMonkeys, selectedMonkey, setTasks) => {
   try {
-    console.log("Saving game data:", { tasks, numBananas, purchasedMonkeys });
+    console.log("Saving game data:", { tasks, numBananas, purchasedMonkeys, selectedMonkey });
     console.log("User ID:", userId);
 
     const response = await axios.post("/api/gameInfo", {
@@ -56,6 +57,7 @@ export const saveTaskData = async (userId, tasks, numBananas, purchasedMonkeys, 
       tasks,
       numBananas,
       purchasedMonkeys,
+      selectedMonkey,
     });
 
     console.log("Backend response:", response);

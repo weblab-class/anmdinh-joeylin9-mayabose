@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
 import Phaser from "phaser";
-import Alert from '../Alert';
 import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkeybow-forward.png";
@@ -19,7 +18,6 @@ import "../../public/styles/custom-font.css";
 import add_icon from "../../assets/add-icon.png";
 import settings_icon from "../../assets/settings-icon.png";
 import showalltasks_icon from "../../assets/showalltasks-icon.png";
-import bananacount_icon from "../../assets/bananacount-icon.png";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -28,14 +26,10 @@ import land from "../../assets/music/land.mp3"
 import climb from "../../assets/music/climb.mp3"
 
 const Tree = () => {
-  const closeAlert = () => {
-    setAlertMessage(""); // Close the alert when the button is clicked
-  };
   const navigate = useNavigate();
   const { userId, handleLogout } = useContext(UserContext);  // Access context values
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
-  const [alertMessage, setAlertMessage] = useState("");
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   // const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
@@ -46,6 +40,7 @@ const Tree = () => {
   });
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
+  const [selectedMonkey, setSelectedMonkey] = useState(0);
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false]); // Purchase state for monkeys
   const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
   // Add state to manage popup visibility and input
@@ -76,10 +71,10 @@ const Tree = () => {
         setTasks(data.tasks || []);
         setBananaCounter(data.numBananas || 0);
         setPurchasedMonkeys(data.purchasedMonkeys || [true, false, false, false]);
+        setSelectedMonkey(data.selectedMonkey || 0); // Set selectedMonkey from backend
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching game info (Tree.jsx):", error);
-        setErrorMessage(error.message);
+        console.error("Error fetching game info:", error);
         setLoading(false);
       }
     };
@@ -157,8 +152,8 @@ const Tree = () => {
   }, [loading]);
 
     let windowWidth = window.innerWidth;
-    let windowHeight = window.innerHeight; // Variable for the monkey sprite
-    let monkey;
+    let windowHeight = window.innerHeight;
+    let monkey; // Variable for the monkey sprite
     let ground; // Variable for the ground
     let camera; // Camera reference
     let market; // Variable for the market image
@@ -166,13 +161,13 @@ const Tree = () => {
     let monkeyMovementEnabled = true;
     let monkeyDisplay; // Reference to the monkey display in the shop
     let monkeysAvailable = ['monkey1', 'monkey2', 'monkey3', 'monkey4']; // Reference to the monkey number in the shop
-    let monkeyNumber = 0; // Reference to the monkey number in the shop
+    let monkeyNumber = selectedMonkey; // Reference to the monkey number in the shop
+    let oldMonkeyNumber = selectedMonkey;
     let costText; // Reference to the cost text in the shop
     let purchaseButton; // Reference to the purchase button in the shop
     let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
     let clouds = [];
-    let cloudSpeed = 1;
 
     //sounds
     let climbSound;
@@ -181,7 +176,7 @@ const Tree = () => {
     let lastSoundTime = 0;
     let backgroundMusic;
 
-    const [monkeyPosition, setMonkeyPosition] = useState({x:-windowWidth*.33 , y:-windowHeight*.25});
+
     // PRELOAD
     function preload() {
       console.log('Preloading assets...');
@@ -200,7 +195,6 @@ const Tree = () => {
       this.load.image("add_icon", add_icon);
       this.load.image("settings_icon", settings_icon);
       this.load.image("showalltasks_icon", showalltasks_icon);
-      this.load.image("bananacount_icon", bananacount_icon);
       this.load.spritesheet('default_monkey', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
@@ -209,18 +203,16 @@ const Tree = () => {
 
     // CREATE
     function create() {
-      const numberOfClouds = 15; // Number of clouds to generate
-
-  // Create cloud sprites at random positions across the screen
-  for (let i = 0; i < numberOfClouds; i++) {
-    console.log('cloud')
-    let cloud = this.add.sprite(Math.random() * window.innerWidth, -1 * Math.random() * (window.innerHeight), 'cloud');
-    cloud.setScale(0.42);  // Make clouds smaller
-    cloud.setDepth(-1);
-    cloud.setY(cloud.y + 0.5)  // Ensure clouds are behind other game objects
-    console.log(cloud.x, cloud.y, cloud.scale)
-    clouds.push(cloud);
-  }
+      for (let i = 0; i < 50; i++) {
+        const randomX = Math.random() * (windowHeight*3 + windowHeight*3) - windowHeight*3;
+        const randomY = Math.random() * (-windowHeight*3 - windowHeight) + windowHeight; // Constrain to upper half of the screen
+      
+        const cloud = this.add.image(randomX, randomY, 'cloud');
+        cloud.setScale(0.67); // Adjust scale as needed
+        cloud.setDepth(-1); // Ensure visibility in the scene
+        clouds.push(cloud)
+      }
+      
 
     // Music volume control
     backgroundMusic = this.sound.add("backgroundMusic", {
@@ -296,7 +288,7 @@ tasks.forEach((task, index) => {
   // Add task text to the branch
   const taskName = task.name || "Default Task";
   this.add.text(
-    branchX,
+    branchX - windowWidth * (100 / 1494),
     branchY - windowHeight * (50 / 765),
     taskName,
     {
@@ -345,7 +337,12 @@ tasks.forEach((task, index) => {
         frameHeight: 64 // height of each frame
       });
       // Preload the default monkey spritesheet
-      monkey = this.physics.add.sprite(monkeyPosition.x, monkeyPosition.y, "default_monkey");
+
+      monkey = this.physics.add.sprite(
+        -windowWidth * 0.33, 
+        -windowHeight * 0.25, 
+        monkeysAvailable[selectedMonkey] // Use the selected monkey
+      );
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
 
       ground = this.add.image(0, 0, 'ground');
@@ -415,7 +412,7 @@ tasks.forEach((task, index) => {
       shopContainer.add(rightArrow);
 
       // Monkey display sprite
-      monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, "monkey1");
+      monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, monkeysAvailable[selectedMonkey]);
       monkeyDisplay.setDisplaySize(windowWidth * 0.1, windowHeight * 0.13);
       shopContainer.add(monkeyDisplay);
 
@@ -443,18 +440,17 @@ tasks.forEach((task, index) => {
 
 // UPDATE
 function update() {
-  monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
 
-  // Move clouds
   clouds.forEach((cloud) => {
-    cloud.x -= cloudSpeed;  // Move cloud to the left
+    cloud.x -= windowWidth*(1/1464);
 
-    // When a cloud moves off the left side, reposition it to the right side of the screen
-    if (cloud.x + cloud.width < this.cameras.main.scrollX) {
-      cloud.x = this.cameras.main.scrollX + window.innerWidth * 0.8;
-      cloud.y = Math.random() * -1 * window.innerHeight;  // Randomize vertical position
+    if (cloud.x < -windowWidth*1.5) {
+      cloud.x = windowWidth*2
+      cloud.y =  Math.random() * (-windowHeight*3 - windowHeight) + windowHeight;
     }
   });
+
+  monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
 
   // INFINITE BANANA COLLECTION
   const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
@@ -467,7 +463,7 @@ function update() {
     const currentTime = Date.now(); // Get the current time in milliseconds
 
     if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-      changeMonkey(1);
+      changeMonkey(-1);
       lastChangeTime = currentTime; // Update the last change time
     }
 
@@ -500,8 +496,6 @@ function update() {
       monkey.setFrame(3); // Set frame to face right
     } else {
       monkey.setVelocityX(0);
-
-
 
       // When standing still on the ground, set frame to "facing forward"
       if (monkey.body.touching.down) {
@@ -570,7 +564,6 @@ function update() {
     isClimbing = true;
     monkey.body.allowGravity = false;
     monkey.setVelocityY(0);
-    console.log('here')
 
     // Horizontal movement while climbing
     if (this.leftKey.isDown) {
@@ -610,7 +603,8 @@ function update() {
             return (
               child instanceof Phaser.GameObjects.Text &&
               child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-              child.y >= branchBounds.y - windowHeight*0.2
+              child.y >= branchBounds.y - windowHeight*(2/25) && // that height above the branch
+              Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
             );
           });
 
@@ -639,7 +633,8 @@ function update() {
             return (
               child instanceof Phaser.GameObjects.Text &&
               child.y <= branchBounds.y && // The text is above the branch (y-coordinate should be smaller than branch's y)
-              child.y >= branchBounds.y - windowHeight*0.2
+              child.y >= branchBounds.y - windowHeight*(2/25) && // Ensure text is within 60 pixels above the branch
+              Math.abs(child.x - branchBounds.x) <= windowWidth*(50/1494)
             );
           });
 
@@ -661,14 +656,6 @@ function update() {
   }
 }
 
-function adjustCloudsPosition() {
-  // Adjust the position of the clouds when the camera moves
-  clouds.forEach(cloud => {
-    cloud.x += this.cameras.main.scrollX;  // Move clouds based on camera scroll position
-    cloud.y += this.cameras.main.scrollY;
-  });
-}
-
 function changeMonkey(direction) {
   setPurchasedMonkeys((currentPurchasedMonkeys) => {
     let newIndex = monkeyNumber + direction;
@@ -685,8 +672,6 @@ function changeMonkey(direction) {
     monkeyNumber = newIndex;
     costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
     monkeyDisplay.setTexture(monkeysAvailable[newIndex]);
-    monkey.setTexture(monkeysAvailable[newIndex]);
-
     return currentPurchasedMonkeys;
   });
 }
@@ -696,10 +681,10 @@ function purchaseMonkey() {
     const price = monkeyPrices[monkeyNumber];
 
     if (prevCounter < price) {
-      setAlertMessage('Not enough bananas!')
+      alert('Not enough bananas!')
       return prevCounter
     } else if (purchaseButton._text === "Purchased") {
-      setAlertMessage('Monkey already purchased!')
+      alert('Monkey already purchased!')
       return prevCounter
     } else {
       console.log('Purchased!');
@@ -708,10 +693,9 @@ function purchaseMonkey() {
         const updatedMonkeys = [...prevPurchasedMonkeys];
         updatedMonkeys[monkeyNumber] = true;
         purchaseButton.setText("Purchased");
-
+        
         // Save the updated state to the backend
-        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, setTasks);
-
+        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, monkeyNumber, setTasks);
         return updatedMonkeys;
       });
 
@@ -721,12 +705,20 @@ function purchaseMonkey() {
 }
 
 function openShop() {
+  // Update monkeyNumber to match the currently selected monkey
+  monkeyNumber = oldMonkeyNumber;
+  
+  // Update display with current monkey's information
+  monkeyDisplay.setTexture(monkeysAvailable[monkeyNumber]);
+  purchaseButton.setText(purchasedMonkeys[monkeyNumber] ? "Purchased" : "Purchase");
+  costText.setText(`Cost: ${monkeyPrices[monkeyNumber]} Bananas`);
+
   console.log('Opening shop...');
   shopOpen = true;
   monkeyMovementEnabled = false; // Disable monkey movement
-  monkey.body.setGravityY(-windowHeight*3)
-  monkey.x = windowWidth*10
-  monkey.y = -windowHeight*.25
+  monkey.body.setGravityY(-windowHeight*3);
+  monkey.x = -windowWidth*5;
+  monkey.y = 0;
   shopContainer.setVisible(true);
   camera.stopFollow(); // Stop following the monkey
   camera.pan(windowWidth, shopContainer.y, 500, 'Linear', true); // Pan to shop container
@@ -736,27 +728,38 @@ function openShop() {
 function closeShop() {
   setPurchasedMonkeys((prevPurchasedMonkeys) => {
     if (prevPurchasedMonkeys[monkeyNumber]) {
-      console.log("Closing shop...");
-      shopOpen = false;
-      lastChangeTime = 0;
-      monkeyMovementEnabled = true; // Re-enable monkey movement
-
-      monkey.body.setGravityY(windowHeight*3)
-      monkey.x = windowWidth * 0.8
-      monkey.y = -windowHeight*.2
-
-      shopContainer.setVisible(false);
-      camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
-
-      camera.once("camerapancomplete", () => {
-        camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
-        camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      });
+      // If the current monkey is purchased
+      oldMonkeyNumber = monkeyNumber;
+      saveTaskData(userId, tasks, bananaCounter, prevPurchasedMonkeys, monkeyNumber, setTasks);
     } else {
-      setAlertMessage(`You must purchase this monkey first!`);
+      monkeyNumber = oldMonkeyNumber;
     }
 
-    return prevPurchasedMonkeys; // Ensure state remains unchanged
+    // Always update the monkey texture when closing the shop
+    monkey.setTexture(monkeysAvailable[monkeyNumber]);
+    console.log("Setting monkey texture to:", monkeysAvailable[monkeyNumber]);
+
+    console.log("Closing shop...");
+    shopOpen = false;
+    lastChangeTime = 0;
+    monkeyMovementEnabled = true; // Re-enable monkey movement
+
+    monkey.body.setGravityY(windowHeight*3)
+    monkey.x = windowWidth * 0.5
+    monkey.y = -windowHeight*.2
+
+    shopContainer.setVisible(false);
+    camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
+
+    camera.once("camerapancomplete", () => {
+      camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
+      camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
+      
+      // Double-check texture after camera pan is complete
+      monkey.setTexture(monkeysAvailable[monkeyNumber]);
+    });
+    
+    return prevPurchasedMonkeys;
   });
 }
 
@@ -765,7 +768,7 @@ const handleAddTask = (task) => {
     const updatedTasks = [task, ...tasks]; // Add the task to the tasks list
     setTasks(updatedTasks); // Update the tasks state
     setShowTaskManager(false);
-    saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, setTasks); // Pass the updated tasks list to saveTaskData
+    saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, selectedMonkey, setTasks); // Pass the updated tasks list to saveTaskData
     console.log('Updated tasks:', updatedTasks);
   }
 };
@@ -796,7 +799,7 @@ const handleSave = (input) => {
       });
 
       // Trigger save function to persist the updated task list
-      saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, setTasks);
+      saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, monkeyNumber, setTasks);
 
       return updatedTasks; // Return the updated tasks to be set
     });
@@ -807,26 +810,10 @@ const handleSave = (input) => {
 
 let task = tasks.find(t => t.name === selectedTaskName);
 
-const switchTaskSidesBefore = (tasks, taskName) => {
-  let foundTask = false;
-
-  tasks.forEach((task) => {
-    if (task.name === taskName) {
-      foundTask = true; // Stop toggling sides once the task is found
-    }
-
-    if (!foundTask) {
-      // Switch side: If "left", make it "right", and vice versa
-      task.side = task.side === "left" ? "right" : "left";
-    }
-  });
-};
-
 const handleCollectBananas = (taskName) => {
   const task = tasks.find(t => t.name === selectedTaskName);
   if (task) {
     const bananasToCollect = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-    switchTaskSidesBefore(tasks, taskName);
 
     // update tasks and remove the selected task
     const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
@@ -837,18 +824,20 @@ const handleCollectBananas = (taskName) => {
       const newCounter = prevCount + bananasToCollect;
 
       // save updated task list and banana counter
-      saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, setTasks);
+      saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, monkeyNumber, setTasks);
       return newCounter;
     });
   } else {
     console.log("No task selected.");
   }
-  moveBranchesDown(selectedTaskName)
+  removeBranchFromFrontend(selectedTaskName);
 };
 
-const moveBranchesDown = (taskName) => {
+const removeBranchFromFrontend = (taskName) => {
+  console.log('starting process')
+  console.log('name', taskName)
+
   // Improved text search logic
-  console.log('taskname', taskName)
   const textToRemove = scene.children.list.find(child => {
     return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
   });
@@ -861,6 +850,11 @@ const moveBranchesDown = (taskName) => {
     textToRemove.destroy();
     console.log('destoryed text')
     // Iterate through all children in the scene to find and remove the corresponding items
+    const currentBranch = scene.branches.find(branch => Math.abs(branch.y - loc) < 50);
+    if (currentBranch) {
+      // Remove the branch from scene and the branches array
+      scene.branches = scene.branches.filter(branch => branch !== currentBranch);
+      currentBranch.destroy();  // Destroy the branch
 
       // Remove bananas corresponding to the task
       const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
@@ -870,35 +864,64 @@ const moveBranchesDown = (taskName) => {
         banana.destroy();  // Destroy the banana
       });
 
-      let highestBranchIndex = 0;
-          let highestBranchY = Infinity; // Start with the maximum possible value
-
-          scene.branches.forEach((branch, index) => {
-            if (branch.y < highestBranchY) {
-              highestBranchY = branch.y;
-              highestBranchIndex = index;
-            }
-          });
-
-          // Remove the branch from the branches array
-          const branchToRemove = scene.branches.splice(highestBranchIndex, 1)[0];
-
-          if (branchToRemove) {
-            branchToRemove.destroy(); // Destroy the branch in the game
-            console.log('Removed branch:', branchToRemove);
-          }
-
-      const shrinkAmount = windowHeight * (100/765); // Increased height growth for a more noticeable change
+      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
       const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
+
+      scene.tweens.add({
+        targets: treeObj,
+        height: newHeight,
+        duration: 500,
+        ease: "Linear",
+        onUpdate: () => {
+          // Update the tree's size and physics body
+          treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
+          treeObj.body.updateFromGameObject();
+        },
+        onComplete: () => {
+          if (scene.branches.length === 0) {
+            console.log('No branches left, resetting state...');
+            setPopupVisible(false); // Ensure popup is closed
+            setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
+          }
+          // Save the updated tree state
+          const updatedTreeState = {
+            height: treeObj.height, // Updated height of the tree
+            branches: scene.branches, // Remaining branches on the tree
+            bananas: scene.bananas,
+          };
+          setTreeState(updatedTreeState);
+
+
+          // Alternate the branch side for the next branch
+          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+        },
+      });
+
+      const branchesMove = scene.branches.filter(branch => branch.y < loc);
+
+      // Create a tween for moving branches, bananas, and text
+      branchesMove.forEach((branch) => {
+        scene.tweens.add({
+          targets: branch,
+          y: branch.y + shrinkAmount,
+          duration: 500,
+          ease: "Linear",
+          onComplete: () => {
+            // Ensure physics body is finalized at the new position
+            if (branch.body) {
+              branch.body.updateFromGameObject();
+            }
+          }
+        });
+      });
 
       const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
 
       bananasMove.forEach((banana) => {
         scene.tweens.add({
           targets: banana,
-          x: banana.x * -1,
-          y: banana.y + shrinkAmount*1.5,
+          y: banana.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -916,8 +939,7 @@ const moveBranchesDown = (taskName) => {
       textMove.forEach((text) => {
         scene.tweens.add({
           targets: text,
-          x: text.x * -1,
-          y: text.y + shrinkAmount*1.5,
+          y: text.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -928,43 +950,9 @@ const moveBranchesDown = (taskName) => {
           }
         });
       });
-
-      scene.tweens.add({
-        targets: treeObj,
-        height: newHeight,
-        duration: 500,
-        ease: "Linear",
-        onUpdate: () => {
-          // Update the tree's size and physics body
-          treeObj.setSize(windowHeight * (90 / 765), treeObj.height);
-          treeObj.body.updateFromGameObject();
-        },
-        onComplete: () => {
-
-          if (scene.branches.length === 0) {
-            console.log('No branches left, resetting state...');
-            setPopupVisible(false); // Ensure popup is closed
-            setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
-          }
-          // Save the updated tree state
-          const updatedTreeState = {
-            height: treeObj.height, // Updated height of the tree
-            branches: scene.branches, // Remaining branches on the tree
-            bananas: scene.bananas,
-          };
-          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
-          setTreeState(updatedTreeState);
-
-
-          // Alternate the branch side for the next branch
-
-        },
-      });
-
-
     }
-}
-
+  }
+};
 
 const growTree = (task) => {
   if (scene && scene.tree) {
@@ -1012,7 +1000,7 @@ const growTree = (task) => {
         const bananaStartX = task.side === "left" ? branchX - windowWidth * (80 / 1494) : branchX + windowWidth * (80 / 1494);
 
         // Add task text to the branch
-        scene.add.text(branchX, branchY - windowHeight * (50 / 765), taskName, {
+        scene.add.text(bananaStartX - windowWidth * (20 / 1494), branchY - windowHeight * (90 / 765), taskName, {
           font: `${windowWidth * (20 / 1494)}px Courier New`,
           fill: "#000",
           align: "center",
@@ -1100,204 +1088,124 @@ const growTree = (task) => {
     }
   };
 
-  const [errorMessage, setErrorMessage] = useState(null);
-
-  const ErrorModal = ({ message, onClose }) => {
-    if (!message) return null;
-    return (
-      <div className="modal">
-        <div className="modal-content">
-          <span className="close-btn" onClick={onClose}>&times;</span>
-          <p>{message}</p>
-        </div>
-      </div>
-    );
-  };
-
 
   return (
     <>
+      <div
+        style={{
+          display: "flex", // Arrange buttons horizontally
+          alignItems: "center", // Ensure buttons align vertically
+          gap: "1vw", // Add spacing between buttons
+        }}
+      >
+        {/* Add Task Button */}
+        <button
+          onClick={() => setShowTaskManager(true)}
+          style={{
+            position: "relative",
+            // marginRight: "2vw",
+            padding: "0.5vw",
+            fontFamily: "Courier New",
+            fontSize: "2vh",
+            zIndex: 9999,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <img
+            src={add_icon}
+            alt="Add Task"
+            style={{
+              width: "2.5vw",
+              height: "2.5vw",
+            }}
+          />
+        </button>
 
-<div
-  style={{
-    display: "flex", // Arrange buttons horizontally
-    alignItems: "center", // Ensure buttons align vertically
-    gap: "0.2vw", // Consistent gap between elements (same gap as Add Task and Show All Tasks)
-    position: "absolute",
-    top: "0", // Adjust this to control the vertical positioning
-    left: "0.5vw", // Adjust the left margin for the left container
-    zIndex: 9999, // Keep this on top
-  }}
->
-  {/* Add Task Button */}
-  <button
-    onClick={() => setShowTaskManager(prevState => !prevState)} // Toggle the state
-    style={{
-      position: "relative",
-      padding: "0.5vw",
-      fontFamily: "Courier New",
-      fontSize: "2vh",
-      zIndex: 9999,
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      display: "inline-flex", // Align both horizontally and vertically
-      alignItems: "center", // Center vertically
-      marginRight: "0.2vw", // Reduced spacing between buttons
-    }}
-  >
-    <img
-      src={add_icon}
-      alt="Add Task"
-      style={{
-        width: "2.5vw",
-        height: "2.5vw",
-      }}
-    />
-  </button>
+        {/* Show All Tasks Button */}
+        <button
+          onClick={() => setShowAllTasks(!showAllTasks)}
+          style={{
+            position: "relative",
+            width: "calc(4 * 2.5vw)", // Maintain 1:4 ratio
+            height: "2.5vw", // Match height with other icons
+            padding: "0",
+            margin: "0",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center", // Center text vertically
+            justifyContent: "center", // Center text horizontally
+          }}
+        >
+          {/* Icon */}
+          <img
+            src={showalltasks_icon}
+            alt="Show All Tasks"
+            style={{
+              width: "100%", // Icon fills the button
+              height: "100%", // Icon fills the button
+              objectFit: "contain", // Maintain aspect ratio
+              position: "absolute", // Keep the icon as background
+            }}
+          />
+          {/* Text */}
+          <span
+            style={{
+              fontFamily: "joystix monospace", // Ensure the custom font is applied
+              fontSize: "0.75vw", // Adjust the size for a better fit
+              fontWeight: "bold",
+              color: "black",
+              zIndex: 1, // Ensure the text is above the icon
+              whiteSpace: "nowrap", // Prevent text wrapping
+              pointerEvents: "none", // Allow clicks to pass through text
+            }}
+          >
+            {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
+          </span>
+        </button>
+      </div>
 
-  {/* Show All Tasks Button */}
-  <button
-    onClick={() => setShowAllTasks(!showAllTasks)}
-    style={{
-      position: "relative",
-      width: "calc(4 * 2.5vw)", // Maintain 1:4 ratio
-      height: "2.5vw", // Match height with other icons
-      padding: "0",
-      margin: "0",
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      display: "inline-flex", // Same as Add Task button
-      alignItems: "center",    // Center vertically
-      justifyContent: "center", // Center text horizontally
-    }}
-  >
-    <img
-      src={showalltasks_icon}
-      alt="Show All Tasks"
-      style={{
-        width: "100%", // Icon fills the button
-        height: "100%", // Icon fills the button
-        objectFit: "contain", // Maintain aspect ratio
-        position: "absolute", // Keep the icon as background
-      }}
-    />
-    <span
-      style={{
-        fontFamily: "joystix monospace",
-        fontSize: "0.75vw", // Same font size as Show All Tasks
-        fontWeight: "bold",
-        color: "black",
-        zIndex: 1,
-        whiteSpace: "nowrap",
-        pointerEvents: "none",
-      }}
-    >
-      {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
-    </span>
-  </button>
-</div>
-
-{/* Settings and Banana Counter (aligned to the right) */}
-<div
-  style={{
-    position: "absolute",
-    top: "0", // Align it with the other buttons
-    right: "0.5vw", // Adjust the right margin for the right container
-    display: "flex",
-    alignItems: "center", // Ensure buttons align vertically
-    gap: "0.2vw", // Ensure consistent gap between elements (same as left container)
-    zIndex: 9999, // Keep this on top
-  }}
->
-  {/* Banana Counter (Not a button, just a span) */}
-  <span
-    style={{
-      position: "relative",
-      width: "calc(2.08 * 2.5vw)", // Same width as other button icons
-      height: "2.5vw", // Match height with other icons
-      padding: "0",
-      margin: "0",
-      background: "none",
-      display: "inline-flex", // Align both horizontally and vertically
-      alignItems: "center",    // Center vertically
-      justifyContent: "center", // Center text horizontally
-    }}
-  >
-    <img
-      src={bananacount_icon}
-      alt="Banana Counter"
-      style={{
-        width: "100%", // Icon fills the container
-        height: "100%", // Icon fills the container
-        objectFit: "contain", // Maintain aspect ratio
-        position: "absolute", // Keep the icon as background
-      }}
-    />
-    <span
-      style={{
-        fontFamily: "joystix monospace", // Apply the custom font
-        fontSize: "0.75vw", // Adjust font size to match the Show All Tasks button
-        fontWeight: "bold",
-        color: "black",
-        zIndex: 1,
-        whiteSpace: "nowrap",
-        pointerEvents: "none",
-      }}
-    >
-      {bananaCounter}
-    </span>
-  </span>
-
-  {/* Settings Button */}
-  <button
-    onClick={() => setShowSettings(!showSettings)}
-    style={{
-      position: "relative",
-      padding: "0.5vw",
-      fontFamily: "Courier New",
-      fontSize: "2vh",
-      zIndex: 9999,
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      display: "inline-flex",
-      alignItems: "center",
-    }}
-  >
-    <img
-      src={settings_icon}
-      alt="Settings"
-      style={{
-        width: "2.5vw",
-        height: "2.5vw",
-      }}
-    />
-  </button>
-</div>
-
-
-      {popupVisible && (
-  <Popup
-    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
-    name={task?.name}
-    onSubmit={handleSave}
-    handleCollect={handleCollectBananas}
-    setPopupVisibility={setPopupVisible}
-    style={{
-      zIndex: 1000,
-      width: "1vw",
-      height: 'auto',
-      padding: "1vw",
-      border: "1vw",
-    }}
-  />
-)}
-
-  <div>
-      {/* Render the custom alert when there's a message */}
-      <Alert id='treealert' message={alertMessage} onClose={closeAlert}/>
+      <div
+        style={{
+          position: "absolute",
+          top: "0vw",
+          right: "0vw",
+          display: "flex",
+          alignItems: "center",
+          gap: "2vw",
+        }}
+      >
+        <p style={{ fontSize: "1vw", fontFamily: "Courier New" }}>
+          <strong>Bananas: {bananaCounter}</strong>
+        </p>
+        <button
+          onClick={() => setShowSettings(!showSettings)}
+          style={{
+            position: "relative",
+            top: "1vh",
+            left: "1vw",
+            marginRight: "2vw",
+            padding: "0.5vw",
+            fontFamily: "Courier New",
+            fontSize: "2vh",
+            zIndex: 9999,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <img
+            src={settings_icon}
+            alt="Settings"
+            style={{
+              width: "2.5vw",
+              height: "2.5vw",
+            }}
+          />
+        </button>
       </div>
 
       {/* Settings Popup */}
@@ -1492,93 +1400,40 @@ const growTree = (task) => {
         </>
       )}
 
-      
-
-{/* Zoom Controls */}
-<div
+      {/* Zoom Controls */}
+      <div
         style={{
           position: "absolute",
           bottom: "1vw",
           right: "1vw",
           display: "flex",
           alignItems: "center",
-          gap: "0.5vw", // Consistent spacing between zoom buttons
           zIndex: 9999,
         }}
       >
-        {/* Reset Zoom Button */}
-        <button
-          onClick={resetZoomHandler}
-          style={{
-            fontFamily: "joystix monospace", // Use the custom font
-            fontSize: "0.8vw", // Adjust font size for zoom controls
-            fontWeight: "bold",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            color: "black", // Ensure text is visible
-            textAlign: "center",
-            outline: "none", // Remove outline completely
-          }}
-        >
-          Reset
-        </button>
-
-        {/* Zoom In Button */}
         <button
           onClick={zoomInHandler}
           style={{
-            fontFamily: "joystix monospace", // Use the custom font
-            fontSize: "0.9vw", // Adjust font size for zoom controls
-            fontWeight: "bold",
+            fontSize: "1.5vw",
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: "black", // Ensure text is visible
-            textAlign: "center",
-            outline: "none", // Remove outline completely
+            marginRight: "1vw",
           }}
         >
           +
         </button>
-
-        {/* Zoom Out Button */}
         <button
           onClick={zoomOutHandler}
           style={{
-            fontFamily: "joystix monospace", // Use the custom font
-            fontSize: "0.9vw", // Adjust font size for zoom controls
-            fontWeight: "bold",
+            fontSize: "1.5vw",
             background: "none",
             border: "none",
             cursor: "pointer",
-            color: "black", // Ensure text is visible
-            textAlign: "center",
-            outline: "none", // Remove outline completely
           }}
         >
           -
         </button>
-      </div>
-
-      {/* Monkey See Monkey Do Link */}
-      <div
-        onClick={() => navigate('/')}
-        style={{
-          position: "absolute",
-          bottom: "1vw",
-          left: "1vw",
-          fontFamily: "joystix monospace", // Use the custom font
-          fontSize: "0.9vw",
-          fontWeight: "bold",
-          color: "black", // Ensure text is visible
-          cursor: "pointer", // Indicate it's clickable
-          outline: "none",
-          // textDecoration: "underline", // Optional: Underline for links
-          zIndex: 9999,
-        }}
-      >
-        Monkey See Monkey Do
       </div>
     </>
   );
