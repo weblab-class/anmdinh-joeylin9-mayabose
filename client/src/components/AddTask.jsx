@@ -12,7 +12,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         // Check if a task with the same name already exists
   const taskExists = tasks.some((task) => task.name === taskName);
   if (taskExists) {
-    alert("A task with this name already exists. Please choose a different name.");
+    setAlertMessage("A task with this name already exists. Please choose a different name.");
     return;
   }
 
@@ -148,7 +148,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         </button>
       </div>
       {/* Render the custom alert when there's a message */}
-      <Alert message={alertMessage} onClose={closeAlert} />
+      <Alert id='taskalert' message={alertMessage} onClose={closeAlert} style={{left: "150%", width: "100%"}} />
     </div>
   );
 };
