@@ -67,13 +67,13 @@ const Tree = () => {
     const getGameInfo = async () => {
       try {
         const data = await fetchGameInfo(userId);
-        setTasks(data.tasks || []);  // Set tasks (empty array for new users)
-        setBananaCounter(data.numBananas || 0);  // Set banana counter
-        setLoading(false); // Set loading to false after da?
-        // ta is fetched
+        setTasks(data.tasks || []);
+        setBananaCounter(data.numBananas || 0);
+        setPurchasedMonkeys(data.purchasedMonkeys || [true, false, false, false]);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
-        setLoading(false); // Set loading to false even on error
+        setLoading(false);
       }
     };
 
@@ -693,17 +693,21 @@ function purchaseMonkey() {
     } else if (purchaseButton._text === "Purchased") {
       alert('Monkey already purchased!')
       return prevCounter
-    }else{
+    } else {
       console.log('Purchased!');
 
       setPurchasedMonkeys((prevPurchasedMonkeys) => {
         const updatedMonkeys = [...prevPurchasedMonkeys];
         updatedMonkeys[monkeyNumber] = true;
-        purchaseButton.setText("Purchased"); // Update button immediately
+        purchaseButton.setText("Purchased");
+        
+        // Save the updated state to the backend
+        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, setTasks);
+        
         return updatedMonkeys;
       });
 
-      return prevCounter - price; // Deduct the price
+      return prevCounter - price;
     }
   });
 }
@@ -803,12 +807,10 @@ const handleCollectBananas = (taskName) => {
     // update tasks and remove the selected task
     const updatedTasks = tasks.filter((t) => t.name !== selectedTaskName);
     setTasks(updatedTasks);
-    console.log("Previous banana count: ", bananaCounter)
 
     // update banana counter and save task data
     setBananaCounter((prevCount) => {
       const newCounter = prevCount + bananasToCollect;
-      console.log("New banana count: ", newCounter)
 
       // save updated task list and banana counter
       saveTaskData(userId, updatedTasks, newCounter, setTasks);
@@ -1388,85 +1390,43 @@ const growTree = (task) => {
       )}
 
       {/* Zoom Controls */}
-<div
-  style={{
-    position: "absolute",
-    bottom: "1vw",
-    right: "1vw",
-    display: "flex",
-    alignItems: "center",
-    zIndex: 9999,
-  }}
->
-  <button
-    onClick={zoomInHandler}
-    style={{
-      fontSize: "1.5vw",
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      marginRight: "1vw",
-    }}
-  >
-    +
-  </button>
-  <button
-    onClick={zoomOutHandler}
-    style={{
-      fontSize: "1.5vw",
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-    }}
-  >
-    -
-  </button> {/* Closing tag was incorrectly indented here */}
-  <button
-    onClick={resetZoomHandler}
-    style={{
-      fontSize: "1.5vw",
-      background: "none",
-      border: "none",
-      cursor: "pointer",
-      margin: "0.5vw",
-    }}
-  >
-    Reset Zoom
-  </button>
-</div>
+      <div
+        style={{
+          position: "absolute",
+          bottom: "1vw",
+          right: "1vw",
+          display: "flex",
+          alignItems: "center",
+          zIndex: 9999,
+        }}
+      >
+        <button
+          onClick={zoomInHandler}
+          style={{
+            fontSize: "1.5vw",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            marginRight: "1vw",
+          }}
+        >
+          +
+        </button>
+        <button
+          onClick={zoomOutHandler}
+          style={{
+            fontSize: "1.5vw",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          -
+        </button>
+      </div>
+    </>
+  );
+}
 
-{popupVisible && (
-  <Popup
-    inputValue={inputValue}
-    onInputChange={handleInputChange}
-    onSubmit={handleSave}
-    handleCollect={handleCollectBananas}
-    setPopupVisibility={setPopupVisible}
-    style={{
-      zIndex: 1000,
-    }}
-  />
-)}
 
-{popupVisible && (
-  <Popup
-    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
-    name={task?.name}
-    onSubmit={handleSave}
-    handleCollect={handleCollectBananas}
-    setPopupVisibility={setPopupVisible}
-    style={{
-      zIndex: 1000,
-      width: "1vw",
-      height: 'auto',
-      padding: "1vw",
-      border: "1vw",
-    }}
-    />
-  )}
-</>
-);
-};
-
-// Export the Tree component at the end
 export default Tree;
