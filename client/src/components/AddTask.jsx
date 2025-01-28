@@ -147,7 +147,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
           Cancel
         </button>
       </div>
-      {/* Render the custom alert when there's a message */}
+      
       <Alert id='taskalert' message={alertMessage} onClose={closeAlert} style={{left: "150%", width: "100%"}} />
     </div>
   );

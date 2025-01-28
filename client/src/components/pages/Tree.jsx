@@ -21,6 +21,7 @@ import settings_icon from "../../assets/settings-icon.png";
 import showalltasks_icon from "../../assets/showalltasks-icon.png";
 import bananacount_icon from "../../assets/bananacount-icon.png";
 import background from "../../assets/background.png";
+import "./Tree.css";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -116,6 +117,21 @@ const Tree = () => {
       });
     }
   }, [musicVolume, soundEffectsVolume, scene]);
+
+  useEffect(() => {
+    // Set the CSS variable dynamically on :root
+    function updateWindowWidth() {
+      const root = document.documentElement;
+      root.style.setProperty("--window-width", `${window.innerWidth}px`);
+    }
+
+    // Initialize and update on resize
+    updateWindowWidth();
+    window.addEventListener("resize", updateWindowWidth);
+
+    // Cleanup listener on unmount
+    return () => window.removeEventListener("resize", updateWindowWidth);
+  }, []);
 
   useEffect(() => {
     if (loading) return;

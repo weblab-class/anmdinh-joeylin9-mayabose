@@ -5,5 +5,9 @@
 
 #treealert {
   width: 10%;
-  left: 150%;
+  left: var(--window-width)*-1;
+}
+
+:root {
+  --window-width: 100vw; /* Fallback value for the CSS variable */
 }
