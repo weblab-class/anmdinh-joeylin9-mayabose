@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Alert from './Alert';
+import "./AddTask.css";
 
 const TaskManager = ({ onAddTask, onCancel, tasks }) => {
   const [taskName, setTaskName] = useState(""); // State for task name
@@ -51,64 +52,68 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         top: "10%",
         left: "5%",
         transform: "translate(-10%, -5%)",
-        backgroundColor: "white",
+        backgroundColor: "rgb(220, 206, 206)",
         padding: "12px",
-        border: "1px solid dark green",
+        border: "1.5px solid black",
         borderRadius: "4px",
-        boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.4)",
+        boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
         zIndex: 1000,
-        width: "300px",
-        fontFamily: "Courier New",
+        width: "20%",
+        fontFamily: "joystix monospace",
       }}
     >
-      <h3>Add a New Task</h3>
-      <label>
+      <h3 style={{fontSize: "18px"}}>Add a New Task</h3>
+      <label style={{fontSize: "14px"}}>
         Task Name:
         <input
           type="text"
           value={taskName}
           onChange={e => setTaskName(e.target.value)} // Allow spaces in input
           style={{
-            width: "80%",
+            width: "83%",
             padding: "8px",
             margin: "10px 0",
             borderRadius: "4px",
-            border: "1px solid #ccc",
-            fontFamily: "Courier New",
-            backgroundColor: "light green",
+            border: "1.2px solid rgb(0, 0, 0)",
+            boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
+            fontFamily: "joystix monospace",
           }}
         />
       </label>
-      <label>
+      <label style={{fontSize: "14px"}}>
         Notes:
         <input
           type="text"
           value={taskNotes}  // Using taskNotes for the Notes field
           onChange={e => setTaskNotes(e.target.value)}  // Updating taskNotes
-          placeholder="Type here"
+          placeholder="Optional"
           style={{
-            width: "80%",
+            width: "83%",
             padding: "8px",
             margin: "10px 0",
             borderRadius: "4px",
-            border: "1px solid #ccc",
-            fontFamily: "Courier New",
+            border: "1.2px solid rgb(0, 0, 0)",
+            boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
+            fontFamily: "joystix monospace",
+            color: "green",
           }}
         />
       </label>
       <div/>
-      <label>
+      <label style={{fontSize: "14px"}}>
         Task Difficulty:
         <select
           value={taskDifficulty}
           onChange={(e) => setTaskDifficulty(e.target.value)}
           style={{
-            width: "100%",
+            width: "90%",
             padding: "8px",
             margin: "10px 0",
             borderRadius: "4px",
-            border: "1px solid #ccc",
-            fontFamily: "Courier New",
+            border: "1.2px solid rgb(0, 0, 0)",
+            boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
+            fontFamily: "joystix monospace",
+            color: "green",
           }}
         >
           <option value="">Select Difficulty</option>
@@ -117,32 +122,39 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
           <option value="Hard">Hard</option>
         </select>
       </label>
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "15px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
         <button
           onClick={handleSubmit}
-          style={{
-            padding: "10px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontFamily: "Courier New",
-          }}
+          className='submit-button'
+          // style={{
+          //   padding: "5px",
+          //   backgroundColor: "#4CAF50",
+          //   color: "white",
+          //   border: "none",
+          //   borderRadius: "4px",
+          //   cursor: "pointer",
+          //   fontFamily: "joystix monospace",
+          //   border: "1.2px solid rgb(0, 0, 0)",
+          //   boxShadow: "inset 0px 0px 8px rgba(6, 88, 46, 0.4)",
+          // }}
         >
           Submit
         </button>
         <button
           onClick={onCancel}
-          style={{
-            padding: "10px",
-            backgroundColor: "#f44336",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontFamily: "Courier New",
-          }}
+          className='cancel-button'
+          // style={{
+          //   padding: "5px",
+          //   backgroundColor: "#f44336",
+          //   color: "white",
+          //   border: "none",
+          //   borderRadius: "4px",
+          //   cursor: "pointer",
+          //   fontFamily: "joystix monospace",
+          //   border: "1.2px solid rgb(0, 0, 0)",
+          //   boxShadow: "inset 0px 0px 8px rgba(86, 13, 13, 0.4)",
+          //   fontSize: "14px",
+          // }}
         >
           Cancel
         </button>

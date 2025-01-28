@@ -2,3 +2,44 @@
     left: 150%;
     width: 100%;
 }
+
+select option {
+    color: green; /* Default color for all options */
+  }
+  
+select option[value=""] {
+    color: gray; /* Specific color for the "Select Difficulty" option */
+  }
+
+  button.submit-button {
+    background-color: #4CAF50;
+    color: white;
+    border: 1.2px solid rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "joystix monospace";
+    box-shadow: inset 0px 0px 8px rgba(6, 88, 46, 0.4);
+    padding: 8px;
+  }
+  
+  button.submit-button:hover {
+    background-color: #388E3C; /* Darker green */
+    box-shadow: inset 0px 0px 10px rgba(6, 88, 46, 0.7);
+  }
+  
+  button.cancel-button {
+    background-color: #f44336;
+    color: white;
+    border: 1.2px solid rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "joystix monospace";
+    box-shadow: inset 0px 0px 8px rgba(86, 13, 13, 0.4);
+    padding: 8px;
+  }
+  
+  button.cancel-button:hover {
+    background-color: #D32F2F; /* Darker red */
+    box-shadow: inset 0px 0px 10px rgba(86, 13, 13, 0.7);
+  }
+  
