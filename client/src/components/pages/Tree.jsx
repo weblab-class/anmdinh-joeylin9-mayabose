@@ -124,7 +124,7 @@ const Tree = () => {
       width: window.innerWidth,
       height: window.innerHeight,
       parent: 'phaser-game',
-      backgroundColor: '#ADD8E6',
+      backgroundColor: '#485c1f',
       physics: {
         default: 'arcade',
         arcade: {
@@ -1526,7 +1526,7 @@ const growTree = (task) => {
         </>
       )}
 
-      
+
 
 {/* Zoom Controls */}
 <div
