@@ -59,16 +59,19 @@ router.get('/gameInfo', async (req, res) => {
       return res.status(400).json({ message: "userId is required" });
     }
 
-    // Fetch the game info for the user
     const gameInfo = await GameInfo.findOne({ userId });
 
     if (!gameInfo) {
-      // Return a default response if no game info exists
-      return res.json({ numBananas: 0, tasks: [] });
+      // Return default values if no game info exists
+      return res.json({
+        numBananas: 0,
+        tasks: [],
+        purchasedMonkeys: [true, false, false, false],
+        selectedMonkey: 0,
+      });
     }
 
-    // Return the fetched game info
-    res.json(gameInfo);
+    res.json(gameInfo); // Return all fields, including the new ones
   } catch (err) {
     console.error("Error fetching game info:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -80,29 +83,22 @@ router.get('/gameInfo', async (req, res) => {
 // POST route: Accepts user input (e.g., game data) and saves to the database
 router.post('/gameInfo', async (req, res) => {
   try {
-    const { userId, tasks, numBananas } = req.body;
+    const { userId, tasks, numBananas, purchasedMonkeys, selectedMonkey } = req.body;
 
     if (!userId || !tasks) {
       return res.status(400).json({ message: "Missing required fields: userId or tasks" });
     }
 
-    // Fetch existing game info for the user
     let gameInfo = await GameInfo.findOne({ userId });
 
     if (!gameInfo) {
-      // Create new game info with tasks
-      const tasksWithDefaults = tasks.map(task => ({
-        name: task.name,
-        difficulty: task.difficulty,
-        side: task.side,
-        notes: task.notes || "", // Default to empty string if notes are not provided
-        createdAt: task.createdAt || new Date(), // Automatically set timestamp if missing
-      }));
-
+      // Create new game info with default values
       gameInfo = new GameInfo({
         userId,
-        tasks: tasksWithDefaults,
+        tasks,
         numBananas: numBananas || 0,
+        purchasedMonkeys: purchasedMonkeys || [true, false, false, false],
+        selectedMonkey: selectedMonkey || 0,
       });
 
       await gameInfo.save();
@@ -110,16 +106,14 @@ router.post('/gameInfo', async (req, res) => {
     }
 
     // Update existing game info
-    const updatedTasks = tasks.map(newTask => {
-      const existingTask = gameInfo.tasks.find(t => t._id && t._id.toString() === newTask._id);
-
-      return existingTask
-        ? { ...newTask, createdAt: existingTask.createdAt } // Preserve original `createdAt`
-        : { ...newTask, createdAt: new Date() }; // Assign timestamp to new tasks
+    gameInfo.tasks = tasks.map(task => {
+      const existingTask = gameInfo.tasks.find(t => t._id && t._id.toString() === task._id);
+      return existingTask ? { ...task, createdAt: existingTask.createdAt } : { ...task, createdAt: new Date() };
     });
 
-    gameInfo.tasks = updatedTasks;
     gameInfo.numBananas = numBananas;
+    gameInfo.purchasedMonkeys = purchasedMonkeys || gameInfo.purchasedMonkeys;
+    gameInfo.selectedMonkey = selectedMonkey || gameInfo.selectedMonkey;
 
     await gameInfo.save();
     res.status(200).json({ message: 'Game info updated successfully', data: gameInfo });
@@ -128,8 +122,6 @@ router.post('/gameInfo', async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
-
-
 
 // Catch-all for undefined API routes
 router.all("*", (req, res) => {
