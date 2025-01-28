@@ -51,6 +51,7 @@ export const saveTaskData = async (userId, tasks, numBananas, purchasedMonkeys, 
   try {
     console.log("Saving game data:", { tasks, numBananas, purchasedMonkeys, selectedMonkey });
     console.log("User ID:", userId);
+    console.log("Saving selectedMonkey:", selectedMonkey); // Add this log
 
     const response = await axios.post("/api/gameInfo", {
       userId,

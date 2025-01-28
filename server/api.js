@@ -112,8 +112,8 @@ router.post('/gameInfo', async (req, res) => {
     });
 
     gameInfo.numBananas = numBananas;
-    gameInfo.purchasedMonkeys = purchasedMonkeys || gameInfo.purchasedMonkeys;
-    gameInfo.selectedMonkey = selectedMonkey || gameInfo.selectedMonkey;
+    gameInfo.purchasedMonkeys = purchasedMonkeys || [true, false, false, false];
+    gameInfo.selectedMonkey = selectedMonkey || 0;
 
     await gameInfo.save();
     res.status(200).json({ message: 'Game info updated successfully', data: gameInfo });
