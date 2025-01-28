@@ -6,7 +6,7 @@ import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkeybow-forward.png";
 import monkeyImg3 from "../../assets/monkeyhat-forward.png";
 import monkeyImg4 from '../../assets/monkeyheadphones-forward.png';
-import marketImg from '../../assets/shop-removebg-preview.png';
+import marketImg from '../../assets/market.png';
 import bananaImg from "../../assets/banana3.png";
 import cloudImg from "../../assets/cloud2-removebg-preview.png";
 import groundImg from "../../assets/ground.png";
@@ -120,13 +120,13 @@ const Tree = () => {
   useEffect(() => {
     if (loading) return;
     if (game) return;
-    
+
     const config = {
       type: Phaser.AUTO,
       width: window.innerWidth,
       height: window.innerHeight,
       parent: 'phaser-game',
-      backgroundColor: '#ADD8E6',
+      backgroundColor: '#485c1f',
       physics: {
         default: 'arcade',
         arcade: {
@@ -210,7 +210,7 @@ const Tree = () => {
         frameHeight: 228 // height of each frame in the spritesheet
       });
     }
-    
+
     // CREATE
     function create() {
       const gameWidth = this.sys.game.config.width;
@@ -368,7 +368,7 @@ tasks.forEach((task, index) => {
       welcomeText.setOrigin(0.5, 0.5); // Center the text
 
       market = this.add.image(windowWidth, 0, 'market');
-      market.setDisplaySize(windowWidth/4.8, windowHeight/2.2);
+      market.setDisplaySize(windowWidth/2.5, windowHeight/2);
       market.setOrigin(0.5, 1); // Center the image
       this.physics.add.existing(market, true);
 
@@ -444,7 +444,7 @@ tasks.forEach((task, index) => {
 
       buttonBackground.setInteractive();
 
-      
+
 
       // Left arrow (change to previous monkey)
       const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New" });
@@ -1546,7 +1546,7 @@ const growTree = (task) => {
         </>
       )}
 
-      
+
 
 {/* Zoom Controls */}
 <div
