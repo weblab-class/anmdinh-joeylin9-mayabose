@@ -757,7 +757,7 @@ const handleAddTask = (task) => {
     const updatedTasks = [task, ...tasks]; // Add the task to the tasks list
     setTasks(updatedTasks); // Update the tasks state
     setShowTaskManager(false);
-    saveTaskData(userId, updatedTasks, bananaCounter, setTasks); // Pass the updated tasks list to saveTaskData
+    saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, setTasks); // Pass the updated tasks list to saveTaskData
     console.log('Updated tasks:', updatedTasks);
   }
 };
@@ -788,7 +788,7 @@ const handleSave = (input) => {
       });
 
       // Trigger save function to persist the updated task list
-      saveTaskData(userId, updatedTasks, bananaCounter, setTasks);
+      saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, setTasks);
 
       return updatedTasks; // Return the updated tasks to be set
     });
@@ -829,7 +829,7 @@ const handleCollectBananas = (taskName) => {
       const newCounter = prevCount + bananasToCollect;
 
       // save updated task list and banana counter
-      saveTaskData(userId, updatedTasks, newCounter, setTasks);
+      saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, setTasks);
       return newCounter;
     });
   } else {
@@ -1211,6 +1211,22 @@ const growTree = (task) => {
           />
         </button>
       </div>
+      {popupVisible && (
+  <Popup
+    defaultValue={task?.notes} // Use optional chaining to avoid errors if task is undefined
+    name={task?.name}
+    onSubmit={handleSave}
+    handleCollect={handleCollectBananas}
+    setPopupVisibility={setPopupVisible}
+    style={{
+      zIndex: 1000,
+      width: "1vw",
+      height: 'auto',
+      padding: "1vw",
+      border: "1vw",
+    }}
+  />
+)}
 
       {/* Settings Popup */}
       {showSettings && (
