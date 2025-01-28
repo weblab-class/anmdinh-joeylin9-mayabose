@@ -188,7 +188,7 @@ const Tree = () => {
     // PRELOAD
     function preload() {
       //console.log('Preloading assets...');
-      this.load.image('monkey1', monkeyImg); // Preload the monkey image
+      // this.load.image('monkey1', monkeyImg); // Preload the monkey image
       this.load.image('monkey2', monkeyImg2); // Preload the monkey image
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
       this.load.image('monkey4', monkeyImg4);
