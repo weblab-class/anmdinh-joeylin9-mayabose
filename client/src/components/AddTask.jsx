@@ -1,12 +1,17 @@
 import React, { useState } from "react";
+import Alert from './Alert';
 
 const TaskManager = ({ onAddTask, onCancel, tasks }) => {
   const [taskName, setTaskName] = useState(""); // State for task name
   const [taskDifficulty, setTaskDifficulty] = useState(""); // State for task difficulty
   const [taskNotes, setTaskNotes] = useState(""); // State for task notes
+  const [alertMessage, setAlertMessage] = useState("");
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
+      if (taskName in tasks) {
+        setAlertMessage('Please use a new name for this task.')
+      }
       console.log("Previous tasks:", tasks); // Log the current list of tasks
       const previousTask = tasks[0];
       console.log("Previous task:", previousTask); // Log the previous task
@@ -26,9 +31,15 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
       setTaskDifficulty("");
       setTaskNotes(""); // Reset task notes as well
     } else {
-      alert("Please fill out the task name and difficulty.");
+      setAlertMessage("Please fill out the task name and difficulty.");
     }
   };
+
+  const closeAlert = () => {
+    setAlertMessage(""); // Close the alert when the button is clicked
+  };
+
+
   return (
     <div
       style={{
@@ -132,6 +143,8 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
           Cancel
         </button>
       </div>
+      {/* Render the custom alert when there's a message */}
+      <Alert message={alertMessage} onClose={closeAlert} />
     </div>
   );
 };

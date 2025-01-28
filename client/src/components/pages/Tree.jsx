@@ -73,6 +73,7 @@ const Tree = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
+        setErrorMessage(error.message);
         setLoading(false);
       }
     };
@@ -1092,6 +1093,20 @@ const growTree = (task) => {
     }
   };
 
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const ErrorModal = ({ message, onClose }) => {
+    if (!message) return null;
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <span className="close-btn" onClick={onClose}>&times;</span>
+          <p>{message}</p>
+        </div>
+      </div>
+    );
+  };
+
 
   return (
     <>
@@ -1171,6 +1186,15 @@ const growTree = (task) => {
           </span>
         </button>
       </div>
+
+      {errorMessage && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close-btn" onClick={() => setErrorMessage(null)}>&times;</span>
+            <p>{errorMessage}</p>
+          </div>
+        </div>
+      )}
 
       <div
         style={{
