@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import Phaser from "phaser";
+import Alert from '../Alert';
 import { UserContext } from "../App";
 import monkeyImg from "../../assets/monkey.png";
 import monkeyImg2 from "../../assets/monkeybow-forward.png";
@@ -27,10 +28,14 @@ import land from "../../assets/music/land.mp3"
 import climb from "../../assets/music/climb.mp3"
 
 const Tree = () => {
+  const closeAlert = () => {
+    setAlertMessage(""); // Close the alert when the button is clicked
+  };
   const navigate = useNavigate();
   const { userId, handleLogout } = useContext(UserContext);  // Access context values
   const [game, setGame] = useState(null);
   const [scene, setScene] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
   const [showTaskManager, setShowTaskManager] = useState(false);
   const [tasks, setTasks] = useState([]);
   // const [showAllTasks, setShowAllTasks] = useState(false); // Control visibility of task list
@@ -691,10 +696,10 @@ function purchaseMonkey() {
     const price = monkeyPrices[monkeyNumber];
 
     if (prevCounter < price) {
-      alert('Not enough bananas!')
+      setAlertMessage('Not enough bananas!')
       return prevCounter
     } else if (purchaseButton._text === "Purchased") {
-      alert('Monkey already purchased!')
+      setAlertMessage('Monkey already purchased!')
       return prevCounter
     } else {
       console.log('Purchased!');
@@ -748,7 +753,7 @@ function closeShop() {
         camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
       });
     } else {
-      alert(`You must purchase this monkey first!`);
+      setAlertMessage(`You must purchase this monkey first!`);
     }
 
     return prevPurchasedMonkeys; // Ensure state remains unchanged
@@ -1290,6 +1295,11 @@ const growTree = (task) => {
   />
 )}
 
+  <div>
+      {/* Render the custom alert when there's a message */}
+      <Alert id='treealert' message={alertMessage} onClose={closeAlert}/>
+      </div>
+
       {/* Settings Popup */}
       {showSettings && (
         <div
@@ -1482,6 +1492,8 @@ const growTree = (task) => {
         </>
       )}
 
+      
+
 {/* Zoom Controls */}
 <div
         style={{
@@ -1499,7 +1511,7 @@ const growTree = (task) => {
           onClick={resetZoomHandler}
           style={{
             fontFamily: "joystix monospace", // Use the custom font
-            fontSize: "0.75vw", // Adjust font size for zoom controls
+            fontSize: "0.8vw", // Adjust font size for zoom controls
             fontWeight: "bold",
             background: "none",
             border: "none",
@@ -1517,7 +1529,7 @@ const growTree = (task) => {
           onClick={zoomInHandler}
           style={{
             fontFamily: "joystix monospace", // Use the custom font
-            fontSize: "0.75vw", // Adjust font size for zoom controls
+            fontSize: "0.9vw", // Adjust font size for zoom controls
             fontWeight: "bold",
             background: "none",
             border: "none",
@@ -1535,7 +1547,7 @@ const growTree = (task) => {
           onClick={zoomOutHandler}
           style={{
             fontFamily: "joystix monospace", // Use the custom font
-            fontSize: "0.75vw", // Adjust font size for zoom controls
+            fontSize: "0.9vw", // Adjust font size for zoom controls
             fontWeight: "bold",
             background: "none",
             border: "none",
@@ -1557,10 +1569,11 @@ const growTree = (task) => {
           bottom: "1vw",
           left: "1vw",
           fontFamily: "joystix monospace", // Use the custom font
-          fontSize: "0.75vw",
+          fontSize: "0.9vw",
           fontWeight: "bold",
           color: "black", // Ensure text is visible
           cursor: "pointer", // Indicate it's clickable
+          outline: "none",
           // textDecoration: "underline", // Optional: Underline for links
           zIndex: 9999,
         }}

@@ -2,3 +2,8 @@
     position: absolute;
     z-index: -1; /* Ensure the canvas is behind other content */
   }
+
+#treealert {
+  width: 10%;
+  left: 150%;
+}
