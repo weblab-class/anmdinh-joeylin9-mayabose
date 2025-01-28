@@ -67,7 +67,7 @@ const Tree = () => {
   // Fetch game info only when userId is available
   useEffect(() => {
     if (!userId) {
-      console.log("Missing userId, redirecting to homepage...");
+      //console.log("Missing userId, redirecting to homepage...");
       navigate("/"); // Redirect to homepage if userId is not available
       return;
     }
@@ -120,13 +120,13 @@ const Tree = () => {
   useEffect(() => {
     if (loading) return;
     if (game) return;
-
+    
     const config = {
       type: Phaser.AUTO,
       width: window.innerWidth,
       height: window.innerHeight,
       parent: 'phaser-game',
-      backgroundColor: '#485c1f',
+      backgroundColor: '#ADD8E6',
       physics: {
         default: 'arcade',
         arcade: {
@@ -187,7 +187,7 @@ const Tree = () => {
     const [monkeyPosition, setMonkeyPosition] = useState({x:-windowWidth*.33 , y:-windowHeight*.25});
     // PRELOAD
     function preload() {
-      console.log('Preloading assets...');
+      //console.log('Preloading assets...');
       this.load.image('monkey1', monkeyImg); // Preload the monkey image
       this.load.image('monkey2', monkeyImg2); // Preload the monkey image
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
@@ -210,7 +210,7 @@ const Tree = () => {
         frameHeight: 228 // height of each frame in the spritesheet
       });
     }
-
+    
     // CREATE
     function create() {
       const gameWidth = this.sys.game.config.width;
@@ -275,7 +275,7 @@ const Tree = () => {
       volume: soundEffectsVolume
     });
 
-      console.log('Creating shop and game elements');
+      //console.log('Creating shop and game elements');
 
 // Tree setup based on tasks length
 const treeBaseHeight = windowHeight * (150 / 765);
@@ -301,7 +301,7 @@ this.bananas = [];
 this.branchSide = "left"; // Start with left side
 
 // Initialize branches with tasks
-console.log("Tasks:", tasks);
+//console.log("Tasks:", tasks);
 tasks.forEach((task, index) => {
   const treeObj = this.tree;
 
@@ -399,13 +399,13 @@ tasks.forEach((task, index) => {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-      console.log("camera")
+      //console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
       camera.setBounds(-4*windowWidth/3, -5000, Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
-      console.log("Camera bounds:", camera.getBounds());
+      //console.log("Camera bounds:", camera.getBounds());
 
       //SHOP//
       shopContainer = this.add.container(windowWidth, -windowHeight / 4); // Initially position it above the ground
@@ -417,35 +417,42 @@ tasks.forEach((task, index) => {
       shopContainer.add(shopBackground);
 
       // Shop title text
-      const shopText = this.add.text(0, -shopBackground.height / 2, 'Customization Shop', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+      const shopText = this.add.text(0, -shopBackground.height / 3, 'Customization Shop', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New", });
       shopText.setOrigin(0.5, -0.5); // Position above the shop background
       shopContainer.add(shopText);
 
       // Close button (top-right corner)
-      const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
-      closeButton.setOrigin(2, -0.5);
-      closeButton.setInteractive();
-      closeButton.on('pointerdown', () => {
-        closeShop();
-      });
-      shopContainer.add(closeButton);
+      // const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
+      // closeButton.setOrigin(2, -0.5);
+      // closeButton.setInteractive();
+      // closeButton.on('pointerdown', () => {
+      //   closeShop();
+      // });
+      // shopContainer.add(closeButton);
 
       // Purchase button
-      purchaseButton = this.add.text(0, shopBackground.height * 0.4, "Purchased", { fontSize: windowWidth * (16 / 1494), fill: "#000" });
+      const buttonBackground = this.add.rectangle(0, shopBackground.height * 0.45, shopBackground.width * 0.2, shopBackground.height * 0.1, 0x4caf50);
+      buttonBackground.setOrigin(0.5, 0.5); // Center the rectangle
+      shopContainer.add(buttonBackground);
+      purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "16px Courier New" });
       purchaseButton.setOrigin(0.5, 0.5);
       purchaseButton.setInteractive();
       purchaseButton.on("pointerdown", () => purchaseMonkey());
       shopContainer.add(purchaseButton);
 
+      buttonBackground.setInteractive();
+
+      
+
       // Left arrow (change to previous monkey)
-      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New" });
       leftArrow.setOrigin(1, 0.5);
       leftArrow.setInteractive();
       leftArrow.on('pointerdown', () => changeMonkey(-1));
       shopContainer.add(leftArrow);
 
       // Right arrow (change to next monkey)
-      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000' });
+      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New"});
       rightArrow.setOrigin(0, 0.5);
       rightArrow.setInteractive();
       rightArrow.on('pointerdown', () => changeMonkey(1));
@@ -461,7 +468,7 @@ tasks.forEach((task, index) => {
         0,
         windowHeight * (80 / 765),
         `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-        { fontSize: windowWidth * (16 / 1494), fill: "#000" }
+        { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "16px Courier New" }
       );
       costText.setOrigin(0.5, 0.5); // Centered text
       shopContainer.add(costText);
@@ -477,6 +484,7 @@ tasks.forEach((task, index) => {
     let isCrouching = false;  // Flag to track if the monkey is crouching
     let isJumping = false;
     let isClimbing = false;
+
 
 // UPDATE
 function update() {
@@ -604,7 +612,7 @@ function update() {
     isClimbing = true;
     monkey.body.allowGravity = false;
     monkey.setVelocityY(0);
-    console.log('here')
+    //console.log('here')
 
     // Horizontal movement while climbing
     if (this.leftKey.isDown) {
@@ -651,7 +659,7 @@ function update() {
           if (textAboveBranch) {
             const taskName = textAboveBranch.text; // Get the task name from the text
             setSelectedTaskName(taskName); // Update the selected task name
-            console.log('Selected task name:', taskName);
+            //console.log('Selected task name:', taskName);
           }
 
           popupShown = true; // Prevent multiple popups from showing for this branch
@@ -680,7 +688,7 @@ function update() {
           if (textAboveBranch) {
             const taskName = textAboveBranch.text; // Get the task name from the text
             setSelectedTaskName(taskName); // Update the selected task name
-            console.log('Selected task name:', taskName);
+            //console.log('Selected task name:', taskName);
           }
 
           popupShown = true; // Prevent multiple popups from showing for this branch
@@ -706,7 +714,7 @@ function changeMonkey(direction) {
     }
 
     // Update the button text based on the React state
-    purchaseButton.setText(currentPurchasedMonkeys[newIndex] ? "Purchased" : "Purchase");
+    purchaseButton.setText(currentPurchasedMonkeys[newIndex] ? "Select" : "Purchase");
 
     monkeyNumber = newIndex;
     costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
@@ -719,20 +727,20 @@ function changeMonkey(direction) {
 function purchaseMonkey() {
   setBananaCounter((prevCounter) => {
     const price = monkeyPrices[monkeyNumber];
-
-    if (prevCounter < price) {
+    if (purchaseButton._text === "Select") {
+      closeShop();
+      return prevCounter }
+    else if (prevCounter < price) {
       setAlertMessage('Not enough bananas!')
       return prevCounter
-    } else if (purchaseButton._text === "Purchased") {
-      setAlertMessage('Monkey already purchased!')
-      return prevCounter
     } else {
-      console.log('Purchased!');
+      //console.log('Purchased!');
+      purchaseButton._text = "Select";
 
       setPurchasedMonkeys((prevPurchasedMonkeys) => {
         const updatedMonkeys = [...prevPurchasedMonkeys];
         updatedMonkeys[monkeyNumber] = true;
-        purchaseButton.setText("Purchased");
+        purchaseButton.setText("Select");
 
         // Save the updated state to the backend
         saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, monkeyNumber, setTasks);
@@ -751,10 +759,10 @@ function openShop() {
 
   // Update display with current monkey's information
   monkeyDisplay.setTexture(monkeysAvailable[monkeyNumber]);
-  purchaseButton.setText(purchasedMonkeys[monkeyNumber] ? "Purchased" : "Purchase");
+  purchaseButton.setText(purchasedMonkeys[monkeyNumber] ? "Select" : "Purchase");
   costText.setText(`Cost: ${monkeyPrices[monkeyNumber]} Bananas`);
 
-  console.log('Opening shop...');
+  //console.log('Opening shop...');
   shopOpen = true;
   monkeyMovementEnabled = false; // Disable monkey movement
   monkey.body.setGravityY(-windowHeight*3)
@@ -778,9 +786,9 @@ function closeShop() {
 
     // Always update the monkey texture when closing the shop
     monkey.setTexture(monkeysAvailable[monkeyNumber]);
-    console.log("Setting monkey texture to:", monkeysAvailable[monkeyNumber]);
+    //console.log("Setting monkey texture to:", monkeysAvailable[monkeyNumber]);
 
-    console.log("Closing shop...");
+    //console.log("Closing shop...");
     shopOpen = false;
     lastChangeTime = 0;
     monkeyMovementEnabled = true; // Re-enable monkey movement
@@ -810,7 +818,7 @@ const handleAddTask = (task) => {
     setTasks(updatedTasks); // Update the tasks state
     setShowTaskManager(false);
     saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, selectedMonkey, setTasks); // Pass the updated tasks list to saveTaskData
-    console.log('Updated tasks:', updatedTasks);
+    //console.log('Updated tasks:', updatedTasks);
   }
 };
 
@@ -819,15 +827,15 @@ const handleCancel = () => {
 };
 
 const handleSave = (input) => {
-  console.log("got through!")
-  console.log('taskname', selectedTaskName);
-  console.log('Updated input:', input);
+  //console.log("got through!")
+  //console.log('taskname', selectedTaskName);
+  //console.log('Updated input:', input);
 
   // Find the task with the selected name
   const task = tasks.find(t => t.name === selectedTaskName);
 
   if (task) {
-    console.log('Found task:', task);
+    //console.log('Found task:', task);
 
     // Use the callback form of setTasks to ensure we're updating the latest state
     setTasks((prevTasks) => {
@@ -845,7 +853,7 @@ const handleSave = (input) => {
       return updatedTasks; // Return the updated tasks to be set
     });
   } else {
-    console.log('Task not found!');
+    //console.log('Task not found!');
   }
 };
 
@@ -881,34 +889,34 @@ const handleCollectBananas = (taskName) => {
       const newCounter = prevCount + bananasToCollect;
 
       // save updated task list and banana counter
-      saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, setTasks);
+      saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, selectedMonkey, setTasks);
       return newCounter;
     });
   } else {
-    console.log("No task selected.");
+    //console.log("No task selected.");
   }
   moveBranchesDown(selectedTaskName)
 };
 
 const moveBranchesDown = (taskName) => {
   // Improved text search logic
-  console.log('taskname', taskName)
+  //console.log('taskname', taskName)
   const textToRemove = scene.children.list.find(child => {
     return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
   });
 
-  console.log('text', textToRemove);
+  //console.log('text', textToRemove);
   if (textToRemove) {
     const textloc = textToRemove.y
     const loc = textloc + windowHeight*(50/765);
     const bananaY = loc;
     textToRemove.destroy();
-    console.log('destoryed text')
+    //console.log('destoryed text')
     // Iterate through all children in the scene to find and remove the corresponding items
 
       // Remove bananas corresponding to the task
       const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
-      console.log('bananas', bananasToRemove)
+      //console.log('bananas', bananasToRemove)
       bananasToRemove.forEach(banana => {
         scene.bananas = scene.bananas.filter(b => b !== banana);  // Remove from bananas array
         banana.destroy();  // Destroy the banana
@@ -929,7 +937,7 @@ const moveBranchesDown = (taskName) => {
 
           if (branchToRemove) {
             branchToRemove.destroy(); // Destroy the branch in the game
-            console.log('Removed branch:', branchToRemove);
+            //console.log('Removed branch:', branchToRemove);
           }
 
       const shrinkAmount = windowHeight * (100/765); // Increased height growth for a more noticeable change
@@ -986,7 +994,7 @@ const moveBranchesDown = (taskName) => {
         onComplete: () => {
 
           if (scene.branches.length === 0) {
-            console.log('No branches left, resetting state...');
+            //console.log('No branches left, resetting state...');
             setPopupVisible(false); // Ensure popup is closed
             setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
           }
@@ -1119,10 +1127,10 @@ const growTree = (task) => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
     if (camera && camera.zoom < 2) {
       camera.zoom += 0.1;
-      console.log('Zoom level:', camera.zoom);
+      //console.log('Zoom level:', camera.zoom);
     } else {
-      console.log('Camera: ', camera);
-      console.log('Game: ', game);
+      //console.log('Camera: ', camera);
+      //console.log('Game: ', game);
       console.error('Camera or Game is not defined');
     }
   };
@@ -1133,13 +1141,13 @@ const growTree = (task) => {
       // Ensure zoom level doesn't go below 0.5, even with floating-point precision issues
       if (camera.zoom > 0.5) {
         camera.zoom = Math.max(camera.zoom - 0.1, 0.5);
-        console.log('Zoom level:', camera.zoom);
+        //console.log('Zoom level:', camera.zoom);
       } else {
-        console.log('Zoom level cannot go below 0.5');
+        //console.log('Zoom level cannot go below 0.5');
       }
     } else {
-      console.log('Camera: ', camera);
-      console.log('Game: ', game);
+      //console.log('Camera: ', camera);
+      //console.log('Game: ', game);
       console.error('Camera or Game is not defined');
     }
   };
@@ -1526,7 +1534,7 @@ const growTree = (task) => {
           />
           <TaskManager
             onAddTask={(task) => {
-              console.log('Adding task (TASKMANAGER):', task);
+              //console.log('Adding task (TASKMANAGER):', task);
               growTree(task);
               handleAddTask(task);
             }}
@@ -1536,7 +1544,7 @@ const growTree = (task) => {
         </>
       )}
 
-
+      
 
 {/* Zoom Controls */}
 <div
