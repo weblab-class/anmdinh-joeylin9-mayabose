@@ -205,7 +205,7 @@ const Tree = () => {
       this.load.image("showalltasks_icon", showalltasks_icon);
       this.load.image("bananacount_icon", bananacount_icon);
       this.load.image("background", background);
-      this.load.spritesheet('default_monkey', default_monkey, {
+      this.load.spritesheet('monkey1', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
       });
@@ -248,7 +248,7 @@ const Tree = () => {
       for (let i = 0; i < 50; i++) {
         const randomX = Math.random() * (windowHeight*3 + windowHeight*3) - windowHeight*3;
         const randomY = Math.random() * (-windowHeight*3 - windowHeight) + windowHeight; // Constrain to upper half of the screen
-      
+
         const cloud = this.add.image(randomX, randomY, 'cloud');
         cloud.setScale(0.67); // Adjust scale as needed
         cloud.setDepth(-1); // Ensure visibility in the scene
@@ -378,9 +378,11 @@ tasks.forEach((task, index) => {
         frameHeight: 64 // height of each frame
       });
       // Preload the default monkey spritesheet
+      console.log('selected monkey: ', selectedMonkey)
+      console.log('monkeysAvailable[selectedMonkey]: ', monkeysAvailable[selectedMonkey])
       monkey = this.physics.add.sprite(
-        -windowWidth * 0.33, 
-        -windowHeight * 0.25, 
+        -windowWidth * 0.33,
+        -windowHeight * 0.25,
         monkeysAvailable[selectedMonkey] // Use the selected monkey
       );
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
@@ -803,11 +805,11 @@ function closeShop() {
     camera.once("camerapancomplete", () => {
       camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      
+
       // Double-check texture after camera pan is complete
       monkey.setTexture(monkeysAvailable[monkeyNumber]);
     });
-    
+
     return prevPurchasedMonkeys;
   });
 }
