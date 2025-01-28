@@ -74,6 +74,7 @@ const Tree = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
+        setErrorMessage(error.message);
         setLoading(false);
       }
     };
@@ -892,7 +893,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: banana,
           x: banana.x * -1,
-          y: banana.y + shrinkAmount,
+          y: banana.y + shrinkAmount*1.5,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -911,7 +912,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: text,
           x: text.x * -1,
-          y: text.y + shrinkAmount,
+          y: text.y + shrinkAmount*1.5,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -1092,6 +1093,20 @@ const growTree = (task) => {
       console.log('Game: ', game);
       console.error('Camera or Game is not defined');
     }
+  };
+
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const ErrorModal = ({ message, onClose }) => {
+    if (!message) return null;
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <span className="close-btn" onClick={onClose}>&times;</span>
+          <p>{message}</p>
+        </div>
+      </div>
+    );
   };
 
 

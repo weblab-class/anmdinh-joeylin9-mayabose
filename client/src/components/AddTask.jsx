@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import Alert from './Alert';
 
 const TaskManager = ({ onAddTask, onCancel, tasks }) => {
   const [taskName, setTaskName] = useState(""); // State for task name
   const [taskDifficulty, setTaskDifficulty] = useState(""); // State for task difficulty
   const [taskNotes, setTaskNotes] = useState(""); // State for task notes
+  const [alertMessage, setAlertMessage] = useState("");
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
@@ -33,9 +35,15 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
       setTaskDifficulty("");
       setTaskNotes(""); // Reset task notes as well
     } else {
-      alert("Please fill out the task name and difficulty.");
+      setAlertMessage("Please fill out the task name and difficulty.");
     }
   };
+
+  const closeAlert = () => {
+    setAlertMessage(""); // Close the alert when the button is clicked
+  };
+
+
   return (
     <div
       style={{
@@ -139,6 +147,8 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
           Cancel
         </button>
       </div>
+      {/* Render the custom alert when there's a message */}
+      <Alert message={alertMessage} onClose={closeAlert} />
     </div>
   );
 };

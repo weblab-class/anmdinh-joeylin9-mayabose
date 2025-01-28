@@ -17,7 +17,7 @@ const App = () => {
     if (location.pathname === "/") {
       document.body.style.backgroundColor = "#6c8a80"; // Light green
     } else if (location.pathname === "/tree") {
-      document.body.style.backgroundColor = "#ADD8E6"; // Blue
+      document.body.style.backgroundColor = "transparent"; // Blue
     } else {
       document.body.style.backgroundColor = "#FFFFFF"; // Default white
     }
