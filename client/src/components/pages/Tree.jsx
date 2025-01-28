@@ -48,7 +48,7 @@ const Tree = () => {
   });
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [bananaCounter, setBananaCounter] = useState(0);
-  const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false]); // Purchase state for monkeys
+  const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false, false]); // Purchase state for monkeys
   const [selectedMonkey, setSelectedMonkey] = useState(0);
   const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
   // Add state to manage popup visibility and input
@@ -72,7 +72,7 @@ const Tree = () => {
       navigate("/"); // Redirect to homepage if userId is not available
       return;
     }
-
+    
     const getGameInfo = async () => {
       try {
         const data = await fetchGameInfo(userId);
@@ -80,6 +80,8 @@ const Tree = () => {
         setBananaCounter(data.numBananas || 0);
         setPurchasedMonkeys(data.purchasedMonkeys || [true, false, false, false]);
         setSelectedMonkey(data.selectedMonkey || 0);
+        monkeyNumber = data.selectedMonkey || 0;  // Add this line
+        oldMonkeyNumber = data.selectedMonkey || 0;  // Add this line
         setLoading(false);
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
@@ -87,9 +89,9 @@ const Tree = () => {
         setLoading(false);
       }
     };
-
-    getGameInfo(); // Fetch game info
-  }, [userId, navigate]);
+  
+    getGameInfo();
+  }, [userId, navigate, scene]);
 
   useEffect(() => {
     if (scene) {
@@ -119,6 +121,7 @@ const Tree = () => {
   }, [musicVolume, soundEffectsVolume, scene]);
 
   useEffect(() => {
+<<<<<<< HEAD
     // Set the CSS variable dynamically on :root
     function updateWindowWidth() {
       const root = document.documentElement;
@@ -132,6 +135,17 @@ const Tree = () => {
     // Cleanup listener on unmount
     return () => window.removeEventListener("resize", updateWindowWidth);
   }, []);
+=======
+    if (scene && !loading) {
+      const monkey = scene.children?.list?.find(child => child.type === 'Sprite' && child.texture.key.startsWith('monkey'));
+      if (monkey) {
+        monkey.setTexture(monkeysAvailable[selectedMonkey]);
+        monkeyNumber = selectedMonkey;
+        oldMonkeyNumber = selectedMonkey;
+      }
+    }
+  }, [loading, selectedMonkey, scene]);
+>>>>>>> c62bf98004e0716704987c9f43a04f440bb4e00d
 
   useEffect(() => {
     if (loading) return;
@@ -142,7 +156,7 @@ const Tree = () => {
       width: window.innerWidth,
       height: window.innerHeight,
       parent: 'phaser-game',
-      backgroundColor: '#485c1f',
+      backgroundColor: '#000000',
       physics: {
         default: 'arcade',
         arcade: {
@@ -399,8 +413,8 @@ tasks.forEach((task, index) => {
       monkey = this.physics.add.sprite(
         -windowWidth * 0.33,
         -windowHeight * 0.25,
-        monkeysAvailable[selectedMonkey] // Use the selected monkey
-      );
+        monkeysAvailable[selectedMonkey] || monkeysAvailable[0]
+      );      
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
 
       ground = this.add.image(0, 0, 'ground');
@@ -512,7 +526,7 @@ function update() {
     cloud.x -= windowWidth*(1/1464);
     if (cloud.x < -windowWidth*1.5) {
       cloud.x = windowWidth*2
-      cloud.y =  Math.random() * (-windowHeight*3 - windowHeight) + windowHeight;
+      cloud.y =  Math.random() * windowHeight/2;
     }
   });
 
@@ -800,6 +814,7 @@ function closeShop() {
       saveTaskData(userId, tasks, bananaCounter, prevPurchasedMonkeys, monkeyNumber, setTasks);
     } else {
       monkeyNumber = oldMonkeyNumber;
+      saveTaskData(userId, tasks, bananaCounter, purchasedMonkeys, monkeyNumber, setTasks);
     }
 
     // Always update the monkey texture when closing the shop
