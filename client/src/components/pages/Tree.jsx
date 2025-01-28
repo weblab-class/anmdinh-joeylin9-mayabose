@@ -18,6 +18,7 @@ import "../../public/styles/custom-font.css";
 import add_icon from "../../assets/add-icon.png";
 import settings_icon from "../../assets/settings-icon.png";
 import showalltasks_icon from "../../assets/showalltasks-icon.png";
+import bananacount_icon from "../../assets/bananacount-icon.png";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -193,6 +194,7 @@ const Tree = () => {
       this.load.image("add_icon", add_icon);
       this.load.image("settings_icon", settings_icon);
       this.load.image("showalltasks_icon", showalltasks_icon);
+      this.load.image("bananacount_icon", bananacount_icon);
       this.load.spritesheet('default_monkey', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
@@ -700,10 +702,10 @@ function purchaseMonkey() {
         const updatedMonkeys = [...prevPurchasedMonkeys];
         updatedMonkeys[monkeyNumber] = true;
         purchaseButton.setText("Purchased");
-        
+
         // Save the updated state to the backend
         saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, setTasks);
-        
+
         return updatedMonkeys;
       });
 
@@ -1080,122 +1082,167 @@ const growTree = (task) => {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex", // Arrange buttons horizontally
-          alignItems: "center", // Ensure buttons align vertically
-          gap: "1vw", // Add spacing between buttons
-        }}
-      >
-        {/* Add Task Button */}
-        <button
-          onClick={() => setShowTaskManager(true)}
-          style={{
-            position: "relative",
-            // marginRight: "2vw",
-            padding: "0.5vw",
-            fontFamily: "Courier New",
-            fontSize: "2vh",
-            zIndex: 9999,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={add_icon}
-            alt="Add Task"
-            style={{
-              width: "2.5vw",
-              height: "2.5vw",
-            }}
-          />
-        </button>
 
-        {/* Show All Tasks Button */}
-        <button
-          onClick={() => setShowAllTasks(!showAllTasks)}
-          style={{
-            position: "relative",
-            width: "calc(4 * 2.5vw)", // Maintain 1:4 ratio
-            height: "2.5vw", // Match height with other icons
-            padding: "0",
-            margin: "0",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center", // Center text vertically
-            justifyContent: "center", // Center text horizontally
-          }}
-        >
-          {/* Icon */}
-          <img
-            src={showalltasks_icon}
-            alt="Show All Tasks"
-            style={{
-              width: "100%", // Icon fills the button
-              height: "100%", // Icon fills the button
-              objectFit: "contain", // Maintain aspect ratio
-              position: "absolute", // Keep the icon as background
-            }}
-          />
-          {/* Text */}
-          <span
-            style={{
-              fontFamily: "joystix monospace", // Ensure the custom font is applied
-              fontSize: "0.75vw", // Adjust the size for a better fit
-              fontWeight: "bold",
-              color: "black",
-              zIndex: 1, // Ensure the text is above the icon
-              whiteSpace: "nowrap", // Prevent text wrapping
-              pointerEvents: "none", // Allow clicks to pass through text
-            }}
-          >
-            {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
-          </span>
-        </button>
-      </div>
+<div
+  style={{
+    display: "flex", // Arrange buttons horizontally
+    alignItems: "center", // Ensure buttons align vertically
+    gap: "0.2vw", // Consistent gap between elements (same gap as Add Task and Show All Tasks)
+    position: "absolute",
+    top: "0", // Adjust this to control the vertical positioning
+    left: "0.5vw", // Adjust the left margin for the left container
+    zIndex: 9999, // Keep this on top
+  }}
+>
+  {/* Add Task Button */}
+  <button
+    onClick={() => setShowTaskManager(prevState => !prevState)} // Toggle the state
+    style={{
+      position: "relative",
+      padding: "0.5vw",
+      fontFamily: "Courier New",
+      fontSize: "2vh",
+      zIndex: 9999,
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      display: "inline-flex", // Align both horizontally and vertically
+      alignItems: "center", // Center vertically
+      marginRight: "0.2vw", // Reduced spacing between buttons
+    }}
+  >
+    <img
+      src={add_icon}
+      alt="Add Task"
+      style={{
+        width: "2.5vw",
+        height: "2.5vw",
+      }}
+    />
+  </button>
 
-      <div
-        style={{
-          position: "absolute",
-          top: "0vw",
-          right: "0vw",
-          display: "flex",
-          alignItems: "center",
-          gap: "2vw",
-        }}
-      >
-        <p style={{ fontSize: "1vw", fontFamily: "Courier New" }}>
-          <strong>Bananas: {bananaCounter}</strong>
-        </p>
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          style={{
-            position: "relative",
-            top: "1vh",
-            left: "1vw",
-            marginRight: "2vw",
-            padding: "0.5vw",
-            fontFamily: "Courier New",
-            fontSize: "2vh",
-            zIndex: 9999,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={settings_icon}
-            alt="Settings"
-            style={{
-              width: "2.5vw",
-              height: "2.5vw",
-            }}
-          />
-        </button>
-      </div>
+  {/* Show All Tasks Button */}
+  <button
+    onClick={() => setShowAllTasks(!showAllTasks)}
+    style={{
+      position: "relative",
+      width: "calc(4 * 2.5vw)", // Maintain 1:4 ratio
+      height: "2.5vw", // Match height with other icons
+      padding: "0",
+      margin: "0",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      display: "inline-flex", // Same as Add Task button
+      alignItems: "center",    // Center vertically
+      justifyContent: "center", // Center text horizontally
+    }}
+  >
+    <img
+      src={showalltasks_icon}
+      alt="Show All Tasks"
+      style={{
+        width: "100%", // Icon fills the button
+        height: "100%", // Icon fills the button
+        objectFit: "contain", // Maintain aspect ratio
+        position: "absolute", // Keep the icon as background
+      }}
+    />
+    <span
+      style={{
+        fontFamily: "joystix monospace",
+        fontSize: "0.75vw", // Same font size as Show All Tasks
+        fontWeight: "bold",
+        color: "black",
+        zIndex: 1,
+        whiteSpace: "nowrap",
+        pointerEvents: "none",
+      }}
+    >
+      {showAllTasks ? "Hide Tasks" : "Show All Tasks"}
+    </span>
+  </button>
+</div>
+
+{/* Settings and Banana Counter (aligned to the right) */}
+<div
+  style={{
+    position: "absolute",
+    top: "0", // Align it with the other buttons
+    right: "0.5vw", // Adjust the right margin for the right container
+    display: "flex",
+    alignItems: "center", // Ensure buttons align vertically
+    gap: "0.2vw", // Ensure consistent gap between elements (same as left container)
+    zIndex: 9999, // Keep this on top
+  }}
+>
+  {/* Banana Counter (Not a button, just a span) */}
+  <span
+    style={{
+      position: "relative",
+      width: "calc(2.08 * 2.5vw)", // Same width as other button icons
+      height: "2.5vw", // Match height with other icons
+      padding: "0",
+      margin: "0",
+      background: "none",
+      display: "inline-flex", // Align both horizontally and vertically
+      alignItems: "center",    // Center vertically
+      justifyContent: "center", // Center text horizontally
+    }}
+  >
+    <img
+      src={bananacount_icon}
+      alt="Banana Counter"
+      style={{
+        width: "100%", // Icon fills the container
+        height: "100%", // Icon fills the container
+        objectFit: "contain", // Maintain aspect ratio
+        position: "absolute", // Keep the icon as background
+      }}
+    />
+    <span
+      style={{
+        fontFamily: "joystix monospace", // Apply the custom font
+        fontSize: "0.75vw", // Adjust font size to match the Show All Tasks button
+        fontWeight: "bold",
+        color: "black",
+        zIndex: 1,
+        whiteSpace: "nowrap",
+        pointerEvents: "none",
+      }}
+    >
+      {bananaCounter}
+    </span>
+  </span>
+
+  {/* Settings Button */}
+  <button
+    onClick={() => setShowSettings(!showSettings)}
+    style={{
+      position: "relative",
+      padding: "0.5vw",
+      fontFamily: "Courier New",
+      fontSize: "2vh",
+      zIndex: 9999,
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+      display: "inline-flex",
+      alignItems: "center",
+    }}
+  >
+    <img
+      src={settings_icon}
+      alt="Settings"
+      style={{
+        width: "2.5vw",
+        height: "2.5vw",
+      }}
+    />
+  </button>
+</div>
+
+
 
       {/* Settings Popup */}
       {showSettings && (
@@ -1389,40 +1436,90 @@ const growTree = (task) => {
         </>
       )}
 
-      {/* Zoom Controls */}
-      <div
+{/* Zoom Controls */}
+<div
         style={{
           position: "absolute",
           bottom: "1vw",
           right: "1vw",
           display: "flex",
           alignItems: "center",
+          gap: "0.5vw", // Consistent spacing between zoom buttons
           zIndex: 9999,
         }}
       >
+        {/* Reset Zoom Button */}
         <button
-          onClick={zoomInHandler}
+          onClick={resetZoomHandler}
           style={{
-            fontSize: "1.5vw",
+            fontFamily: "joystix monospace", // Use the custom font
+            fontSize: "0.75vw", // Adjust font size for zoom controls
+            fontWeight: "bold",
             background: "none",
             border: "none",
             cursor: "pointer",
-            marginRight: "1vw",
+            color: "black", // Ensure text is visible
+            textAlign: "center",
+            outline: "none", // Remove outline completely
+          }}
+        >
+          Reset
+        </button>
+
+        {/* Zoom In Button */}
+        <button
+          onClick={zoomInHandler}
+          style={{
+            fontFamily: "joystix monospace", // Use the custom font
+            fontSize: "0.75vw", // Adjust font size for zoom controls
+            fontWeight: "bold",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "black", // Ensure text is visible
+            textAlign: "center",
+            outline: "none", // Remove outline completely
           }}
         >
           +
         </button>
+
+        {/* Zoom Out Button */}
         <button
           onClick={zoomOutHandler}
           style={{
-            fontSize: "1.5vw",
+            fontFamily: "joystix monospace", // Use the custom font
+            fontSize: "0.75vw", // Adjust font size for zoom controls
+            fontWeight: "bold",
             background: "none",
             border: "none",
             cursor: "pointer",
+            color: "black", // Ensure text is visible
+            textAlign: "center",
+            outline: "none", // Remove outline completely
           }}
         >
           -
         </button>
+      </div>
+
+      {/* Monkey See Monkey Do Link */}
+      <div
+        onClick={() => navigate('/')}
+        style={{
+          position: "absolute",
+          bottom: "1vw",
+          left: "1vw",
+          fontFamily: "joystix monospace", // Use the custom font
+          fontSize: "0.75vw",
+          fontWeight: "bold",
+          color: "black", // Ensure text is visible
+          cursor: "pointer", // Indicate it's clickable
+          // textDecoration: "underline", // Optional: Underline for links
+          zIndex: 9999,
+        }}
+      >
+        Monkey See Monkey Do
       </div>
     </>
   );
