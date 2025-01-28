@@ -121,21 +121,6 @@ const Tree = () => {
   }, [musicVolume, soundEffectsVolume, scene]);
 
   useEffect(() => {
-<<<<<<< HEAD
-    // Set the CSS variable dynamically on :root
-    function updateWindowWidth() {
-      const root = document.documentElement;
-      root.style.setProperty("--window-width", `${window.innerWidth}px`);
-    }
-
-    // Initialize and update on resize
-    updateWindowWidth();
-    window.addEventListener("resize", updateWindowWidth);
-
-    // Cleanup listener on unmount
-    return () => window.removeEventListener("resize", updateWindowWidth);
-  }, []);
-=======
     if (scene && !loading) {
       const monkey = scene.children?.list?.find(child => child.type === 'Sprite' && child.texture.key.startsWith('monkey'));
       if (monkey) {
@@ -145,7 +130,6 @@ const Tree = () => {
       }
     }
   }, [loading, selectedMonkey, scene]);
->>>>>>> c62bf98004e0716704987c9f43a04f440bb4e00d
 
   useEffect(() => {
     if (loading) return;
@@ -1382,7 +1366,7 @@ const growTree = (task) => {
 
   <div>
       {/* Render the custom alert when there's a message */}
-      <Alert id='treealert' message={alertMessage} onClose={closeAlert}/>
+      <Alert message={alertMessage} onClose={closeAlert}/>
       </div>
 
       {/* Settings Popup */}
