@@ -390,10 +390,16 @@ tasks.reverse().forEach((task, index) => {
 
 // Add bananas based on difficulty
 const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-const bananaSpacing = windowWidth * (50 / 1494);
+const bananaSpacing = windowWidth * (45 / 1494);
 for (let i = 0; i < bananaCount; i++) {
+  let mult;
+  if (!isLeftBranch) {
+    mult = 3 - i
+  } else {
+    mult = i
+  }
   const banana = this.add.sprite(
-    textX + i * bananaSpacing,
+    textX + mult * bananaSpacing,
     branchY + 0.02 * windowWidth,
     "banana"
   );
@@ -973,9 +979,9 @@ const moveBranchesDown = (taskName) => {
     bananasMove.forEach((banana) => {
       let newestX;
       if (banana.x < 0) {
-        newestX = banana.x + 0.35*windowWidth
+        newestX = banana.x + 0.39*windowWidth
       } else {
-        newestX = banana.x - 0.35*windowWidth
+        newestX = banana.x - 0.39*windowWidth
       }
       scene.tweens.add({
         targets: banana,
@@ -998,9 +1004,9 @@ const moveBranchesDown = (taskName) => {
     let newX;
     textMove.forEach((text) => {
       if (text.x < 0) {
-        newX = text.x + 0.35*windowWidth
+        newX = text.x + 0.39*windowWidth
       } else {
-        newX = text.x - 0.35*windowWidth
+        newX = text.x - 0.39*windowWidth
       }
       scene.tweens.add({
         targets: text,
@@ -1127,10 +1133,16 @@ const growTree = (task) => {
             );
 
             const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-            const bananaSpacing = windowWidth * (50 / 1494);
+            const bananaSpacing = windowWidth * (45 / 1494);
             for (let i = 0; i < bananaCount; i++) {
+              let mult;
+              if (!isLeftBranch) {
+                mult = 3 - i
+              } else {
+                mult = i
+              }
               const banana = scene.add.sprite(
-                textX + i * bananaSpacing,
+                textX + mult * bananaSpacing,
                 branchY + 0.02 * windowWidth,
                 "banana"
               );
