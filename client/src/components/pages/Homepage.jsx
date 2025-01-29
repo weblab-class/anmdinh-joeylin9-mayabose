@@ -53,7 +53,7 @@ const Homepage = () => {
 
   return (
     <div className="homepage-container">
-      <h1 className="homeTitle">Monkey See, Monkey Do</h1>
+      <h1 className="homeTitle">Monkey See Monkey Do</h1>
 
       <div className="center-flex">
         {/* Show bananas while loading */}
