@@ -375,6 +375,7 @@ this.add.text(
 }
 );
 
+
 // Add bananas based on difficulty
 const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
 const bananaSpacing = windowWidth * (50 / 1494);
@@ -387,7 +388,9 @@ for (let i = 0; i < bananaCount; i++) {
   banana.setOrigin(0.5, 0.5);
   banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50));
   banana.setDepth(10);
+  this.physics.add.existing(banana, true);
   this.bananas.push(banana);
+  banana.body.updateFromGameObject();
   this.tree.add(banana); // Add banana to the tree group
 }
 
@@ -929,9 +932,7 @@ const handleCollectBananas = (taskName) => {
       saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, selectedMonkey, setTasks);
       return newCounter;
     });
-  } else {
-    //console.log("No task selected.");
-  }
+  } 
   moveBranchesDown(selectedTaskName)
 };
 
@@ -977,12 +978,12 @@ const moveBranchesDown = (taskName) => {
             //console.log('Removed branch:', branchToRemove);
           }
 
-      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
+      const shrinkAmount = windowHeight * (150 / 765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
       const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
       const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
-
+      console.log('bananamove', bananasMove)
       bananasMove.forEach((banana) => {
         scene.tweens.add({
           targets: banana,
