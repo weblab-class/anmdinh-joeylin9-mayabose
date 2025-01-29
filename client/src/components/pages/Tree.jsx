@@ -1098,6 +1098,7 @@ const growTree = (task) => {
         const newTrunk = scene.add.image(0, newTrunkY, "treetrunk");
         newTrunk.setOrigin(0.5, 1);
         newTrunk.setDisplaySize(treeWidth, treeBaseHeight);
+        newTrunk.setDepth(-1);
         scene.physics.add.existing(newTrunk, true);
         scene.tree.add(newTrunk); // Add new trunk to the tree group
         scene.treeTrunks.push(newTrunk); // Add the new trunk to the trunk array
