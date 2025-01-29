@@ -28,6 +28,7 @@ import treetrunk from "../../assets/treetrunk.png";
 import branch_left from "../../assets/branch-left.png";
 import branch_right from "../../assets/branch-right.png";
 import "./Tree.css";
+import TaskList from "../TaskList";
 
 //sounds
 import track18 from "../../assets/music/track18.mp3";
@@ -1620,47 +1621,9 @@ const growTree = (task) => {
 
 
       {showAllTasks && (
-        <div style={{
-          position: "absolute",
-          width: "30vw", // Adjust width as needed
-          height: "30vw",
-          padding: windowWidth * (10 / 1494),
-          overflowY: "auto", // Ensures scrolling for large content
-          top: "5vw",
-          right: "3vw",
-          backgroundColor: "rgb(220, 206, 206)",
-          padding: "0.878vw",
-          border: "0.11vw solid black",
-          borderRadius: "0.293vw",
-          boxShadow: "inset 0px 0px 0.586vw rgba(0, 0, 0, 0.4)",
-          zIndex: 1000,
-          width: "20%",
-          fontFamily: "joystix monospace",
-        }}>
-          <h4 style = {{fontSize: "1.318vw"}}>All Tasks</h4>
-          <ul style={{ listStyleType: 'none', paddingLeft: '2vw' }}>
-            {tasks.map((task, index) => {
-              // Set the color based on the task's difficulty
-              const difficultyColor = task.difficulty === 'Easy' ? 'rgb(1,75,36)' :
-                                      task.difficulty === 'Medium' ? 'rgb(214,89,0)' :
-                                      task.difficulty === 'Hard' ? 'rgb(161,3,0)' : 'gray';
-
-              return (
-                <li key={index} style={{ marginBottom: '0.732vw', color: 'black', position: 'relative', fontSize: '1.171vw' }}>
-                  <span style={{ color: difficultyColor, position: 'relative' }}>
-                    <strong>{task.name}</strong> <span style={{ position: 'absolute', fontSize: '1.171vw', color: "#343434", left: '-1.464vw', top: '50%', transform: 'translateY(-50%)' }}>→</span>
-                  </span>
-                  <br />
-                  {task.notes && (
-                    <span style={{ color: 'gray', fontSize: '1.171vw' }}>
-                      <em>Notes:</em> {task.notes}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <TaskList
+          tasks={tasks}
+          showAllTasks={showAllTasks}/>
       )}
 
       {/* Game and Task Manager */}

@@ -2,6 +2,9 @@ import React from 'react';
 import './TaskList.css';
 
 const TaskList = ({ tasks, showAllTasks }) => {
+  const handleClose = () => {
+    showAllTasks(false)
+  }
   return (
     showAllTasks && (
       <div className="scroll-container">
@@ -17,7 +20,7 @@ const TaskList = ({ tasks, showAllTasks }) => {
                 : task.difficulty === 'Hard'
                 ? 'rgb(161,3,0)'
                 : 'gray';
-
+            
             return (
               <li
                 key={index}

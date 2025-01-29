@@ -1,13 +1,13 @@
 /* TaskList.css */
 .scroll-container {
   position: absolute;
-  width: 30vw;
+  width: 25vw;
   height: 30vw;
   padding: 0.878vw;
   background-color: rgb(220, 206, 206);
-  border: 0.11vw solid black;
   border-radius: 0.293vw;
-  box-shadow: inset 0px 0px 0.586vw rgba(0, 0, 0, 0.4);
+  border: 1.5px solid black;
+  box-shadow: inset 0px 0px 0.586vw rgba(0, 0, 0, 0.8);
   z-index: 1000;
   top: 5vw;
   right: 3vw;
@@ -22,17 +22,20 @@
 
 /* Customize the scrollbar track */
 .scroll-container::-webkit-scrollbar-track {
-  background: #9e7171;  /* Light gray track */
+  background: #ce9494;  /* Light gray track */
   border-radius: 10px;
+  border: 1.5px solid black;
 }
 
 /* Customize the scrollbar thumb (the draggable part) */
 .scroll-container::-webkit-scrollbar-thumb {
-  background: #2d0d0d;  /* Darker gray thumb */
+  background: #803e3e;  /* Darker gray thumb */
   border-radius: 10px;
+  border: 1.5px solid black;
+  
 }
 
 /* Customize the scrollbar thumb when hovered */
 .scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #420d0d;  /* Darker thumb when hovered */
+  background: #5f2e2e;  /* Darker thumb when hovered */
 }
