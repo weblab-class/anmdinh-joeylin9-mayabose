@@ -1112,9 +1112,13 @@ const growTree = (task) => {
           : branchX + 0.1 * windowWidth;
         const branchY = Math.floor(newTrunk.y - treeBaseHeight / 2);
         branch.setPosition(branchX, branchY);
+        branch.setDisplaySize(windowWidth * (300 / 1494), windowHeight * (50 / 765));
+        branch.setDepth(-1);
         scene.physics.add.existing(branch, true);
+        branch.body.updateFromGameObject();
         scene.branches.push(branch);
         scene.tree.add(branch);
+        
 
         scene.tweens.add({
           targets: branch,
@@ -1156,10 +1160,11 @@ const growTree = (task) => {
               banana.body.updateFromGameObject();
               scene.tree.add(banana);
             }
+            
+            scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+            setTreeState({height: newHeight, branches: scene.branches, bananas: scene.bananas})
           }
         });
-
-        scene.branchSide = scene.branchSide === "left" ? "right" : "left";
       },
     });
   }
