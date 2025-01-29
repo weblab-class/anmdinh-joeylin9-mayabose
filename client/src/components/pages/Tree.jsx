@@ -1089,16 +1089,17 @@ if (treeObj && treeObj.setSize) {
 
 
 const growTree = (task) => {
-  console.log("scene at growTree call: ",scene);
+  console.log("scene at growTree call: ", scene);
   console.log("scene.treeTrunks at growTree call: ", scene.treeTrunks);
 
   if (scene && scene.tree) {
-     if (!scene || !scene.treeTrunks || scene.treeTrunks.length === 0) {
-    console.error("Error: scene or scene.treeTrunks is undefined or empty.");
-     }
-     const treeObj = scene.treeTrunks[scene.treeTrunks.length - 1];
-     console.log("treeObj: ", treeObj)
-    // Determine the height increase based on the current task count
+    if (!scene || !scene.treeTrunks || scene.treeTrunks.length === 0) {
+      console.error("Error: scene or scene.treeTrunks is undefined or empty.");
+    }
+    const treeObj = scene.treeTrunks[scene.treeTrunks.length - 1];
+    console.log("treeObj: ", treeObj);
+
+    // Tree setup for dimensions and position
     const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
     const treeWidth = windowHeight * (90 / 765);      // Width of the tree trunk
     const newHeight = treeObj.height + treeBaseHeight; // New height after growing the tree
@@ -1111,19 +1112,16 @@ const growTree = (task) => {
       onUpdate: () => {
         // Update the tree's width and height to fit the new size
         const treeWidth = windowHeight * (90 / 765);
-        console.log(treeObj);  // Check what treeObj is
-// i
-// Check if treeObj exists and has a body
-if (treeObj && treeObj.body) {
-  treeObj.body.updateFromGameObject();
-}
+        console.log(treeObj); // Check what treeObj is
 
-// treeObj.body.updateFromGameObject();
+        if (treeObj && treeObj.body) {
+          treeObj.body.updateFromGameObject();
+        }
       },
       onComplete: () => {
         // Calculate the Y-position of the new branch based on tree growth
         const previousTrunk = scene.treeTrunks[scene.treeTrunks.length - 1]; // Get the last added trunk
-        const newTrunkY = Math.round(previousTrunk.y - treeBaseHeight);
+        const newTrunkY = Math.floor(previousTrunk.y - treeBaseHeight) + 1;
         const newTrunk = scene.add.image(0, newTrunkY, "treetrunk");
         newTrunk.setOrigin(0.5, 1);
         newTrunk.setDisplaySize(treeWidth, treeBaseHeight);
@@ -1131,26 +1129,30 @@ if (treeObj && treeObj.body) {
         scene.tree.add(newTrunk); // Add new trunk to the tree group
         scene.treeTrunks.push(newTrunk); // Add the new trunk to the trunk array
 
-        // Calculate the position of the branch
-        const branchY = newTrunk.y - newTrunk.displayHeight;
-        const branchX =
-          task.side === "left"
-            ? newTrunk.x - newTrunk.displayWidth / 2 - windowWidth * (100 / 1494)
-            : newTrunk.x + newTrunk.displayWidth / 2 + windowWidth * (100 / 1494);
+        // Branch Setup - Same size and position logic
+        const isLeftBranch = task.side === "left";
+        const branchKey = isLeftBranch ? "branch_left" : "branch_right";
+        const branchOriginX = isLeftBranch ? 1 : 0; // Right origin for left branches, left origin for right branches
 
-        // Create the branch
-        const branch = scene.add.rectangle(
-          branchX,
-          branchY,
-          windowWidth * (200 / 1494),
-          windowHeight * (20 / 765),
-          0x4a3d36
-        );
+        const branch = scene.add.image(0, 0, branchKey);
+        branch.setOrigin(branchOriginX, 0.5); // Set origin dynamically
 
-        // Add the branch to the branches array and enable physics
+        // Set branch size as per your original logic
+        branch.setDisplaySize(windowWidth * (300 / 1494), windowHeight * (50 / 765));
+
+        // Calculate branch position to attach to the side of the tree trunk
+        const branchX = isLeftBranch
+          ? Math.floor(newTrunk.x - treeWidth / 2) + 1 // Adjust slightly to the left
+          : Math.floor(newTrunk.x + treeWidth / 2); // Align with right edge of the trunk
+
+        // Y-position of the branch will be at the middle of the trunk segment
+        const branchY = Math.floor(newTrunk.y - treeBaseHeight / 2);
+
+        // Set final position of the branch
+        branch.setPosition(branchX, branchY);
+
         scene.physics.add.existing(branch, true);
-        branch.body.updateFromGameObject();
-        scene.branches.push(branch); // Add the branch to the branches array
+        scene.branches.push(branch);
         scene.tree.add(branch); // Add branch to the tree group
 
         // Add task text to the branch
@@ -1166,15 +1168,9 @@ if (treeObj && treeObj.body) {
           }
         );
 
-        // Add bananas based on difficulty, spaced horizontally
-        const bananaCount =
-          task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-        const bananaSpacing = windowWidth * (50 / 1494); // Horizontal spacing between bananas
-        if (!scene.bananas) {
-          scene.bananas = [];
-        }
-
-        // Create bananas on the branch
+        // Add bananas based on difficulty
+        const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+        const bananaSpacing = windowWidth * (50 / 1494);
         for (let i = 0; i < bananaCount; i++) {
           const banana = scene.add.sprite(
             branchX + i * bananaSpacing,
@@ -1182,28 +1178,13 @@ if (treeObj && treeObj.body) {
             "banana"
           );
           banana.setOrigin(0.5, 0.5);
-          banana.setDisplaySize(windowHeight * (4 / 50), windowHeight * (4 / 50)); // Adjust the size as needed
-          banana.setDepth(10); // Ensure it appears in front of other objects
-
-          scene.physics.add.existing(banana);
-          banana.body.setAllowGravity(false); // Disable gravity if bananas shouldn't fall
-          banana.body.setImmovable(true); // Make bananas immovable
-          banana.body.updateFromGameObject();
-
-          // Add the banana to the scene's bananas array
+          banana.setDisplaySize(windowHeight * (4 / 50), windowHeight * (4 / 50));
+          banana.setDepth(10);
+          scene.physics.add.existing(banana, true);
           scene.bananas.push(banana);
+          banana.body.updateFromGameObject();
           scene.tree.add(banana); // Add banana to the tree group
         }
-
-        // Create the updated tree state to pass to saveTreeData
-        const updatedTreeState = {
-          height: treeObj.height, // The updated height of the tree
-          branches: scene.branches, // All the branches currently on the tree
-          bananas: scene.bananas,
-        };
-
-        // Save the updated tree state
-        setTreeState(updatedTreeState);
 
         // Alternate branch side for the next branch
         scene.branchSide = scene.branchSide === "left" ? "right" : "left";
@@ -1211,6 +1192,9 @@ if (treeObj && treeObj.body) {
     });
   }
 };
+
+
+
 
   const resetZoomHandler = () => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
