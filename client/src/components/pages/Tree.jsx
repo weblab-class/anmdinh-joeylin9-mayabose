@@ -670,10 +670,10 @@ function update() {
 
 
   // Flag to track if the popup should be show
-  for (const branch of this.branches) {
-    const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
+  for (const branch of this.branches) { // Example condition for left branch
     const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
     const branchBounds = branch.getBounds(); // Get branch's bounds
+    const isLeftBranch = branchBounds.left <= 0;
 
     // Check if the monkey is currently overlapping with the branch
     const isOverlapping = this.physics.overlap(monkey, branch);
@@ -716,6 +716,7 @@ function update() {
         monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
         monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
       ) {
+        console.log('right', monkey.x, this.tree.x)
         if (!popupShown) {
           setPopupVisible(true); // Show the popup
 
