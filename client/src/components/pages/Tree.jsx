@@ -30,6 +30,31 @@ import step from "../../assets/music/step.mp3";
 import land from "../../assets/music/land.mp3"
 import climb from "../../assets/music/climb.mp3"
 
+// Add this component definition before the Tree component
+const MonkeyDisplay = ({ monkeyDisplayNumber }) => {
+  // These image paths should match your actual asset paths
+  const monkeyImages = {
+    0: monkeyImg,  // using the imported image variables
+    1: monkeyImg2,
+    2: monkeyImg3,
+    3: monkeyImg4
+  };
+
+  return (
+    <div
+      style={{
+        width: "10vw",
+        height: "10vw",
+        backgroundImage: `url(${monkeyImages[monkeyDisplayNumber]})`,
+        backgroundSize: "contain",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        margin: "0 auto"
+      }}
+    />
+  );
+};
+
 const Tree = () => {
   const closeAlert = () => {
     setAlertMessage(""); // Close the alert when the button is clicked
@@ -52,16 +77,17 @@ const Tree = () => {
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false, false]); // Purchase state for monkeys
   const [selectedMonkey, setSelectedMonkey] = useState(0);
   const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
+  const [monkeyDisplayNumber, setMonkeyDisplayNumber] = useState(0);
   // Add state to manage popup visibility and input
   const [popupVisible, setPopupVisible] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
-  // const [showShop, setShowShop] = setState(false);
+  const [showShop, setShowShop] = useState(false);
   const [musicVolume, setMusicVolume] = useState(1);
   const [soundEffectsVolume, setSoundEffectsVolume] = useState(1);
-  const [selectedTaskName, setSelectedTaskName] = useState("")
+  const [selectedTaskName, setSelectedTaskName] = useState("");
   const handleInputChange = (input) => {
     setInputValue(input); // Update the input value state
     handleSave(input);  // Call the handleSave function with updated value
@@ -83,8 +109,6 @@ const Tree = () => {
         setBananaCounter(data.numBananas || 0);
         setPurchasedMonkeys(data.purchasedMonkeys || [true, false, false, false]);
         setSelectedMonkey(data.selectedMonkey || 0);
-        monkeyNumber = data.selectedMonkey || 0;  // Add this line
-        oldMonkeyNumber = data.selectedMonkey || 0;  // Add this line
         setLoading(false);
       } catch (error) {
         console.error("Error fetching game info (Tree.jsx):", error);
@@ -124,15 +148,9 @@ const Tree = () => {
   }, [musicVolume, soundEffectsVolume, scene]);
 
   useEffect(() => {
-    if (scene && !loading) {
-      const monkey = scene.children?.list?.find(child => child.type === 'Sprite' && child.texture.key.startsWith('monkey'));
-      if (monkey) {
-        monkey.setTexture(monkeysAvailable[selectedMonkey]);
-        monkeyNumber = selectedMonkey;
-        oldMonkeyNumber = selectedMonkey;
-      }
-    }
-  }, [loading, selectedMonkey, scene]);
+    // Sync `selectedMonkey` with `monkeyNumber` when either state changes
+    setMonkeyDisplayNumber(selectedMonkey);
+  }, [selectedMonkey]);
 
   useEffect(() => {
     if (loading) return;
@@ -182,17 +200,17 @@ const Tree = () => {
     let ground; // Variable for the ground
     let camera; // Camera reference
     let market; // Variable for the market image
-    let shopContainer; // Container for the shop UI
-    let monkeyMovementEnabled = true;
+    // let shopContainer; // Container for the shop UI
     let monkeyDisplay; // Reference to the monkey display in the shop
     let monkeysAvailable = ['monkey1', 'monkey2', 'monkey3', 'monkey4']; // Reference to the monkey number in the shop
     let monkeyNumber = selectedMonkey; // Reference to the monkey number in the shop
-    let oldMonkeyNumber = selectedMonkey;
     let costText; // Reference to the cost text in the shop
     let purchaseButton; // Reference to the purchase button in the shop
-    let shopOpen = false; // Track if the shop is open
     let lastChangeTime = 0;
+    let shopOpenedTime;
+    const inputCooldown = 200;
     let clouds = [];
+    let openedshop = false;
 
     //sounds
     let climbSound;
@@ -202,7 +220,12 @@ const Tree = () => {
     let backgroundMusic;
 
 
-    const [monkeyPosition, setMonkeyPosition] = useState({x:-windowWidth*.33 , y:-windowHeight*.25});
+    const [monkeyPosition, setMonkeyPosition] = useState({ x: window.innerWidth * 0.5, y: -window.innerHeight * 0.2 });
+    const [monkeyTexture, setMonkeyTexture] = useState(monkeysAvailable[monkeyDisplayNumber]);
+    const [shopOpen, setShopOpen] = useState(false); // Initially set to false (shop closed);
+    const [monkeyMovementEnabled, setMonkeyMovementEnabled] = useState(true);
+    const [monkeyGravity, setMonkeyGravity] = useState(true);
+
     const treeTrunkHeight = windowHeight * (150 / 765);
     // PRELOAD
     function preload() {
@@ -398,16 +421,11 @@ this.branchSide = this.branchSide === "left" ? "right" : "left";
 console.log("Tree trunks:", this.treeTrunks);
 console.log("Branches:", this.branches);
 
-      const welcomeText = this.add.text(windowWidth * 1.5 , windowHeight / 2, 'The Shop', {
-        fontSize: windowWidth*(32/1494),
-        fill: '#000',
-      });
-      welcomeText.setOrigin(0.5, 0.5); // Center the text
-
       market = this.add.image(windowWidth, 0, 'market');
       market.setDisplaySize(windowWidth/3, windowHeight/2);
       market.setOrigin(0.5, 1); // Center the image
       this.physics.add.existing(market, true);
+      market.setDepth(9999999);
 
       // Create the monkey sprite with physics
       this.load.spritesheet('default_monkey', 'path/to/sprite_sheet.png', {
@@ -447,13 +465,11 @@ console.log("Branches:", this.branches);
       //console.log("Camera bounds:", camera.getBounds());
 
       //SHOP//
-      shopContainer = this.add.container(windowWidth, -windowHeight / 4); // Initially position it above the ground
-      shopContainer.setVisible(false); // Initially hidden
 
       // Background for the shop
-      const shopBackground = this.add.rectangle(0, 0, windowWidth / 2.5, windowHeight / 2, 0xffffff, 1);
-      shopBackground.setOrigin(0.5, 0.5); // Centered on the container
-      shopContainer.add(shopBackground);
+      // const shopBackground = this.add.rectangle(0, 0, windowWidth / 2.5, windowHeight / 2, 0xffffff, 1);
+      // shopBackground.setOrigin(0.5, 0.5); // Centered on the container
+      // shopContainer.add(shopBackground);
 
       // Close button (top-right corner)
       // const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
@@ -465,51 +481,53 @@ console.log("Branches:", this.branches);
       // shopContainer.add(closeButton);
 
       // Purchase button
-      const buttonBackground = this.add.rectangle(0, shopBackground.height * 0.45, shopBackground.width * 0.2, shopBackground.height * 0.1, 0x4caf50);
-      buttonBackground.setOrigin(0.5, 0.5); // Center the rectangle
-      shopContainer.add(buttonBackground);
-      purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vw Courier New" });
-      purchaseButton.setOrigin(0.5, 0.5);
-      purchaseButton.setInteractive();
-      purchaseButton.on("pointerdown", () => purchaseMonkey());
-      shopContainer.add(purchaseButton);
+      // const buttonBackground = this.add.rectangle(0, shopBackground.height * 0.45, shopBackground.width * 0.2, shopBackground.height * 0.1, 0x4caf50);
+      // buttonBackground.setOrigin(0.5, 0.5); // Center the rectangle
+      // shopContainer.add(buttonBackground);
+      // purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vw Courier New" });
+      // purchaseButton.setOrigin(0.5, 0.5);
+      // purchaseButton.setInteractive();
+      // purchaseButton.on("pointerdown", () => purchaseMonkey());
+      // shopContainer.add(purchaseButton);
 
-      buttonBackground.setInteractive();
+      // buttonBackground.setInteractive();
 
 
 
-      // Left arrow (change to previous monkey)
-      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New" });
-      leftArrow.setOrigin(1, 0.5);
-      leftArrow.setInteractive();
-      leftArrow.on('pointerdown', () => changeMonkey(-1));
-      shopContainer.add(leftArrow);
+      // // Left arrow (change to previous monkey)
+      // const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New" });
+      // leftArrow.setOrigin(1, 0.5);
+      // leftArrow.setInteractive();
+      // leftArrow.on('pointerdown', () => changeMonkey(-1));
+      // shopContainer.add(leftArrow);
 
-      // Right arrow (change to next monkey)
-      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New"});
-      rightArrow.setOrigin(0, 0.5);
-      rightArrow.setInteractive();
-      rightArrow.on('pointerdown', () => changeMonkey(1));
-      shopContainer.add(rightArrow);
+      // // Right arrow (change to next monkey)
+      // const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New"});
+      // rightArrow.setOrigin(0, 0.5);
+      // rightArrow.setInteractive();
+      // rightArrow.on('pointerdown', () => changeMonkey(1));
+      // shopContainer.add(rightArrow);
 
-      // Monkey display sprite
-      monkeyDisplay = this.add.sprite(0, shopBackground.height * -0.1, monkeysAvailable[selectedMonkey]);
-      monkeyDisplay.setDisplaySize(windowWidth * 0.1, windowHeight * 0.13);
-      shopContainer.add(monkeyDisplay);
+      // // Monkey display sprite
+      // monkeyDisplay = this.add.sprite(windowWidth, shopContainer.y, monkeysAvailable[selectedMonkey]);
+      // monkeyDisplay.setDisplaySize(windowWidth * 0.1, windowHeight * 0.13);
+      // monkeyDisplay.setDepth(0);
+      // monkeyDisplay.setVisible(true);
 
-      // Cost text
-      costText = this.add.text(
-        0,
-        windowHeight * (80 / 765),
-        `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-        { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vwpx Courier New" }
-      );
-      costText.setOrigin(0.5, 0.5); // Centered text
-      shopContainer.add(costText);
+      // // Cost text
+      // costText = this.add.text(
+      //   0,
+      //   windowHeight * (80 / 765),
+      //   `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
+      //   { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vwpx Courier New" }
+      // );
+      // costText.setOrigin(0.5, 0.5); // Centered text
+      // shopContainer.add(costText);
 
       // Overlap check for opening shop when the monkey reaches the market
       this.physics.add.overlap(monkey, market, () => {
         openShop();
+        setShowShop(true)
       });
 
       setScene(this);
@@ -522,6 +540,10 @@ console.log("Branches:", this.branches);
 
 // UPDATE
 function update() {
+  if (!this.physics.overlap(monkey, market)) {
+    shopOpenedTime = Date.now();
+  }
+
   monkey.x = Phaser.Math.Clamp(monkey.x, -4 * windowWidth / 3, 8 * windowWidth / 3);
 
   clouds.forEach((cloud) => {
@@ -539,17 +561,21 @@ function update() {
   });
 
   // SHOP UPDATES
-  if (shopOpen) {
-    const currentTime = Date.now(); // Get the current time in milliseconds
+  if (openedshop) {
+    const currentTime = Date.now();
 
-    if (this.leftKey.isDown && currentTime - lastChangeTime > 100) {
-      changeMonkey(-1);
-      lastChangeTime = currentTime; // Update the last change time
-    }
+    // Ensure a delay before allowing input
+    if (currentTime - shopOpenedTime > inputCooldown) {
 
-    if (this.rightKey.isDown && currentTime - lastChangeTime > 100) {
-      changeMonkey(1);
-      lastChangeTime = currentTime; // Update the last change time
+      if (this.leftKey.isDown && currentTime - lastChangeTime > 150) {
+        changeMonkey(-1);
+        lastChangeTime = currentTime;
+      }
+
+      if (this.rightKey.isDown && currentTime - lastChangeTime > 150) {
+        changeMonkey(1);
+        lastChangeTime = currentTime;
+      }
     }
   }
 
@@ -740,8 +766,8 @@ function update() {
 }
 
 function changeMonkey(direction) {
-  setPurchasedMonkeys((currentPurchasedMonkeys) => {
-    let newIndex = monkeyNumber + direction;
+  setMonkeyDisplayNumber((prevNumber) => {
+    let newIndex = prevNumber + direction;
 
     if (newIndex < 0) {
       newIndex = monkeysAvailable.length - 1;
@@ -749,101 +775,112 @@ function changeMonkey(direction) {
       newIndex = 0;
     }
 
-    // Update the button text based on the React state
-    purchaseButton.setText(currentPurchasedMonkeys[newIndex] ? "Select" : "Purchase");
-
     monkeyNumber = newIndex;
-    costText.setText(`Cost: ${monkeyPrices[newIndex]} Bananas`);
-    monkeyDisplay.setTexture(monkeysAvailable[newIndex]);
 
-    return currentPurchasedMonkeys;
+    return newIndex;
   });
 }
 
 function purchaseMonkey() {
   setBananaCounter((prevCounter) => {
-    const price = monkeyPrices[monkeyNumber];
-    if (purchaseButton._text === "Select") {
-      closeShop();
-      return prevCounter }
-    else if (prevCounter < price) {
-      setAlertMessage('Not enough bananas!')
-      return prevCounter
-    } else {
-      //console.log('Purchased!');
-      purchaseButton._text = "Select";
+    const price = monkeyPrices[monkeyDisplayNumber]; // Use monkeyDisplayNumber for correct state
+    const isMonkeyPurchased = purchasedMonkeys[monkeyDisplayNumber]; // Check if the monkey is purchased
 
+    if (isMonkeyPurchased) {
+      closeShop(); // Close the shop if the monkey is already selected
+      return prevCounter;
+    } else if (prevCounter < price) {
+      setAlertMessage('Not enough bananas!'); // Show alert if not enough bananas
+      return prevCounter;
+    } else {
+      // Update the purchased monkeys list and banana counter
       setPurchasedMonkeys((prevPurchasedMonkeys) => {
         const updatedMonkeys = [...prevPurchasedMonkeys];
-        updatedMonkeys[monkeyNumber] = true;
-        purchaseButton.setText("Select");
+        updatedMonkeys[monkeyDisplayNumber] = true; // Mark the monkey as purchased
 
-        // Save the updated state to the backend
-        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, monkeyNumber, setTasks);
+        // Optionally save to the backend or perform any additional actions
+        saveTaskData(userId, tasks, prevCounter - price, updatedMonkeys, monkeyDisplayNumber, setTasks);
 
         return updatedMonkeys;
       });
 
+      // Deduct the price from the banana counter
       return prevCounter - price;
     }
   });
 }
 
 function openShop() {
-  // Update monkeyNumber to match the currently selected monkey
-  monkeyNumber = oldMonkeyNumber;
+  setShopOpen(true); // Open the shop UI
+  openedshop = true;
+  setMonkeyMovementEnabled(false); // Disable monkey movement
+  monkey.body.setGravityY(-windowHeight * 3); // Set gravity for the monkey
+  monkey.x = windowWidth; // Set position of the monkey
+  monkey.y = -windowHeight * 0.25; // Set position of the monkey
 
-  // Update display with current monkey's information
-  monkeyDisplay.setTexture(monkeysAvailable[monkeyNumber]);
-  purchaseButton.setText(purchasedMonkeys[monkeyNumber] ? "Select" : "Purchase");
-  costText.setText(`Cost: ${monkeyPrices[monkeyNumber]} Bananas`);
-
-  //console.log('Opening shop...');
-  shopOpen = true;
-  monkeyMovementEnabled = false; // Disable monkey movement
-  monkey.body.setGravityY(-windowHeight*3)
-  monkey.x = windowWidth*10
-  monkey.y = -windowHeight*.25
-  shopContainer.setVisible(true);
-  camera.stopFollow(); // Stop following the monkey
-  camera.pan(windowWidth, shopContainer.y, 500, 'Linear', true); // Pan to shop container
-  lastChangeTime = Date.now() + 500;
+  // Stop the camera from following the monkey
+  camera.stopFollow(); 
 }
 
 function closeShop() {
   setPurchasedMonkeys((prevPurchasedMonkeys) => {
     if (prevPurchasedMonkeys[monkeyNumber]) {
-      // If the current monkey is purchased
-      oldMonkeyNumber = monkeyNumber;
-      saveTaskData(userId, tasks, bananaCounter, prevPurchasedMonkeys, monkeyNumber, setTasks);
+      setSelectedMonkey(monkeyNumber);
+
+      // Save the task data with the correct display number
+      saveTaskData(userId, tasks, bananaCounter, prevPurchasedMonkeys, monkeyDisplayNumber, setTasks);
     } else {
-      monkeyNumber = oldMonkeyNumber;
-      saveTaskData(userId, tasks, bananaCounter, purchasedMonkeys, monkeyNumber, setTasks);
     }
 
-    // Always update the monkey texture when closing the shop
-    monkey.setTexture(monkeysAvailable[monkeyNumber]);
-    //console.log("Setting monkey texture to:", monkeysAvailable[monkeyNumber]);
+    // Update React state to close the shop
+    setShopOpen(false); // Close the shop UI
+    openedshop = false;
+    setMonkeyTexture(monkeysAvailable[monkeyDisplayNumber]); // Set texture for the selected monkey
+    setMonkeyMovementEnabled(true); // Enable monkey movement after leaving the shop
+    setMonkeyPosition({ x: windowWidth * 0.5, y: -windowHeight * 0.2 }); // Set initial position of the monkey
+    setMonkeyGravity(windowHeight * 3); // Set gravity for the monkey
+    setShowShop(false); // Hide the shop UI
 
-    //console.log("Closing shop...");
-    shopOpen = false;
-    lastChangeTime = 0;
-    monkeyMovementEnabled = true; // Re-enable monkey movement
+    // Handle Phaser camera and monkey sprite behavior
+    if (scene) {
+      const monkeySprite = scene.children.list.find(
+        (child) => child.type === 'Sprite' && child.texture.key.startsWith('monkey')
+      );
 
-    monkey.body.setGravityY(windowHeight*3)
-    monkey.x = windowWidth * 0.5
-    monkey.y = -windowHeight*.2
+      // If we found the monkey sprite
+      if (monkeySprite) {
+        // Set the texture based on the selected display number
+        monkeySprite.setTexture(monkeysAvailable[monkeyDisplayNumber]);
 
-    shopContainer.setVisible(false);
-    camera.pan(monkey.x, monkey.y, 500, "Linear", true); // Pan back to the monkey
+        // Apply gravity to the monkey's physics body (if exists)
+        if (monkeySprite.body) {
+          monkeySprite.body.setGravityY(windowHeight * 3); // Set the gravity directly on the sprite's physics body
+        }
 
-    camera.once("camerapancomplete", () => {
-      camera.startFollow(monkey, true, 0.1, 0.1); // Resume following the monkey
-      camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
+        // Reset monkey position
+        monkeySprite.x = windowWidth * 0.5;
+        monkeySprite.y = -windowHeight * 0.2;
 
-      // Double-check texture after camera pan is complete
-      monkey.setTexture(monkeysAvailable[monkeyNumber]);
-    });
+        // Pan the camera to the monkey's new position
+        const camera = scene.cameras.main;
+        if (camera) {
+          camera.pan(
+            monkeySprite.x,
+            monkeySprite.y,
+            500, // Pan duration in milliseconds
+            'Linear', // The pan easing type
+            true, // Auto-start the pan animation
+            (camera, progress) => {
+              // After the pan animation is complete
+              if (progress === 1) {
+                camera.startFollow(monkeySprite, true, 0.1, 0.1); // Resume following the monkey
+                camera.setFollowOffset(0, windowHeight * (200 / 765)); // Offset the camera to be 200 pixels higher
+              }
+            }
+          );
+        }
+      }
+    }
 
     return prevPurchasedMonkeys;
   });
@@ -1556,13 +1593,114 @@ if (treeObj && treeObj.body) {
         </div>
       )}
 
+{/* Show Popup */}
+{showShop && (
+  <div
+    style={{
+      position: "absolute",
+      left: "50%",
+      top: "50%",
+      transform: "translate(-50%, -50%)",
+      width: "40vw",
+      height: "30vw",
+      backgroundColor: "white",
+      padding: "2vw",
+      borderRadius: "1vw",
+      zIndex: 2000,
+      backgroundColor: "rgb(220, 206, 206)",
+      padding: "0.878vw",
+      border: "0.11vw solid black",
+      borderRadius: "0.293vw",
+      boxShadow: "inset 0px 0px 0.586vw rgba(0, 0, 0, 0.4)",
+      fontSize: "1vw",
+      textAlign: "center",
+      fontFamily: "joystix monospace"
+    }}
+  >
+    <h1>Customization Shop</h1>
+    
+    {/* Monkey Display */}
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        top: "5%",
+        width: "100%",
+        height: "15vw",
+      }}
+    >
+      {/* Left Arrow */}
+      <button
+        onClick={() => changeMonkey(-1)}
+        style={{
+          position: "absolute",
+          left: "10%",
+          background: "none",
+          border: "none",
+          outline: "none",
+          fontSize: "3vw",
+          cursor: "pointer",
+          fontFamily: "joystix monospace",
+        }}
+      >
+        ←
+      </button>
+
+      {/* Display Monkey */}
+      <MonkeyDisplay monkeyDisplayNumber={monkeyDisplayNumber} />
+
+      {/* Right Arrow */}
+      <button
+        onClick={() => changeMonkey(1)}
+        style={{
+          position: "absolute",
+          right: "10%",
+          background: "none",
+          border: "none",
+          outline: "none",
+          fontSize: "3vw",
+          cursor: "pointer",
+          fontFamily: "joystix monospace",
+        }}
+      >
+        →
+      </button>
+    </div>
+
+    <p>Cost: {monkeyPrices[monkeyDisplayNumber]}</p>
+
+    {/* Purchase Button */}
+    <button
+      onClick={purchaseMonkey}
+      style={{
+        position: "absolute",
+        left: "50%",
+        transform: "translateX(-50%)",
+        bottom: "5%",
+        padding: "1vw 2vw",
+        fontSize: "1vw",
+        backgroundColor:"rgb(57, 82, 60)",
+        color: "white",
+        border: "none",
+        borderRadius: "0.3vw",
+        cursor: "pointer",
+        fontFamily: "joystix monospace"
+      }}
+    >
+      {purchasedMonkeys[monkeyDisplayNumber] ? "Select" : `Purchase`}
+    </button>
+  </div>
+)}
+
+
       {showAllTasks && (
         <div style={{ 
           position: "absolute",
           width: "30vw", // Adjust width as needed
           height: "30vw",
-          padding: windowWidth * (10 / 1494), 
-          backgroundColor: "yellowgreen",
+          padding: windowWidth * (10 / 1494),
           overflowY: "auto", // Ensures scrolling for large content
           top: "5vw",
           right: "3vw",
