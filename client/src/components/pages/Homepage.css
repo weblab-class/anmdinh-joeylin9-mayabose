@@ -1,5 +1,5 @@
 /* Ensure the page content is centered vertically and horizontally */
-h1 {
+.names {
   text-align: center;
   font-family: "joystix monospace";
   font-size: 1vw;
@@ -83,11 +83,11 @@ h1 {
 }
 
 .banana:nth-child(2) {
-  animation-delay: 1s; /* Delay second banana */
+  animation-delay: 0.7s; /* Delay second banana */
 }
 
 .banana:nth-child(3) {
-  animation-delay: 2s; /* Delay third banana */
+  animation-delay: 1.4s; /* Delay third banana */
 }
 
 /* Keyframes for banana fade-in */
