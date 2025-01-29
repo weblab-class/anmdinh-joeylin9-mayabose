@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef} from "react";
 import Phaser from "phaser";
 import Alert from '../Alert';
 import { UserContext } from "../App";
@@ -34,6 +34,7 @@ import track18 from "../../assets/music/track18.mp3";
 import step from "../../assets/music/step.mp3";
 import land from "../../assets/music/land.mp3"
 import climb from "../../assets/music/climb.mp3"
+import click from "../../assets/music/click.mp3"
 
 // Add this component definition before the Tree component
 const MonkeyDisplay = ({ monkeyDisplayNumber }) => {
@@ -61,6 +62,7 @@ const MonkeyDisplay = ({ monkeyDisplayNumber }) => {
 };
 
 const Tree = () => {
+
   const closeAlert = () => {
     setAlertMessage(""); // Close the alert when the button is clicked
   };
@@ -135,7 +137,7 @@ const Tree = () => {
       }
 
       // Update sound effects volumes
-      ['stepSound', 'landSound', 'climbSound'].forEach(soundKey => {
+      ['stepSound', 'landSound', 'climbSound', 'clickSound'].forEach(soundKey => {
         const soundEffect = scene.sound.get(soundKey);
         if (soundEffect) {
           switch(soundKey) {
@@ -146,6 +148,9 @@ const Tree = () => {
               soundEffect.setVolume(soundEffectsVolume);
               break;
             case 'climbSound':
+              soundEffect.setVolume(soundEffectsVolume);
+              break;
+            case 'clickSound':
               soundEffect.setVolume(soundEffectsVolume);
               break;
           }
@@ -201,6 +206,35 @@ const Tree = () => {
     };
   }, [loading]);
 
+  // Create a ref for the sound
+  const clickSoundRef = useRef(null);
+
+  useEffect(() => {
+    // Initialize the audio file and set its initial volume
+    clickSoundRef.current = new Audio(click); // Ensure the path is correct
+    clickSoundRef.current.volume = soundEffectsVolume; // Set initial volume
+
+    // Cleanup the sound when the component unmounts
+    return () => {
+      clickSoundRef.current = null;
+    };
+  }, []); // Empty dependency array ensures this runs only once
+
+  useEffect(() => {
+    // Update the volume of click sound whenever soundEffectsVolume changes
+    if (clickSoundRef.current) {
+      clickSoundRef.current.volume = soundEffectsVolume;
+    }
+  }, [soundEffectsVolume]); // This effect runs whenever soundEffectsVolume changes
+
+  // Play the click sound
+  const playClickSound = () => {
+    if (clickSoundRef.current) {
+      clickSoundRef.current.play();
+    }
+  };
+
+
     let windowWidth = window.innerWidth;
     let windowHeight = window.innerHeight; // Variable for the monkey sprite
     let monkey;
@@ -220,6 +254,7 @@ const Tree = () => {
     let openedshop = false;
 
     //sounds
+    let clickSound;
     let climbSound;
     let landSound;
     let stepSound;
@@ -246,6 +281,7 @@ const Tree = () => {
       this.load.audio("stepSound", step);
       this.load.audio("landSound", land);
       this.load.audio("climbSound", climb);
+      this.load.audio("clickSound", click);
       this.load.image('cloud', cloudImg);
       this.load.image("ground", groundImg);
       this.load.image("add_icon", add_icon);
@@ -335,6 +371,10 @@ const Tree = () => {
     });
 
     climbSound = this.sound.add("climbSound", {
+      volume: soundEffectsVolume
+    });
+
+    clickSound = this.sound.add("clickSound", {
       volume: soundEffectsVolume
     });
 
@@ -531,11 +571,13 @@ function update() {
     if (currentTime - shopOpenedTime > inputCooldown) {
 
       if (this.leftKey.isDown && currentTime - lastChangeTime > 150) {
+        playClickSound()
         changeMonkey(-1);
         lastChangeTime = currentTime;
       }
 
       if (this.rightKey.isDown && currentTime - lastChangeTime > 150) {
+        playClickSound()
         changeMonkey(1);
         lastChangeTime = currentTime;
       }
@@ -1214,7 +1256,10 @@ const growTree = (task) => {
 >
   {/* Add Task Button */}
   <button
-    onClick={() => setShowTaskManager(prevState => !prevState)} // Toggle the state
+    onClick={() => {
+      playClickSound(); // Play click sound
+      setShowTaskManager(prevState => !prevState); // Original button action
+    }}
     style={{
       position: "relative",
       padding: "0.5vw",
@@ -1241,7 +1286,9 @@ const growTree = (task) => {
 
   {/* Show All Tasks Button */}
   <button
-    onClick={() => setShowAllTasks(!showAllTasks)}
+    onClick={() => {
+      playClickSound(); setShowAllTasks(!showAllTasks)}
+    }
     style={{
       position: "relative",
       width: "calc(4 * 2.5vw)", // Maintain 1:4 ratio
@@ -1336,7 +1383,9 @@ const growTree = (task) => {
 
   {/* Settings Button */}
   <button
-    onClick={() => setShowSettings(!showSettings)}
+    onClick={() => {
+      playClickSound();setShowSettings(!showSettings)}
+    }
     style={{
       position: "relative",
       padding: "0.5vw",
@@ -1405,6 +1454,7 @@ const growTree = (task) => {
           <button
             id='help-button'
             onClick={() => {
+              playClickSound();
               setShowHelp(true); // Open Help popup
               setShowSettings(false); // Close Settings popup
             }}
@@ -1414,6 +1464,7 @@ const growTree = (task) => {
           <button
             id='logout-button'
             onClick={() => {
+              playClickSound();
               handleLogout(); // Call logout function
               setShowSettings(false); // Close Settings popup
             }}
@@ -1491,7 +1542,9 @@ const growTree = (task) => {
             }}
           >
             <button
-              onClick={() => setShowHelp(false)}
+              onClick={() => {
+                playClickSound();setShowHelp(false)}
+              }
               style={{
                 position: "absolute",
                 top: windowHeight * (10 / 765),
@@ -1557,7 +1610,9 @@ const growTree = (task) => {
     >
       {/* Left Arrow */}
       <button
-        onClick={() => changeMonkey(-1)}
+        onClick={() => {
+          playClickSound(); changeMonkey(-1)}
+        }
         style={{
           position: "absolute",
           left: "10%",
@@ -1577,7 +1632,9 @@ const growTree = (task) => {
 
       {/* Right Arrow */}
       <button
-        onClick={() => changeMonkey(1)}
+        onClick={() => {
+          playClickSound(); changeMonkey(1)}
+        }
         style={{
           position: "absolute",
           right: "10%",
@@ -1597,7 +1654,9 @@ const growTree = (task) => {
 
     {/* Purchase Button */}
     <button
-      onClick={purchaseMonkey}
+      onClick={() => {
+        playClickSound(); purchaseMonkey()}
+      }
       style={{
         position: "absolute",
         left: "50%",
@@ -1684,7 +1743,9 @@ const growTree = (task) => {
               backgroundColor: "rgba(0, 0, 0, 0.8)",
               zIndex: 999,
             }}
-            onClick={handleCancel}
+            onClick={() => {
+              playClickSound();handleCancel}
+            }
           />
           <TaskManager
             onAddTask={(task) => {
@@ -1693,6 +1754,7 @@ const growTree = (task) => {
             }}
             onCancel={handleCancel}
             tasks={tasks}  // Pass the tasks prop here
+            playSound={playClickSound}
           />
         </>
       )}
@@ -1713,7 +1775,9 @@ const growTree = (task) => {
       >
         {/* Reset Zoom Button */}
         <button
-          onClick={resetZoomHandler}
+          onClick={() => {
+            playClickSound();resetZoomHandler()}
+          }
           style={{
             fontFamily: "joystix monospace", // Use the custom font
             fontSize: "0.8vw", // Adjust font size for zoom controls
@@ -1731,7 +1795,9 @@ const growTree = (task) => {
 
         {/* Zoom In Button */}
         <button
-          onClick={zoomInHandler}
+          onClick={() => {
+            playClickSound();zoomInHandler()}
+          }
           style={{
             fontFamily: "joystix monospace", // Use the custom font
             fontSize: "0.9vw", // Adjust font size for zoom controls
@@ -1749,7 +1815,9 @@ const growTree = (task) => {
 
         {/* Zoom Out Button */}
         <button
-          onClick={zoomOutHandler}
+          onClick={() => {
+            playClickSound();zoomOutHandler()}
+          }
           style={{
             fontFamily: "joystix monospace", // Use the custom font
             fontSize: "0.9vw", // Adjust font size for zoom controls
@@ -1768,7 +1836,9 @@ const growTree = (task) => {
 
       {/* Monkey See Monkey Do Link */}
       <div
-        onClick={() => navigate('/')}
+        onClick={() => {
+          playClickSound(); navigate('/')}
+        }
         style={{
           position: "absolute",
           bottom: "1vw",

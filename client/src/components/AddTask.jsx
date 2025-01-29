@@ -2,27 +2,20 @@ import React, { useState } from "react";
 import Alert from './Alert';
 import "./AddTask.css";
 
-const TaskManager = ({ onAddTask, onCancel, tasks }) => {
+const TaskManager = ({ onAddTask, onCancel, tasks, playSound }) => {
   const [taskName, setTaskName] = useState(""); // State for task name
   const [taskDifficulty, setTaskDifficulty] = useState(""); // State for task difficulty
   const [taskNotes, setTaskNotes] = useState(""); // State for task notes
   const [alertMessage, setAlertMessage] = useState("");
-  const [visible, setVisible] = useState(true);
-  const handleClose = () => setVisible(false);
-  
-
-  if (!visible) return null;
 
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
         // Check if a task with the same name already exists
-      const taskExists = tasks.some((task) => task.name === taskName);
-      if (taskExists) {
-        setAlertMessage("A task with this name already exists. Please choose a different name.");
-        return; }  else if (taskName.length > 20) {
-          setAlertMessage("Too many characters!")
-          return;
-      }
+  const taskExists = tasks.some((task) => task.name === taskName);
+  if (taskExists) {
+    setAlertMessage("A task with this name already exists. Please choose a different name.");
+    return;
+  }
 
       console.log("Previous tasks:", tasks); // Log the current list of tasks
       const previousTask = tasks[0];
@@ -60,18 +53,17 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         left: "5%",
         transform: "translate(-10%, -5%)",
         backgroundColor: "rgb(220, 206, 206)",
-        padding: "1vw",
+        padding: "12px",
         border: "1.5px solid black",
         borderRadius: "4px",
-        boxShadow: "inset 0px 0px 10px rgba(0, 0, 0, 0.6)",
+        boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
         zIndex: 1000,
         width: "20%",
         fontFamily: "joystix monospace",
       }}
     >
-      <button className="close-button" onClick={handleClose}>×</button>
-      <h3 style={{fontSize: "1.2vw"}}>Add a New Task</h3>
-      <label style={{fontSize: "1vw"}}>
+      <h3 style={{fontSize: "18px"}}>Add a New Task</h3>
+      <label style={{fontSize: "14px"}}>
         Task Name:
         <input
           type="text"
@@ -88,12 +80,10 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
           }}
         />
       </label>
-      <label style={{fontSize: "1vw"}}>
+      <label style={{fontSize: "14px"}}>
         Notes:
-        <textarea
-          maxLength='20'
-          rows="3"
-          cols="30"
+        <input
+          type="text"
           value={taskNotes}  // Using taskNotes for the Notes field
           onChange={e => setTaskNotes(e.target.value)}  // Updating taskNotes
           placeholder="Optional"
@@ -105,11 +95,12 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
             border: "1.2px solid rgb(0, 0, 0)",
             boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
             fontFamily: "joystix monospace",
+            color: "green",
           }}
         />
-        </label>
+      </label>
       <div/>
-      <label style={{fontSize: "1vw"}}>
+      <label style={{fontSize: "14px"}}>
         Task Difficulty:
         <select
           value={taskDifficulty}
@@ -122,7 +113,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
             border: "1.2px solid rgb(0, 0, 0)",
             boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
             fontFamily: "joystix monospace",
-            fontSize: "1vw"
+            color: "green",
           }}
         >
           <option value="">Select Difficulty</option>
@@ -133,20 +124,47 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
       </label>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
         <button
-          onClick={handleSubmit}
+          onClick={() => {
+            playSound(); handleSubmit()}
+          }
           className='submit-button'
+          // style={{
+          //   padding: "5px",
+          //   backgroundColor: "#4CAF50",
+          //   color: "white",
+          //   border: "none",
+          //   borderRadius: "4px",
+          //   cursor: "pointer",
+          //   fontFamily: "joystix monospace",
+          //   border: "1.2px solid rgb(0, 0, 0)",
+          //   boxShadow: "inset 0px 0px 8px rgba(6, 88, 46, 0.4)",
+          // }}
         >
           Submit
         </button>
         <button
-          onClick={onCancel}
+          onClick={() => {
+            playSound(); onCancel()}
+          }
           className='cancel-button'
+          // style={{
+          //   padding: "5px",
+          //   backgroundColor: "#f44336",
+          //   color: "white",
+          //   border: "none",
+          //   borderRadius: "4px",
+          //   cursor: "pointer",
+          //   fontFamily: "joystix monospace",
+          //   border: "1.2px solid rgb(0, 0, 0)",
+          //   boxShadow: "inset 0px 0px 8px rgba(86, 13, 13, 0.4)",
+          //   fontSize: "14px",
+          // }}
         >
           Cancel
         </button>
       </div>
       
-      <Alert message={alertMessage} onClose={closeAlert} />
+      <Alert id='taskalert' message={alertMessage} onClose={closeAlert} style={{left: "150%", width: "100%"}} />
     </div>
   );
 };
