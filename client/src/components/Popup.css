@@ -1,0 +1,92 @@
+/* General button styles */
+
+  
+  button:focus {
+    outline: none; /* Remove focus outline */
+  }
+  
+  /* Save button specific styles */
+  button.save-button {
+    font-family: "joystix monospace";
+    color: #fff;
+    border: none;
+    padding: 1.2vw 20px;
+    margin-top: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth color transition */
+    font-size: 1vw;
+    background-color: #55a9f0; /* Light blue */
+    border: 1.2px solid rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "joystix monospace";
+    box-shadow: inset 0px 0px 8px rgba(86, 13, 13, 0.4);
+    padding: 8px;
+  }
+  
+  button.save-button:hover {
+    background-color: #007bff; /* Darker blue on hover */
+  }
+  
+  button.save-button:active {
+    background-color: #005195; /* Dark blue on click */
+  }
+  
+  textarea {
+    width: 90%;  /* Full width */
+    min-width: 80%; /* Minimum width (in pixels) */
+    max-width: 150%;  /* Maximum width (in pixels) */
+    min-height: 40%;  /* Minimum height (in pixels) */
+    max-height: 300px;   /* Height of the textarea */
+    padding: 8px;
+    border-radius: 4px;
+    border: 1.2px solid rgb(0, 0, 0);
+    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.4);
+    font-family: "joystix monospace";
+    font-size: 1.2vw;
+    resize: both; /* Allow resizing both horizontally and vertically */
+    overflow: auto; /* Show scrollbars if the content exceeds the box */
+  }
+
+  
+.close-btn {
+  background: transparent;
+  border: none;
+  color: black;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 90%;
+  padding: 0;
+  line-height: 1;
+}
+
+  /* Collect Bananas button specific styles */
+  button.collect-bananas {
+    font-family: "joystix monospace";
+    color: #fff;
+    border: none;
+    padding: 1vw 20px;
+    margin-top: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth color transition */
+    font-size: 1vw;
+    background-color: #4CAF50; /* Light green */
+    border: 1.2px solid rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "joystix monospace";
+    box-shadow: inset 0px 0px 8px rgba(86, 13, 13, 0.4);
+    padding: 8px;
+  }
+  
+  button.collect-bananas:hover {
+    background-color: #388e3c; /* Darker green on hover */
+  }
+  
+  button.collect-bananas:active {
+    background-color: #2E7D32; /* Dark green on click */
+  }
+  
