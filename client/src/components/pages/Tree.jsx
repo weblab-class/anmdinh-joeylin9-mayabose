@@ -683,8 +683,10 @@ function update() {
 
     // Check if the monkey is currently overlapping with the branch
     const isOverlapping = this.physics.overlap(monkey, branch);
-
     if (isOverlapping) {
+      console.log('monkey and branch', monkey.y, branch.y)
+    }
+    if (isOverlapping && Math.abs(Math.abs(monkey.y) - Math.abs(branch.y)) < 60) {
       // If the monkey is overlapping, we need to display the popup for this branch
       let popupShown = false;
 
