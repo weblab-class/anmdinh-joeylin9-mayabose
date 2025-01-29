@@ -493,7 +493,7 @@ for (let i = 0; i < bananaCount; i++) {
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      camera.setBounds(-4*windowWidth/3, -5000, Infinity, Infinity);
+      camera.setBounds(-4*windowWidth/3, -5000, windowWidth*2.8, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
 
       this.physics.add.overlap(monkey, market, () => {
@@ -523,12 +523,6 @@ function update() {
       cloud.x = windowWidth*2
       cloud.y =  Math.random() * -1 * windowHeight/2 - windowHeight/4;
     }
-  });
-
-  // INFINITE BANANA COLLECTION
-  const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-  qKey.on("down", () => {
-    setBananaCounter((prevCount) => prevCount + 1);
   });
 
   // SHOP UPDATES
@@ -664,9 +658,6 @@ function update() {
 
     // Check if the monkey is currently overlapping with the branch
     const isOverlapping = this.physics.overlap(monkey, branch);
-    if (isOverlapping) {
-      console.log('monkey and branch', monkey.y, branch.y)
-    }
     if (isOverlapping && Math.abs(Math.abs(monkey.y) - Math.abs(branch.y)) < 60) {
       // If the monkey is overlapping, we need to display the popup for this branch
       let popupShown = false;
@@ -705,7 +696,6 @@ function update() {
         monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
         monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
       ) {
-        console.log('right', monkey.x, this.tree.x)
         if (!popupShown) {
           setPopupVisible(true); // Show the popup
 

@@ -3,7 +3,6 @@
   text-align: center;
   font-family: "joystix monospace";
   font-size: 1vw;
-  color: rgb(157, 206, 157);
   position:absolute;
   bottom: 2vw;
 }
@@ -17,6 +16,8 @@
   background-color: #082f27;
   text-align: center;
   flex-direction: column;
+  color: rgb(157, 206, 157);
+  font-size: 0.7vw;
 }
 
 /* Flex container for content */
@@ -34,8 +35,7 @@
   font-weight: bold;
   letter-spacing: 5px;
   color: white;
-  font-size: 4rem;
-  margin-bottom: 30vw; /* Adds space for bananas to appear below */
+  font-size: 4rem; /* Adds space for bananas to appear below */
   padding: 0; /* No padding, no box effects */
   text-align: center; /* Center the title */
 }
@@ -52,6 +52,7 @@
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   font-family: 'joystix monospace', sans-serif;
+  margin-top: .5vw;
 }
 
 .climbing:hover {
