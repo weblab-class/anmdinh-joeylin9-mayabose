@@ -1,15 +1,21 @@
-#taskalert {
-    left: 150%;
-    width: 100%;
-}
 
-select option {
-    color: green; /* Default color for all options */
+select option[value="Easy"] {
+    color: rgb(1, 75, 36); /* Default color for all options */
+  }
+
+  select option[value="Medium"] {
+    color: rgb(214, 89, 0); /* Default color for all options */
+  }
+
+  select option[value="Hard"] {
+    color: rgb(161, 3, 0); /* Default color for all options */
   }
   
 select option[value=""] {
     color: gray; /* Specific color for the "Select Difficulty" option */
   }
+
+
 
   button.submit-button {
     background-color: #4CAF50;
@@ -20,6 +26,7 @@ select option[value=""] {
     font-family: "joystix monospace";
     box-shadow: inset 0px 0px 8px rgba(6, 88, 46, 0.4);
     padding: 8px;
+    font-size: 1vw
   }
   
   button.submit-button:hover {
@@ -36,6 +43,7 @@ select option[value=""] {
     font-family: "joystix monospace";
     box-shadow: inset 0px 0px 8px rgba(86, 13, 13, 0.4);
     padding: 8px;
+    font-size: 1vw
   }
   
   button.cancel-button:hover {
@@ -43,3 +51,33 @@ select option[value=""] {
     box-shadow: inset 0px 0px 10px rgba(86, 13, 13, 0.7);
   }
   
+  textarea {
+    width: 100%;  /* Full width */
+    min-width: 80%; /* Minimum width (in pixels) */
+    max-width: 150%;  /* Maximum width (in pixels) */
+    min-height: 20%;  /* Minimum height (in pixels) */
+    max-height: 300px;   /* Height of the textarea */
+    padding: 8px;
+    border-radius: 4px;
+    border: 1.2px solid rgb(0, 0, 0);
+    box-shadow: inset 0px 0px 8px rgba(0, 0, 0, 0.4);
+    font-family: "joystix monospace";
+    font-size: 1vw;
+    resize: both; /* Allow resizing both horizontally and vertically */
+    overflow: auto; /* Show scrollbars if the content exceeds the box */
+  }
+  
+  
+.close-btn {
+  background: transparent;
+  border: none;
+  color: black;
+  font-size: 1vw;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 90%;
+  padding: 0;
+  line-height: 1;
+}
+
+
