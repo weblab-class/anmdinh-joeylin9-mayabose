@@ -1432,9 +1432,6 @@ const growTree = (task) => {
 )}
 
   <div>
-      {/* Render the custom alert when there's a message */}
-      <Alert message={alertMessage} onClose={closeAlert}/>
-      </div>
 
       {/* Settings Popup */}
       {showSettings && (
@@ -1715,8 +1712,12 @@ const growTree = (task) => {
           />
           <TaskManager
             onAddTask={(task) => {
-              growTree(task);
-              handleAddTask(task);
+              if (tasks.length < 27)
+              {growTree(task);
+                handleAddTask(task);}
+              else {
+                setAlertMessage("Maximum number of tasks reached.")
+              }
             }}
             onCancel={handleCancel}
             tasks={tasks}  // Pass the tasks prop here
@@ -1724,6 +1725,10 @@ const growTree = (task) => {
           />
         </>
       )}
+
+      {/* Render the custom alert when there's a message */}
+      <Alert message={alertMessage} onClose={closeAlert}/>
+      </div>
 
 
 
