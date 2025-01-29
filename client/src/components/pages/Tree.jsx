@@ -294,8 +294,8 @@ const Tree = () => {
       //console.log('Creating shop and game elements');
 
 // Tree setup based on tasks length
-const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
-const treeWidth = windowHeight * (90 / 765);      // Width of the tree trunk
+//const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
+//const treeWidth = windowHeight * (90 / 765);      // Width of the tree trunk
 
 // Initialize tree (this will hold all tree parts)
 this.tree = this.add.group(); // Create a group for the tree
