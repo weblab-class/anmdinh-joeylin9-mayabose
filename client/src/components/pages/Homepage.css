@@ -1,4 +1,13 @@
 /* Ensure the page content is centered vertically and horizontally */
+h1 {
+  text-align: center;
+  font-family: "joystix monospace";
+  font-size: 1vw;
+  color: rgb(157, 206, 157);
+  position:absolute;
+  bottom: 2vw;
+}
+
 .homepage-container {
   display: flex;
   justify-content: center;
@@ -7,7 +16,6 @@
   width: 100vw;
   background-color: #082f27;
   text-align: center;
-  color: white;
   flex-direction: column;
 }
 
@@ -27,14 +35,14 @@
   letter-spacing: 5px;
   color: white;
   font-size: 4rem;
-  margin-bottom: 20px; /* Adds space for bananas to appear below */
+  margin-bottom: 30vw; /* Adds space for bananas to appear below */
   padding: 0; /* No padding, no box effects */
   text-align: center; /* Center the title */
 }
 
 /* Button styling */
 .climbing {
-  background-color: #082f27;
+  background-color: #271417;
   color: white;
   padding: 15px 30px;
   font-size: 18px;
@@ -91,3 +99,5 @@
     opacity: 1;
   }
 }
+
+
