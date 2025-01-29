@@ -11,6 +11,9 @@ import bananaImg from "../../assets/banana3.png";
 import cloudImg from "../../assets/cloud2-removebg-preview.png";
 import groundImg from "../../assets/ground.png";
 import default_monkey from "../../assets/default-monkey-spritesheet.png"
+import monkeyhat from "../../assets/monkeyhat-spritesheet.png"
+import monkeybow from "../../assets/monkeybow-spritesheet.png"
+import monkeyheadphones from "../../assets/monkeyheadphones-spritesheet.png"
 import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
 import { useNavigate } from "react-router-dom";
@@ -211,9 +214,9 @@ const Tree = () => {
     // PRELOAD
     function preload() {
       // this.load.image('monkey1', monkeyImg); // Preload the monkey image
-      this.load.image('monkey2', monkeyImg2); // Preload the monkey image
-      this.load.image('monkey3', monkeyImg3); // Preload the monkey image
-      this.load.image('monkey4', monkeyImg4);
+      // this.load.image('monkey2', monkeyImg2); // Preload the monkey image
+      // this.load.image('monkey3', monkeyImg3); // Preload the monkey image
+      // this.load.image('monkey4', monkeyImg4);
       this.load.image('market', marketImg); // Preload the market image
       this.load.image("banana", bananaImg); // Load banana image here
       this.load.audio("backgroundMusic", track18);
@@ -230,6 +233,18 @@ const Tree = () => {
       this.load.image("treetrunk", treetrunk);
       this.load.image("branch_left", branch_left);
       this.load.image("branch_right", branch_right);
+      this.load.spritesheet('monkey2', monkeybow, {
+        frameWidth: 224,  // width of each frame in the spritesheet
+        frameHeight: 228 // height of each frame in the spritesheet
+      });
+      this.load.spritesheet('monkey3', monkeyhat, {
+        frameWidth: 224,  // width of each frame in the spritesheet
+        frameHeight: 228 // height of each frame in the spritesheet
+      });
+      this.load.spritesheet('monkey4', monkeyheadphones, {
+        frameWidth: 224,  // width of each frame in the spritesheet
+        frameHeight: 228 // height of each frame in the spritesheet
+      });
       this.load.spritesheet('monkey1', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
@@ -893,7 +908,7 @@ const handleSave = (input) => {
 
       return updatedTasks; // Return the updated tasks to be set
     });
-  } 
+  }
 };
 
 let task = tasks.find(t => t.name === selectedTaskName);
@@ -1187,7 +1202,7 @@ const growTree = (task) => {
       // Ensure zoom level doesn't go below 0.5, even with floating-point precision issues
       if (camera.zoom > 0.5) {
         camera.zoom = Math.max(camera.zoom - 0.1, 0.5);
-      } 
+      }
     } else {
       console.error('Camera or Game is not defined');
     }
