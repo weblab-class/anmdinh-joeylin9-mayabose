@@ -85,7 +85,6 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
             border: "1.2px solid rgb(0, 0, 0)",
             boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
             fontFamily: "joystix monospace",
-            color: "green",
           }}
         />
       </label>
@@ -106,7 +105,6 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
             border: "1.2px solid rgb(0, 0, 0)",
             boxShadow: "inset 0px 0px 8px rgba(0, 0, 0, 0.4)",
             fontFamily: "joystix monospace",
-            color: "green",
           }}
         />
         </label>
