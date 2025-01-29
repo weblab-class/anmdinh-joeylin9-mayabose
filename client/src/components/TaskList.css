@@ -1,45 +1,38 @@
-/* Dropdown container */
-.dropdown {
-    position: relative;
-    display: inline-block;
-  }
-  
-  /* Dropdown toggle button */
-  .dropdown-toggle {
-    background-color: #4caf50;
-    color: white;
-    padding: 10px 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .dropdown-toggle:hover {
-    background-color: #45a049;
-  }
-  
-  /* Dropdown menu */
-  .dropdown-menu {
-    position: absolute;
-    background-color: white;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    margin-top: 5px;
-    z-index: 1000;
-    width: 100%;
-    overflow: hidden;
-  }
-  
-  /* Dropdown item */
-  .dropdown-item {
-    padding: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .dropdown-item:hover {
-    background-color: #f1f1f1;
-  }
-  
+/* TaskList.css */
+.scroll-container {
+  position: absolute;
+  width: 30vw;
+  height: 30vw;
+  padding: 0.878vw;
+  background-color: rgb(220, 206, 206);
+  border: 0.11vw solid black;
+  border-radius: 0.293vw;
+  box-shadow: inset 0px 0px 0.586vw rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  top: 5vw;
+  right: 3vw;
+  font-family: 'joystix monospace';
+  overflow-y: auto; /* Ensure scrolling is enabled */
+}
+
+/* Customize the scrollbar */
+.scroll-container::-webkit-scrollbar {
+  width: 10px;  /* Adjust the width of the scrollbar */
+}
+
+/* Customize the scrollbar track */
+.scroll-container::-webkit-scrollbar-track {
+  background: #9e7171;  /* Light gray track */
+  border-radius: 10px;
+}
+
+/* Customize the scrollbar thumb (the draggable part) */
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #2d0d0d;  /* Darker gray thumb */
+  border-radius: 10px;
+}
+
+/* Customize the scrollbar thumb when hovered */
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #420d0d;  /* Darker thumb when hovered */
+}

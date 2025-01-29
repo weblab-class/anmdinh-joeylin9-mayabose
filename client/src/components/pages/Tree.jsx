@@ -15,7 +15,7 @@ import TaskManager from "../AddTask"; // Import TaskManager component
 import Popup from "../Popup";
 import { useNavigate } from "react-router-dom";
 import { fetchGameInfo, saveTaskData } from '../gameDataHandler';
-import "../../public/styles/custom-font.css";
+import joystix from "../../public/styles/custom-font.css";
 import add_icon from "../../assets/add-icon.png";
 import settings_icon from "../../assets/settings-icon.png";
 import showalltasks_icon from "../../assets/showalltasks-icon.png";
@@ -365,7 +365,10 @@ tasks.reverse().forEach((task, index) => {
   const branchX = isLeftBranch
     ? Math.floor(newTrunk.x - treeWidth / 2) + 1 // Add a slight shift to the left to fix the gap
     : Math.floor(newTrunk.x + treeWidth / 2); // Align with right edge of the trunk
-
+  
+  const textX = isLeftBranch
+  ? branchX - 0.2*windowWidth
+  : branchX + 0.1*windowWidth
   // Y-position of the branch will be at the middle of the trunk segment
   const branchY = Math.floor(newTrunk.y - treeBaseHeight / 2); // Attach around the middle of the trunk segment
 
@@ -379,11 +382,11 @@ tasks.reverse().forEach((task, index) => {
   // Add task text to the branch
   const taskName = task.name || "Default Task";
   this.add.text(
-    branchX,
+    textX,
     branchY - windowHeight * (50 / 765),
     taskName,
     {
-      font: `${windowWidth * (20 / 1494)}px Courier New`,
+      font: `${windowWidth * (50 / 1494)}px  joystix monospace`,
       fill: "#000",
       align: "center",
     }
@@ -394,8 +397,8 @@ const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium
 const bananaSpacing = windowWidth * (50 / 1494);
 for (let i = 0; i < bananaCount; i++) {
   const banana = this.add.sprite(
-    branchX + i * bananaSpacing,
-    branchY,
+    textX + i * bananaSpacing,
+    branchY + 0.02 * windowWidth,
     "banana"
   );
   banana.setOrigin(0.5, 0.5);
@@ -486,7 +489,7 @@ console.log("Branches:", this.branches);
       const buttonBackground = this.add.rectangle(0, shopBackground.height * 0.45, shopBackground.width * 0.2, shopBackground.height * 0.1, 0x4caf50);
       buttonBackground.setOrigin(0.5, 0.5); // Center the rectangle
       shopContainer.add(buttonBackground);
-      purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vw Courier New" });
+      purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vw joystix monospace" });
       purchaseButton.setOrigin(0.5, 0.5);
       purchaseButton.setInteractive();
       purchaseButton.on("pointerdown", () => purchaseMonkey());
@@ -497,14 +500,14 @@ console.log("Branches:", this.branches);
 
 
       // Left arrow (change to previous monkey)
-      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New" });
+      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx joystix monospace" });
       leftArrow.setOrigin(1, 0.5);
       leftArrow.setInteractive();
       leftArrow.on('pointerdown', () => changeMonkey(-1));
       shopContainer.add(leftArrow);
 
       // Right arrow (change to next monkey)
-      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New"});
+      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx joystix monospace"});
       rightArrow.setOrigin(0, 0.5);
       rightArrow.setInteractive();
       rightArrow.on('pointerdown', () => changeMonkey(1));
@@ -520,7 +523,7 @@ console.log("Branches:", this.branches);
         0,
         windowHeight * (80 / 765),
         `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-        { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vwpx Courier New" }
+        { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vwpx joystix monospace" }
       );
       costText.setOrigin(0.5, 0.5); // Centered text
       shopContainer.add(costText);
@@ -1118,6 +1121,10 @@ const growTree = (task) => {
         const branchX = isLeftBranch
           ? Math.floor(newTrunk.x - treeWidth / 2) + 1 // Adjust slightly to the left
           : Math.floor(newTrunk.x + treeWidth / 2); // Align with right edge of the trunk
+        
+        const textX = isLeftBranch
+          ? branchX - 0.2*windowWidth
+          : branchX + 0.1*windowWidth
 
         // Y-position of the branch will be at the middle of the trunk segment
         const branchY = Math.floor(newTrunk.y - treeBaseHeight / 2);
@@ -1132,11 +1139,11 @@ const growTree = (task) => {
         // Add task text to the branch
         const taskName = task.name || "Default Task";
         scene.add.text(
-          branchX,
+          textX,
           branchY - windowHeight * (50 / 765),
           taskName,
           {
-            font: `${windowWidth * (20 / 1494)}px Courier New`,
+            font: `${windowWidth * (20 / 1494)}px joystix monospace`,
             fill: "#000",
             align: "center",
           }
@@ -1147,8 +1154,8 @@ const growTree = (task) => {
         const bananaSpacing = windowWidth * (50 / 1494);
         for (let i = 0; i < bananaCount; i++) {
           const banana = scene.add.sprite(
-            branchX + i * bananaSpacing,
-            branchY,
+            textX + i * bananaSpacing,
+            branchY + 0.02*windowWidth,
             "banana"
           );
           banana.setOrigin(0.5, 0.5);
@@ -1243,7 +1250,7 @@ const growTree = (task) => {
     style={{
       position: "relative",
       padding: "0.5vw",
-      fontFamily: "Courier New",
+      fontFamily: "joystix monospace",
       fontSize: "2vh",
       zIndex: 9999,
       background: "none",
@@ -1365,7 +1372,7 @@ const growTree = (task) => {
     style={{
       position: "relative",
       padding: "0.5vw",
-      fontFamily: "Courier New",
+      fontFamily: "joystix monospace",
       fontSize: "2vh",
       zIndex: 9999,
       background: "none",
