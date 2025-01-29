@@ -264,9 +264,9 @@ const Tree = () => {
       // this.add.graphics()
       //     .lineStyle(2, 0xff0000) // Red color for debug lines
       //     .strokeRect(0, 0, gameWidth, gameHeight); // Outline the game area
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 30; i++) {
         const randomX = Math.random() * (windowHeight*3 + windowHeight*3) - windowHeight*3;
-        const randomY = Math.random() * (-windowHeight*3 - windowHeight) + windowHeight; // Constrain to upper half of the screen
+        const randomY = Math.random() * (-windowHeight*3 - windowHeight) - windowHeight; // Constrain to upper half of the screen
 
         const cloud = this.add.image(randomX, randomY, 'cloud');
         cloud.setScale(0.67); // Adjust scale as needed
@@ -534,7 +534,7 @@ function update() {
     cloud.x -= windowWidth*(1/1464);
     if (cloud.x < -windowWidth*1.5) {
       cloud.x = windowWidth*2
-      cloud.y =  Math.random() * windowHeight/2;
+      cloud.y =  Math.random() * -1 * windowHeight/2 - windowHeight/4;
     }
   });
 
