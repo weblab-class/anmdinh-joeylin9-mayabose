@@ -53,13 +53,14 @@ const Popup = ({
           fontColor: "white",
         }}
       >
-        <button className="close-btn" onClick={handleClose}>×</button>
+        <button className="closeButton" onClick={handleClose}>×</button>
         <h4 style={{ fontSize:"1.4vw", color: "white", }}>
           <strong>Edit <em>{name}</em></strong>
         </h4>
         {/* Input field */}
         <textarea
           type="text"
+          maxLength='30'
           style={{fontSize: "1vw"}}
           value={base} // Controlled input
           onChange={handleChange} // Update state on change

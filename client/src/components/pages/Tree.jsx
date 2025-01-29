@@ -269,9 +269,9 @@ const Tree = () => {
       // this.add.graphics()
       //     .lineStyle(2, 0xff0000) // Red color for debug lines
       //     .strokeRect(0, 0, gameWidth, gameHeight); // Outline the game area
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 30; i++) {
         const randomX = Math.random() * (windowHeight*3 + windowHeight*3) - windowHeight*3;
-        const randomY = Math.random() * (-windowHeight*3 - windowHeight) + windowHeight; // Constrain to upper half of the screen
+        const randomY = Math.random() * (-windowHeight*3 - windowHeight) - windowHeight; // Constrain to upper half of the screen
 
         const cloud = this.add.image(randomX, randomY, 'cloud');
         cloud.setScale(0.67); // Adjust scale as needed
@@ -386,21 +386,23 @@ tasks.reverse().forEach((task, index) => {
     }
   );
 
-  // Add bananas based on difficulty
-  const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
-  const bananaSpacing = windowWidth * (50 / 1494);
-  for (let i = 0; i < bananaCount; i++) {
-    const banana = this.add.sprite(
-      branchX + i * bananaSpacing,
-      branchY,
-      "banana"
-    );
-    banana.setOrigin(0.5, 0.5);
-    banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50));
-    banana.setDepth(10);
-    this.bananas.push(banana);
-    this.tree.add(banana); // Add banana to the tree group
-  }
+// Add bananas based on difficulty
+const bananaCount = task.difficulty === "Easy" ? 1 : task.difficulty === "Medium" ? 2 : 3;
+const bananaSpacing = windowWidth * (50 / 1494);
+for (let i = 0; i < bananaCount; i++) {
+  const banana = this.add.sprite(
+    branchX + i * bananaSpacing,
+    branchY,
+    "banana"
+  );
+  banana.setOrigin(0.5, 0.5);
+  banana.setDisplaySize(windowHeight * (4 / 50), windowHeight * (4 / 50));
+  banana.setDepth(10);
+  this.physics.add.existing(banana, true);
+  this.bananas.push(banana);
+  banana.body.updateFromGameObject();
+  this.tree.add(banana); // Add banana to the tree group
+}
 
   // Alternate branch side for the next branch
   this.branchSide = this.branchSide === "left" ? "right" : "left";
@@ -541,7 +543,7 @@ function update() {
     cloud.x -= windowWidth*(1/1464);
     if (cloud.x < -windowWidth*1.5) {
       cloud.x = windowWidth*2
-      cloud.y =  Math.random() * windowHeight/2;
+      cloud.y =  Math.random() * -1 * windowHeight/2 - windowHeight/4;
     }
   });
 
@@ -942,8 +944,6 @@ const handleCollectBananas = (taskName) => {
       saveTaskData(userId, updatedTasks, newCounter, purchasedMonkeys, selectedMonkey, setTasks);
       return newCounter;
     });
-  } else {
-    //console.log("No task selected.");
   }
   moveBranchesDown(selectedTaskName)
 };
@@ -990,12 +990,12 @@ const moveBranchesDown = (taskName) => {
             //console.log('Removed branch:', branchToRemove);
           }
 
-      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
+      const shrinkAmount = windowHeight * (150 / 765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
       const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
       const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
-
+      console.log('bananamove', bananasMove)
       bananasMove.forEach((banana) => {
         scene.tweens.add({
           targets: banana,
@@ -1165,7 +1165,7 @@ if (treeObj && treeObj.body) {
             "banana"
           );
           banana.setOrigin(0.5, 0.5);
-          banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50)); // Adjust the size as needed
+          banana.setDisplaySize(windowHeight * (4 / 50), windowHeight * (4 / 50)); // Adjust the size as needed
           banana.setDepth(10); // Ensure it appears in front of other objects
 
           scene.physics.add.existing(banana);

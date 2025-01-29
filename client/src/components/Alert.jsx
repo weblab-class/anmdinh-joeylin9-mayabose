@@ -9,11 +9,6 @@ const Alert = ({ message, onClose, duration=5000 }) => {
 
   const [visible, setVisible] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), duration); // Auto-hide after `duration`
-    return () => clearTimeout(timer); // Cleanup on unmount
-  }, [duration]);
-
   const handleClose = () => setVisible(false);
 
   if (!visible) return null;

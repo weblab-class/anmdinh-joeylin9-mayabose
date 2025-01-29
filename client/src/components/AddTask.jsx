@@ -16,11 +16,13 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
   const handleSubmit = () => {
     if (taskName && taskDifficulty) {
         // Check if a task with the same name already exists
-  const taskExists = tasks.some((task) => task.name === taskName);
-  if (taskExists) {
-    setAlertMessage("A task with this name already exists. Please choose a different name.");
-    return;
-  }
+      const taskExists = tasks.some((task) => task.name === taskName);
+      if (taskExists) {
+        setAlertMessage("A task with this name already exists. Please choose a different name.");
+        return; }  else if (taskName.length > 20) {
+          setAlertMessage("Too many characters!")
+          return;
+      }
 
       console.log("Previous tasks:", tasks); // Log the current list of tasks
       const previousTask = tasks[0];
@@ -67,7 +69,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         fontFamily: "joystix monospace",
       }}
     >
-      <button className="close-btn" onClick={handleClose}>×</button>
+      <button className="close-button" onClick={handleClose}>×</button>
       <h3 style={{fontSize: "1.2vw"}}>Add a New Task</h3>
       <label style={{fontSize: "1vw"}}>
         Task Name:
@@ -90,6 +92,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
       <label style={{fontSize: "1vw"}}>
         Notes:
         <textarea
+          maxLength='20'
           rows="3"
           cols="30"
           value={taskNotes}  // Using taskNotes for the Notes field
@@ -145,7 +148,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         </button>
       </div>
       
-      <Alert id='taskalert' message={alertMessage} onClose={closeAlert} style={{left: "150%", width: "100%"}} />
+      <Alert message={alertMessage} onClose={closeAlert} />
     </div>
   );
 };
