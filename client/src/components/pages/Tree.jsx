@@ -1166,7 +1166,7 @@ const growTree = (task) => {
 
   const zoomInHandler = () => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
-    if (camera && camera.zoom < 2) {
+    if (camera && camera.zoom < 1.5) {
       camera.zoom += 0.1;
     } else {
       console.error('Camera or Game is not defined');
