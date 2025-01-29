@@ -462,69 +462,7 @@ console.log("Branches:", this.branches);
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
       camera.setBounds(-4*windowWidth/3, -5000, Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
-      //console.log("Camera bounds:", camera.getBounds());
 
-      //SHOP//
-
-      // Background for the shop
-      // const shopBackground = this.add.rectangle(0, 0, windowWidth / 2.5, windowHeight / 2, 0xffffff, 1);
-      // shopBackground.setOrigin(0.5, 0.5); // Centered on the container
-      // shopContainer.add(shopBackground);
-
-      // Close button (top-right corner)
-      // const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
-      // closeButton.setOrigin(2, -0.5);
-      // closeButton.setInteractive();
-      // closeButton.on('pointerdown', () => {
-      //   closeShop();
-      // });
-      // shopContainer.add(closeButton);
-
-      // Purchase button
-      // const buttonBackground = this.add.rectangle(0, shopBackground.height * 0.45, shopBackground.width * 0.2, shopBackground.height * 0.1, 0x4caf50);
-      // buttonBackground.setOrigin(0.5, 0.5); // Center the rectangle
-      // shopContainer.add(buttonBackground);
-      // purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vw Courier New" });
-      // purchaseButton.setOrigin(0.5, 0.5);
-      // purchaseButton.setInteractive();
-      // purchaseButton.on("pointerdown", () => purchaseMonkey());
-      // shopContainer.add(purchaseButton);
-
-      // buttonBackground.setInteractive();
-
-
-
-      // // Left arrow (change to previous monkey)
-      // const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New" });
-      // leftArrow.setOrigin(1, 0.5);
-      // leftArrow.setInteractive();
-      // leftArrow.on('pointerdown', () => changeMonkey(-1));
-      // shopContainer.add(leftArrow);
-
-      // // Right arrow (change to next monkey)
-      // const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New"});
-      // rightArrow.setOrigin(0, 0.5);
-      // rightArrow.setInteractive();
-      // rightArrow.on('pointerdown', () => changeMonkey(1));
-      // shopContainer.add(rightArrow);
-
-      // // Monkey display sprite
-      // monkeyDisplay = this.add.sprite(windowWidth, shopContainer.y, monkeysAvailable[selectedMonkey]);
-      // monkeyDisplay.setDisplaySize(windowWidth * 0.1, windowHeight * 0.13);
-      // monkeyDisplay.setDepth(0);
-      // monkeyDisplay.setVisible(true);
-
-      // // Cost text
-      // costText = this.add.text(
-      //   0,
-      //   windowHeight * (80 / 765),
-      //   `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-      //   { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vwpx Courier New" }
-      // );
-      // costText.setOrigin(0.5, 0.5); // Centered text
-      // shopContainer.add(costText);
-
-      // Overlap check for opening shop when the monkey reaches the market
       this.physics.add.overlap(monkey, market, () => {
         openShop();
         setShowShop(true)
