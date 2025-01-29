@@ -525,12 +525,6 @@ function update() {
     }
   });
 
-  // INFINITE BANANA COLLECTION
-  const qKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
-  qKey.on("down", () => {
-    setBananaCounter((prevCount) => prevCount + 1);
-  });
-
   // SHOP UPDATES
   if (openedshop) {
     const currentTime = Date.now();
