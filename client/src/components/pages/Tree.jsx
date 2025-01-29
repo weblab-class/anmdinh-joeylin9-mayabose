@@ -97,18 +97,9 @@ const Tree = () => {
 
     getGameInfo();
   }, [userId, navigate, scene]);
-  const slider = document.getElementById("rangeSlider");
 
 // Function to update the background of the slider
-function updateSliderBackground() {
-  const value = slider.value;
-  const min = slider.min;
-  const max = slider.max;
-  const percentage = (value - min) / (max - min) * 100;
-  
-  // Set the background to show the covered and uncovered range
-  slider.style.background = `linear-gradient(to right, #4caf50 ${percentage}%, #ddd ${percentage}%)`;
-}
+
 
   useEffect(() => {
     if (scene) {
@@ -617,10 +608,6 @@ function update() {
     monkey.setFrame(1); // Set frame to idle when no movement
   }
 
-  updateSliderBackground();
-
-// Listen for changes to the slider and update the background
-  slider.addEventListener("input", updateSliderBackground);
 
   // Prevent monkey from moving below the ground
   if (this.physics.overlap(monkey, ground)) {
@@ -1305,6 +1292,7 @@ const growTree = (task) => {
       display: "inline-flex", // Same as Add Task button
       alignItems: "center",    // Center vertically
       justifyContent: "center", // Center text horizontally
+      boxShadow: 'inset 0px 0px 8px rgba(0, 0, 0, 0.4)',
     }}
   >
     <img
@@ -1451,7 +1439,7 @@ const growTree = (task) => {
           fontFamily: "joystix monospace",
         }}
         >
-          <h1>Settings</h1>
+          <h1 style={{fontSize: "1.8vw"}}>Settings</h1>
           <button
             id='help-button'
             onClick={() => {
