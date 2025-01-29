@@ -82,7 +82,7 @@ const Tree = () => {
   const [bananaCounter, setBananaCounter] = useState(0);
   const [purchasedMonkeys, setPurchasedMonkeys] = useState([true, false, false, false]); // Purchase state for monkeys
   const [selectedMonkey, setSelectedMonkey] = useState(0);
-  const monkeyPrices = [0, 30, 50, 80]; // Prices for each monkey
+  const monkeyPrices = [0, 10, 15, 20]; // Prices for each monkey
   const [monkeyDisplayNumber, setMonkeyDisplayNumber] = useState(0);
   // Add state to manage popup visibility and input
   const [popupVisible, setPopupVisible] = useState(false);
@@ -1511,8 +1511,8 @@ const growTree = (task) => {
             <p>Here's how to use the app:</p>
             <ul>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Use the arrow keys to move the monkey</li>
-              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Click "Add Task" to create new tasks</li>
-              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>To find a task, climb the tree or click "Show All Tasks"</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Click <i>Add Task</i> to create new tasks</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>To find a task, climb the tree or click <i>Show All Tasks</i></li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Navigate monkey to bananas to update and complete tasks</li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
               <li>Have fun!</li>
