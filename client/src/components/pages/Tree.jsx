@@ -58,6 +58,7 @@ const Tree = () => {
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
+  // const [showShop, setShowShop] = setState(false);
   const [musicVolume, setMusicVolume] = useState(1);
   const [soundEffectsVolume, setSoundEffectsVolume] = useState(1);
   const [selectedTaskName, setSelectedTaskName] = useState("")
@@ -397,8 +398,6 @@ this.branchSide = this.branchSide === "left" ? "right" : "left";
 console.log("Tree trunks:", this.treeTrunks);
 console.log("Branches:", this.branches);
 
-      //` SHOP SCENE
-
       const welcomeText = this.add.text(windowWidth * 1.5 , windowHeight / 2, 'The Shop', {
         fontSize: windowWidth*(32/1494),
         fill: '#000',
@@ -456,11 +455,6 @@ console.log("Branches:", this.branches);
       shopBackground.setOrigin(0.5, 0.5); // Centered on the container
       shopContainer.add(shopBackground);
 
-      // Shop title text
-      const shopText = this.add.text(0, -shopBackground.height / 3, 'Customization Shop', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New", });
-      shopText.setOrigin(0.5, -0.5); // Position above the shop background
-      shopContainer.add(shopText);
-
       // Close button (top-right corner)
       // const closeButton = this.add.text(shopBackground.width / 2, -shopBackground.height / 2, 'x', { fontSize: windowWidth * (24 / 1494), fill: '#000' });
       // closeButton.setOrigin(2, -0.5);
@@ -474,7 +468,7 @@ console.log("Branches:", this.branches);
       const buttonBackground = this.add.rectangle(0, shopBackground.height * 0.45, shopBackground.width * 0.2, shopBackground.height * 0.1, 0x4caf50);
       buttonBackground.setOrigin(0.5, 0.5); // Center the rectangle
       shopContainer.add(buttonBackground);
-      purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "16px Courier New" });
+      purchaseButton = this.add.text(0, shopBackground.height * 0.45, "Select", { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vw Courier New" });
       purchaseButton.setOrigin(0.5, 0.5);
       purchaseButton.setInteractive();
       purchaseButton.on("pointerdown", () => purchaseMonkey());
@@ -485,14 +479,14 @@ console.log("Branches:", this.branches);
 
 
       // Left arrow (change to previous monkey)
-      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New" });
+      const leftArrow = this.add.text(-shopBackground.width * 0.15, shopBackground.height * -0.1, '<', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New" });
       leftArrow.setOrigin(1, 0.5);
       leftArrow.setInteractive();
       leftArrow.on('pointerdown', () => changeMonkey(-1));
       shopContainer.add(leftArrow);
 
       // Right arrow (change to next monkey)
-      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "16px Courier New"});
+      const rightArrow = this.add.text(shopBackground.width * 0.15, shopBackground.height * -0.1, '>', { fontSize: windowWidth * (32 / 1494), fill: '#000', font: "1.171vwpx Courier New"});
       rightArrow.setOrigin(0, 0.5);
       rightArrow.setInteractive();
       rightArrow.on('pointerdown', () => changeMonkey(1));
@@ -508,7 +502,7 @@ console.log("Branches:", this.branches);
         0,
         windowHeight * (80 / 765),
         `Cost: ${monkeyPrices[monkeyNumber]} Bananas`,
-        { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "16px Courier New" }
+        { fontSize: windowWidth * (16 / 1494), fill: "#000", font: "1.171vwpx Courier New" }
       );
       costText.setOrigin(0.5, 0.5); // Centered text
       shopContainer.add(costText);
@@ -1562,17 +1556,47 @@ if (treeObj && treeObj.body) {
         </div>
       )}
 
-      {/* Show All Tasks Section */}
       {showAllTasks && (
-        <div style={{ marginTop: windowHeight * (20 / 765), padding: windowWidth * (10 / 1494), backgroundColor: "#f4f4f4" }}>
-          <h4>All Tasks</h4>
-          <ul>
-            {tasks.map((task, index) => (
-              <li key={index}>
-                <strong>{task.name}</strong> - {task.difficulty} <br />
-                <em>Notes:</em> {task.notes || "No notes available"} {/* Display task notes */}
-              </li>
-            ))}
+        <div style={{ 
+          position: "absolute",
+          width: "30vw", // Adjust width as needed
+          height: "30vw",
+          padding: windowWidth * (10 / 1494), 
+          backgroundColor: "yellowgreen",
+          overflowY: "auto", // Ensures scrolling for large content
+          top: "5vw",
+          right: "3vw",
+          backgroundColor: "rgb(220, 206, 206)",
+          padding: "0.878vw",
+          border: "0.11vw solid black",
+          borderRadius: "0.293vw",
+          boxShadow: "inset 0px 0px 0.586vw rgba(0, 0, 0, 0.4)",
+          zIndex: 1000,
+          width: "20%",
+          fontFamily: "joystix monospace",
+        }}>
+          <h4 style = {{fontSize: "1.318vw"}}>All Tasks</h4>
+          <ul style={{ listStyleType: 'none', paddingLeft: '2vw' }}>
+            {tasks.map((task, index) => {
+              // Set the color based on the task's difficulty
+              const difficultyColor = task.difficulty === 'Easy' ? 'rgb(1,75,36)' :
+                                      task.difficulty === 'Medium' ? 'rgb(214,89,0)' :
+                                      task.difficulty === 'Hard' ? 'rgb(161,3,0)' : 'gray';
+
+              return (
+                <li key={index} style={{ marginBottom: '0.732vw', color: 'black', position: 'relative', fontSize: '1.171vw' }}>
+                  <span style={{ color: difficultyColor, position: 'relative' }}>
+                    <strong>{task.name}</strong> <span style={{ position: 'absolute', fontSize: '1.171vw', color: "#343434", left: '-1.464vw', top: '50%', transform: 'translateY(-50%)' }}>→</span>
+                  </span>
+                  <br />
+                  {task.notes && (
+                    <span style={{ color: 'gray', fontSize: '1.171vw' }}>
+                      <em>Notes:</em> {task.notes}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
