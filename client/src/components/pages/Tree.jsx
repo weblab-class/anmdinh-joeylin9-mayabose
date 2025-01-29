@@ -168,7 +168,7 @@ const Tree = () => {
       width: window.innerWidth,
       height: window.innerHeight,
       parent: 'phaser-game',
-      backgroundColor: '#000000',
+      backgroundColor: '#5c6599',
       physics: {
         default: 'arcade',
         arcade: {
@@ -280,6 +280,8 @@ const Tree = () => {
         const gameHeight = this.sys.game.config.height;
       // Add the background image at y = 0
       const bg = this.add.image(gameWidth / 2, 0, 'background');
+      bg.setOrigin(0.5, 1);
+      bg.setY(gameHeight);
 
       // Ensure the background image scales properly and maintains the aspect ratio
       const bgAspectRatio = bg.width / bg.height;
@@ -454,8 +456,6 @@ for (let i = 0; i < bananaCount; i++) {
   this.branchSide = this.branchSide === "left" ? "right" : "left";
 });
 // Debugging: Log tree trunks and branches
-console.log("Tree trunks:", this.treeTrunks);
-console.log("Branches:", this.branches);
 
       market = this.add.image(windowWidth, 0, 'market');
       market.setDisplaySize(windowWidth/3, windowHeight/2);
@@ -789,7 +789,7 @@ function openShop() {
   monkey.y = -windowHeight * 0.25; // Set position of the monkey
 
   // Stop the camera from following the monkey
-  camera.stopFollow(); 
+  camera.stopFollow();
 }
 
 function closeShop() {
@@ -1115,7 +1115,7 @@ const growTree = (task) => {
         branch.body.updateFromGameObject();
         scene.branches.push(branch);
         scene.tree.add(branch);
-        
+
 
         scene.tweens.add({
           targets: branch,
@@ -1157,7 +1157,7 @@ const growTree = (task) => {
               banana.body.updateFromGameObject();
               scene.tree.add(banana);
             }
-            
+
             scene.branchSide = scene.branchSide === "left" ? "right" : "left";
             setTreeState({height: newHeight, branches: scene.branches, bananas: scene.bananas})
           }
@@ -1554,7 +1554,7 @@ const growTree = (task) => {
     }}
   >
     <h1>Customization Shop</h1>
-    
+
     {/* Monkey Display */}
     <div
       style={{
