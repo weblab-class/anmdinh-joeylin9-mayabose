@@ -73,7 +73,6 @@ const Tree = () => {
   // Fetch game info only when userId is available
   useEffect(() => {
     if (!userId) {
-      //console.log("Missing userId, redirecting to homepage...");
       navigate("/"); // Redirect to homepage if userId is not available
       return;
     }
@@ -211,7 +210,6 @@ const Tree = () => {
     const treeTrunkHeight = windowHeight * (150 / 765);
     // PRELOAD
     function preload() {
-      //console.log('Preloading assets...');
       // this.load.image('monkey1', monkeyImg); // Preload the monkey image
       this.load.image('monkey2', monkeyImg2); // Preload the monkey image
       this.load.image('monkey3', monkeyImg3); // Preload the monkey image
@@ -301,8 +299,6 @@ const Tree = () => {
     climbSound = this.sound.add("climbSound", {
       volume: soundEffectsVolume
     });
-
-      //console.log('Creating shop and game elements');
 
 // Tree setup based on tasks length
 const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
@@ -433,8 +429,6 @@ for (let i = 0; i < bananaCount; i++) {
         frameHeight: 64 // height of each frame
       });
       // Preload the default monkey spritesheet
-      console.log('selected monkey: ', selectedMonkey)
-      console.log('monkeysAvailable[selectedMonkey]: ', monkeysAvailable[selectedMonkey])
       monkey = this.physics.add.sprite(
         -windowWidth * 0.33,
         -windowHeight * 0.25,
@@ -456,13 +450,11 @@ for (let i = 0; i < bananaCount; i++) {
       this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
       this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
 
-      //console.log("camera")
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
       camera.setBounds(-4*windowWidth/3, -5000, Infinity, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
-      //console.log("Camera bounds:", camera.getBounds());
 
       //SHOP//
       shopContainer = this.add.container(windowWidth, -windowHeight / 4); // Initially position it above the ground
@@ -876,7 +868,6 @@ const handleSave = (input) => {
   const task = tasks.find(t => t.name === selectedTaskName);
 
   if (task) {
-    //console.log('Found task:', task);
 
     // Use the callback form of setTasks to ensure we're updating the latest state
     setTasks((prevTasks) => {
@@ -893,9 +884,7 @@ const handleSave = (input) => {
 
       return updatedTasks; // Return the updated tasks to be set
     });
-  } else {
-    //console.log('Task not found!');
-  }
+  } 
 };
 
 let task = tasks.find(t => t.name === selectedTaskName);
@@ -1065,15 +1054,8 @@ const moveBranchesDown = (taskName) => {
 
 
 const growTree = (task) => {
-  console.log("scene at growTree call: ", scene);
-  console.log("scene.treeTrunks at growTree call: ", scene.treeTrunks);
-
   if (scene && scene.tree) {
-    if (!scene || !scene.treeTrunks || scene.treeTrunks.length === 0) {
-      console.error("Error: scene or scene.treeTrunks is undefined or empty.");
-    }
     const treeObj = scene.treeTrunks[scene.treeTrunks.length - 1];
-    console.log("treeObj: ", treeObj);
 
     // Tree setup for dimensions and position
     const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
@@ -1088,7 +1070,6 @@ const growTree = (task) => {
       onUpdate: () => {
         // Update the tree's width and height to fit the new size
         const treeWidth = windowHeight * (90 / 765);
-        console.log(treeObj); // Check what treeObj is
 
         if (treeObj && treeObj.body) {
           treeObj.body.updateFromGameObject();
@@ -1181,8 +1162,6 @@ const growTree = (task) => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
     if (camera) {
       camera.setZoom(1); // Reset zoom level to the initial state
-    } else {
-      console.error("Camera not initialized");
     }
   };
 
@@ -1190,10 +1169,7 @@ const growTree = (task) => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
     if (camera && camera.zoom < 2) {
       camera.zoom += 0.1;
-      //console.log('Zoom level:', camera.zoom);
     } else {
-      //console.log('Camera: ', camera);
-      //console.log('Game: ', game);
       console.error('Camera or Game is not defined');
     }
   };
@@ -1204,13 +1180,8 @@ const growTree = (task) => {
       // Ensure zoom level doesn't go below 0.5, even with floating-point precision issues
       if (camera.zoom > 0.5) {
         camera.zoom = Math.max(camera.zoom - 0.1, 0.5);
-        //console.log('Zoom level:', camera.zoom);
-      } else {
-        //console.log('Zoom level cannot go below 0.5');
-      }
+      } 
     } else {
-      //console.log('Camera: ', camera);
-      //console.log('Game: ', game);
       console.error('Camera or Game is not defined');
     }
   };
@@ -1619,7 +1590,6 @@ const growTree = (task) => {
           />
           <TaskManager
             onAddTask={(task) => {
-              //console.log('Adding task (TASKMANAGER):', task);
               growTree(task);
               handleAddTask(task);
             }}
