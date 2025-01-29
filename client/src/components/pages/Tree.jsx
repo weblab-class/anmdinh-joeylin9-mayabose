@@ -302,6 +302,24 @@ this.tree = this.add.group(); // Create a group for the tree
 
 // Initialize trunk array and other arrays
 this.treeTrunks = [];
+const treeBaseHeight = windowHeight * (150 / 765);
+const treeWidth = windowHeight * (90 / 765);
+const treeHeight = treeBaseHeight + (tasks.length) * windowHeight * (150 / 765);
+
+// Create the tree
+const tree = this.add.rectangle(
+  windowWidth / 2,
+  windowHeight * 0.9,
+  treeWidth,
+  treeHeight,
+  0x4a3d36
+);
+tree.setOrigin(0.5, 1);
+tree.setPosition(0, 0)
+this.physics.add.existing(tree, true);
+
+// Save references for use in growTree
+this.tree = tree;
 this.branches = [];
 this.bananas = [];
 this.branchSide = "left"; // Start with left side
@@ -340,7 +358,7 @@ tasks.forEach((task, index) => {
   this.treeTrunks.push(newTrunk); // Add the new trunk to the trunk array
 
   // Calculate branch position
-  const branchY = newTrunkY - treeBaseHeight * 0.5;
+  const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765) + index * windowHeight * (150 / 765);
   const branchX =
     task.side === "left"
       ? newTrunk.x - newTrunk.displayWidth / 2 - windowWidth * (100 / 1494)
@@ -406,7 +424,7 @@ console.log("Branches:", this.branches);
       welcomeText.setOrigin(0.5, 0.5); // Center the text
 
       market = this.add.image(windowWidth, 0, 'market');
-      market.setDisplaySize(windowWidth/2.5, windowHeight/2);
+      market.setDisplaySize(windowWidth/3, windowHeight/2);
       market.setOrigin(0.5, 1); // Center the image
       this.physics.add.existing(market, true);
 
@@ -983,7 +1001,7 @@ const moveBranchesDown = (taskName) => {
             //console.log('Removed branch:', branchToRemove);
           }
 
-      const shrinkAmount = windowHeight * (100/765); // Increased height growth for a more noticeable change
+      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
       const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
@@ -993,7 +1011,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: banana,
           x: banana.x * -1,
-          y: banana.y + shrinkAmount*1.5,
+          y: banana.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -1012,7 +1030,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: text,
           x: text.x * -1,
-          y: text.y + shrinkAmount*1.5,
+          y: text.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
