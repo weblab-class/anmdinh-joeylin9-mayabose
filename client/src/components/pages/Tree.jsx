@@ -1512,7 +1512,7 @@ const growTree = (task) => {
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Use the arrow keys to move the monkey</li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Click "Add Task" to create new tasks</li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>To find a task, climb the tree or click "Show All Tasks"</li>
-              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Navigate monkey to bananas to update and complete tasks"</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Navigate monkey to bananas to update and complete tasks</li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
               <li>Have fun!</li>
             </ul>
