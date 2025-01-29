@@ -382,7 +382,7 @@ tasks.forEach((task, index) => {
       welcomeText.setOrigin(0.5, 0.5); // Center the text
 
       market = this.add.image(windowWidth, 0, 'market');
-      market.setDisplaySize(windowWidth/2.5, windowHeight/2);
+      market.setDisplaySize(windowWidth/3, windowHeight/2);
       market.setOrigin(0.5, 1); // Center the image
       this.physics.add.existing(market, true);
 
