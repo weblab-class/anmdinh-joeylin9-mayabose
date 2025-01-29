@@ -323,7 +323,7 @@ this.physics.add.existing(baseTrunk, true);
 this.tree.add(baseTrunk); // Add base trunk to the tree group
 this.treeTrunks.push(baseTrunk); // Add base trunk to the trunk array
 // Iterate over tasks and add trunk segments
-tasks.forEach((task, index) => {
+tasks.reverse().forEach((task, index) => {
   const treeObj = this.tree;
   const previousTrunk = this.treeTrunks[this.treeTrunks.length - 1]; // Get the last added trunk
 
@@ -1059,9 +1059,15 @@ if (treeObj && treeObj.setSize) {
 
 
 const growTree = (task) => {
-  if (scene && scene.tree) {
-    const treeObj = this.treeTrunks[this.treeTrunks.length - 1]; // Get the last added trunk
+  console.log("scene at growTree call: ",scene);
+  console.log("scene.treeTrunks at growTree call: ", scene.treeTrunks);
 
+  if (scene && scene.tree) {
+     if (!scene || !scene.treeTrunks || scene.treeTrunks.length === 0) {
+    console.error("Error: scene or scene.treeTrunks is undefined or empty.");
+     }
+     const treeObj = scene.treeTrunks[scene.treeTrunks.length - 1];
+     console.log("treeObj: ", treeObj)
     // Determine the height increase based on the current task count
     const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
     const treeWidth = windowHeight * (90 / 765);      // Width of the tree trunk
@@ -1076,7 +1082,7 @@ const growTree = (task) => {
         // Update the tree's width and height to fit the new size
         const treeWidth = windowHeight * (90 / 765);
         console.log(treeObj);  // Check what treeObj is
-i
+// i
 // Check if treeObj exists and has a body
 if (treeObj && treeObj.body) {
   treeObj.body.updateFromGameObject();
