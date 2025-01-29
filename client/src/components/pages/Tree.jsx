@@ -97,6 +97,18 @@ const Tree = () => {
 
     getGameInfo();
   }, [userId, navigate, scene]);
+  const slider = document.getElementById("rangeSlider");
+
+// Function to update the background of the slider
+function updateSliderBackground() {
+  const value = slider.value;
+  const min = slider.min;
+  const max = slider.max;
+  const percentage = (value - min) / (max - min) * 100;
+  
+  // Set the background to show the covered and uncovered range
+  slider.style.background = `linear-gradient(to right, #4caf50 ${percentage}%, #ddd ${percentage}%)`;
+}
 
   useEffect(() => {
     if (scene) {
@@ -604,6 +616,11 @@ function update() {
     monkey.setVelocityY(0);
     monkey.setFrame(1); // Set frame to idle when no movement
   }
+
+  updateSliderBackground();
+
+// Listen for changes to the slider and update the background
+  slider.addEventListener("input", updateSliderBackground);
 
   // Prevent monkey from moving below the ground
   if (this.physics.overlap(monkey, ground)) {
@@ -1436,49 +1453,40 @@ if (treeObj && treeObj.body) {
       {/* Settings Popup */}
       {showSettings && (
         <div
-          style={{
-            position: "absolute",
-            top: "0",
-            right: "0",
-            width: "18vw",
-            height: "20vw",
-            backgroundColor: "white",
-            padding: "2vw",
-            borderRadius: "1vw",
-            zIndex: 2000,
-            fontSize: "1vw",
-          }}
+        style={{
+          position: "fixed",
+          top: "10%",
+          right: "2%",
+          backgroundColor: "rgb(220, 206, 206)",
+          padding: "1vw",
+          border: "1.5px solid black",
+          borderRadius: "4px",
+          boxShadow: "inset 0px 0px 10px rgba(0, 0, 0, 0.6)",
+          zIndex: 1000,
+          width: "20%",
+          fontFamily: "joystix monospace",
+        }}
         >
           <h1>Settings</h1>
           <button
+            id='help-button'
             onClick={() => {
               setShowHelp(true); // Open Help popup
               setShowSettings(false); // Close Settings popup
-            }}
-            style={{
-              padding: ".5vw",
-              margin: ".5vw",
-              fontFamily: "Courier New",
-              fontSize: "1vw",
             }}
           >
             Help
           </button>
           <button
+            id='logout-button'
             onClick={() => {
               handleLogout(); // Call logout function
               setShowSettings(false); // Close Settings popup
             }}
-            style={{
-              padding: ".5vw",
-              margin: ".5vw",
-              fontFamily: "Courier New",
-              fontSize: "1vw",
-            }}
           >
             Logout
           </button>
-          <div className="mb-4" style={{ marginTop: "1vw" }}>
+          <div className="mb-4" style={{ marginTop: "1vw", fontSize:"1.2vw" }}>
             <label htmlFor="musicVolume" className="block text-sm mb-2">
               Music Volume
             </label>
@@ -1498,9 +1506,9 @@ if (treeObj && treeObj.body) {
             <span className="text-sm">{(musicVolume * 100).toFixed(0)}%</span>
           </div>
 
-          <div className="mb-4">
+          <div className="mb-4" style={{marginTop: "1vw", fontSize:"1.2vw"}}>
             <label htmlFor="sfxVolume" className="block text-sm mb-2">
-              Sound Effects Volume
+              Sound Effects
             </label>
             <input
               type="range"

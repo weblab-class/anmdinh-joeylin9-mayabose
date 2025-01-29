@@ -3,11 +3,75 @@
     z-index: -1; /* Ensure the canvas is behind other content */
   }
 
-#treealert {
-  width: 10%;
-  left: var(--window-width)*-1;
+
+  #logout-button {
+    background-color: #8d5fc5;
+    color: white;
+    border: 1.2px solid rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "joystix monospace";
+    box-shadow: inset 0px 0px 8px rgba(6, 88, 46, 0.4);
+    padding: 8px;
+    font-size: 1vw;
+    margin-left: 15px;
+  }
+  
+  #logout-button:hover {
+    background-color: #403151; /* Darker green */
+    box-shadow: inset 0px 0px 10px rgba(6, 88, 46, 0.7);
+  }
+  
+  #help-button {
+    background-color: #d92845;
+    color: white;
+    border: 1.2px solid rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: "joystix monospace";
+    box-shadow: inset 0px 0px 8px rgba(86, 13, 13, 0.4);
+    padding: 8px;
+    font-size: 1vw;
+    margin-left: 5px;
+  }
+  
+  #help-button:hover {
+    background-color: #7e1824; /* Darker red */
+    box-shadow: inset 0px 0px 10px rgba(86, 13, 13, 0.7);
+  }
+
+  /* Customize the slider track */
+input[type="range"] {
+  -webkit-appearance: none; /* Remove default styling for WebKit browsers */
+  appearance: none; /* Standardize across browsers */
+  width: 100%; /* Full width */
+  height: 10px; /* Height of the track */
+  background: rgb(206, 214, 210); /* Light gray color for the track */
+  border-radius: 5px; /* Rounded corners */
+  outline: none; /* Remove outline when focused */
+  border: '1.5px solid black'
 }
 
-:root {
-  --window-width: 100vw; /* Fallback value for the CSS variable */
+input[type="range"] {
+  border: 1.5px solid rgb(30, 66, 50); /* Green border color */
+  background: #b7c1bd;  /* Track background color */
+  border-radius: 5px;
+}
+
+/* Customize the thumb (the draggable part) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Remove default styling */
+  appearance: none;
+  width: 20px; /* Width of the thumb */
+  height: 12px; /* Height of the thumb */
+  background: rgb(30, 66, 50); /* Green color for the thumb */
+  border-radius: 10%; /* Make it circular */
+  cursor: pointer; /* Change the cursor to a pointer */
+}
+
+/* Optional: Add a shadow effect for better visibility */
+input[type="range"]::-webkit-slider-runnable-track {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  height: 10px;
 }
