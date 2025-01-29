@@ -294,7 +294,7 @@ const Tree = () => {
 // Tree setup based on tasks length
 const treeBaseHeight = windowHeight * (150 / 765);
 const treeWidth = windowHeight * (90 / 765);
-const treeHeight = treeBaseHeight + tasks.length * 100;
+const treeHeight = treeBaseHeight + (tasks.length) * windowHeight * (150 / 765);
 
 // Create the tree
 const tree = this.add.rectangle(
@@ -320,7 +320,7 @@ tasks.forEach((task, index) => {
   const treeObj = this.tree;
 
   // Calculate branch position
-  const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765) + index * 100;
+  const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765) + index * windowHeight * (150 / 765);
   const branchX =
     task.side === "left"
       ? treeObj.x - treeObj.displayWidth / 2 - windowWidth * (100 / 1494)
@@ -957,7 +957,7 @@ const moveBranchesDown = (taskName) => {
             //console.log('Removed branch:', branchToRemove);
           }
 
-      const shrinkAmount = windowHeight * (100/765); // Increased height growth for a more noticeable change
+      const shrinkAmount = windowHeight * (150/765); // Increased height growth for a more noticeable change
       const treeObj = scene.tree;
       const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
@@ -967,7 +967,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: banana,
           x: banana.x * -1,
-          y: banana.y + shrinkAmount*1.5,
+          y: banana.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
@@ -986,7 +986,7 @@ const moveBranchesDown = (taskName) => {
         scene.tweens.add({
           targets: text,
           x: text.x * -1,
-          y: text.y + shrinkAmount*1.5,
+          y: text.y + shrinkAmount,
           duration: 500,
           ease: "Linear",
           onComplete: () => {
