@@ -1058,31 +1058,31 @@ const growTree = (task) => {
     const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
     const treeWidth = windowHeight * (90 / 765);      // Width of the tree trunk
     const newHeight = treeObj.height + treeBaseHeight; // New height after growing the tree
+    const newTrunkY = Math.floor(treeObj.y - treeBaseHeight) + 1;
+    const newTrunk = scene.add.image(0, newTrunkY, "treetrunk");
+    newTrunk.setOrigin(0.5, 1);
+    newTrunk.setDisplaySize(treeWidth, 0);
+    newTrunk.setDepth(-1);
+    scene.physics.add.existing(newTrunk, true);
+    scene.tree.add(newTrunk);
+    scene.treeTrunks.push(newTrunk);
 
     scene.tweens.add({
-      targets: treeObj,
-      height: newHeight,
-      duration: 500,
+      targets: newTrunk,
+      displayHeight: treeBaseHeight,
+      duration: 100,
       ease: "Linear",
       onUpdate: () => {
         // Update the tree's width and height to fit the new size
         const treeWidth = windowHeight * (90 / 765);
 
-        if (treeObj && treeObj.body) {
+        if (newTrunk && newTrunk.body) {
           treeObj.body.updateFromGameObject();
         }
       },
       onComplete: () => {
         // Calculate the Y-position of the new branch based on tree growth
         const previousTrunk = scene.treeTrunks[scene.treeTrunks.length - 1]; // Get the last added trunk
-        const newTrunkY = Math.floor(previousTrunk.y - treeBaseHeight) + 1;
-        const newTrunk = scene.add.image(0, newTrunkY, "treetrunk");
-        newTrunk.setOrigin(0.5, 1);
-        newTrunk.setDisplaySize(treeWidth, treeBaseHeight);
-        newTrunk.setDepth(-1);
-        scene.physics.add.existing(newTrunk, true);
-        scene.tree.add(newTrunk); // Add new trunk to the tree group
-        scene.treeTrunks.push(newTrunk); // Add the new trunk to the trunk array
 
         // Branch Setup - Same size and position logic
         const isLeftBranch = task.side === "left";
