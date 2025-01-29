@@ -386,7 +386,7 @@ tasks.reverse().forEach((task, index) => {
     branchY - windowHeight * (50 / 765),
     taskName,
     {
-      font: `${windowWidth * (50 / 1494)}px  joystix monospace`,
+      font: `${windowWidth * (20 / 1494)}px joystix monospace`,
       fill: "#000",
       align: "center",
     }
@@ -415,9 +415,6 @@ for (let i = 0; i < bananaCount; i++) {
 });
 
 
-// Debugging: Log tree trunks and branches
-console.log("Tree trunks:", this.treeTrunks);
-console.log("Branches:", this.branches);
 
       const welcomeText = this.add.text(windowWidth * 1.5 , windowHeight / 2, 'The Shop', {
         fontSize: windowWidth*(32/1494),
@@ -668,7 +665,6 @@ function update() {
     isClimbing = true;
     monkey.body.allowGravity = false;
     monkey.setVelocityY(0);
-    //console.log('here')
 
     // Horizontal movement while climbing
     if (this.leftKey.isDown) {
@@ -683,8 +679,6 @@ function update() {
 
   // Flag to track if the popup should be show
   for (const branch of this.branches) {
-    // console.log("branch.x: ", branch.x)
-    // console.log("tree.x: ", this.tree.x)
     const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
     const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
     const branchBounds = branch.getBounds(); // Get branch's bounds
@@ -717,7 +711,6 @@ function update() {
           if (textAboveBranch) {
             const taskName = textAboveBranch.text; // Get the task name from the text
             setSelectedTaskName(taskName); // Update the selected task name
-            //console.log('Selected task name:', taskName);
           }
 
           popupShown = true; // Prevent multiple popups from showing for this branch
@@ -746,7 +739,6 @@ function update() {
           if (textAboveBranch) {
             const taskName = textAboveBranch.text; // Get the task name from the text
             setSelectedTaskName(taskName); // Update the selected task name
-            //console.log('Selected task name:', taskName);
           }
 
           popupShown = true; // Prevent multiple popups from showing for this branch
@@ -792,7 +784,6 @@ function purchaseMonkey() {
       setAlertMessage('Not enough bananas!')
       return prevCounter
     } else {
-      //console.log('Purchased!');
       purchaseButton._text = "Select";
 
       setPurchasedMonkeys((prevPurchasedMonkeys) => {
@@ -820,7 +811,6 @@ function openShop() {
   purchaseButton.setText(purchasedMonkeys[monkeyNumber] ? "Select" : "Purchase");
   costText.setText(`Cost: ${monkeyPrices[monkeyNumber]} Bananas`);
 
-  //console.log('Opening shop...');
   shopOpen = true;
   monkeyMovementEnabled = false; // Disable monkey movement
   monkey.body.setGravityY(-windowHeight*3)
@@ -845,9 +835,6 @@ function closeShop() {
 
     // Always update the monkey texture when closing the shop
     monkey.setTexture(monkeysAvailable[monkeyNumber]);
-    //console.log("Setting monkey texture to:", monkeysAvailable[monkeyNumber]);
-
-    //console.log("Closing shop...");
     shopOpen = false;
     lastChangeTime = 0;
     monkeyMovementEnabled = true; // Re-enable monkey movement
@@ -877,7 +864,6 @@ const handleAddTask = (task) => {
     setTasks(updatedTasks); // Update the tasks state
     setShowTaskManager(false);
     saveTaskData(userId, updatedTasks, bananaCounter, purchasedMonkeys, selectedMonkey, setTasks); // Pass the updated tasks list to saveTaskData
-    //console.log('Updated tasks:', updatedTasks);
   }
 };
 
@@ -886,10 +872,6 @@ const handleCancel = () => {
 };
 
 const handleSave = (input) => {
-  //console.log("got through!")
-  //console.log('taskname', selectedTaskName);
-  //console.log('Updated input:', input);
-
   // Find the task with the selected name
   const task = tasks.find(t => t.name === selectedTaskName);
 
@@ -999,9 +981,15 @@ const moveBranchesDown = (taskName) => {
     // Move the remaining bananas and branches down
     const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
     bananasMove.forEach((banana) => {
+      let newestX;
+      if (banana.x < 0) {
+        newestX = banana.x + 0.35*windowWidth
+      } else {
+        newestX = banana.x - 0.35*windowWidth
+      }
       scene.tweens.add({
         targets: banana,
-        x: -1 * banana.x,
+        x: newestX,
         y: banana.y + shrinkAmount,
         duration: 500,
         ease: "Linear",
@@ -1017,13 +1005,25 @@ const moveBranchesDown = (taskName) => {
     const textMove = scene.children.list.filter(
       (child) => child instanceof Phaser.GameObjects.Text && child.y < textloc
     );
+    let newX;
     textMove.forEach((text) => {
+      if (text.x < 0) {
+        newX = text.x + 0.35*windowWidth
+      } else {
+        newX = text.x - 0.35*windowWidth
+      }
       scene.tweens.add({
         targets: text,
-        x: -1 * text.x,
+        x: newX,
         y: text.y + shrinkAmount,  // Only update the y-position for text
         duration: 500,
-        ease: "Linear"
+        ease: "Linear",
+        onComplete: () => {
+          // Ensure physics body is updated for bananas
+          if (text.body) {
+            text.body.updateFromGameObject();
+          }
+        }
       });
     });
 
