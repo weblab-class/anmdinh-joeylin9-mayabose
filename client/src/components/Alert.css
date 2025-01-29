@@ -1,30 +1,31 @@
 .alert-container {
   display: flex;
   justify-content: center; /* Center horizontally */
-  align-items: flex-start; /* Align at the top */
-  position: fixed; /* Keep it at the top of the viewport */
+  align-items: flex-start;
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Full width of the screen */
-  z-index: 1000; /* Ensure it stays above other elements */
-  pointer-events: none; /* Prevent blocking interactions with the rest of the page */
+  width: 100%;
+  z-index: 1000;
+  pointer-events: none;
   padding-top: 10px;
 }
 
 .alert {
-  pointer-events: auto; /* Enable interaction with the alert */
-  position: relative; /* To position the close button */
-  background-color: lightcoral; /* Example background */
+  pointer-events: auto;
+  background-color: lightcoral;
   color: white;
   padding: 5px 10px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  max-width: 90%; /* Prevent overflow on small screens */
+  max-width: fit-content; /* Prevent unnecessary width */
+  min-width: 200px;
   text-align: center;
   font-size: 0.8rem;
-  display: flex; /* To align the content */
+  display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* Ensure inner content is centered */
+  gap: 10px; /* Space between text and close button */
   font-family: "joystix monospace";
 }
 
@@ -35,11 +36,6 @@
   font-size: 1.2rem;
   font-weight: bold;
   cursor: pointer;
-  margin-left: 10px;
   padding: 0;
   line-height: 1;
-}
-
-.close-btn:hover {
-  color: #ffcccc;
 }

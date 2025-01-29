@@ -67,7 +67,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         fontFamily: "joystix monospace",
       }}
     >
-      <button className="close-btn" onClick={handleClose}>×</button>
+      <button className="close-button" onClick={handleClose}>×</button>
       <h3 style={{fontSize: "1.2vw"}}>Add a New Task</h3>
       <label style={{fontSize: "1vw"}}>
         Task Name:
@@ -145,7 +145,7 @@ const TaskManager = ({ onAddTask, onCancel, tasks }) => {
         </button>
       </div>
       
-      <Alert id='taskalert' message={alertMessage} onClose={closeAlert} style={{left: "150%", width: "100%"}} />
+      <Alert message={alertMessage} onClose={closeAlert} />
     </div>
   );
 };
