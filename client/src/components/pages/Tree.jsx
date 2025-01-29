@@ -169,7 +169,7 @@ const Tree = () => {
       width: window.innerWidth,
       height: window.innerHeight,
       parent: 'phaser-game',
-      backgroundColor: '#000000',
+      backgroundColor: '#5c6599',
       physics: {
         default: 'arcade',
         arcade: {
@@ -281,6 +281,8 @@ const Tree = () => {
         const gameHeight = this.sys.game.config.height;
       // Add the background image at y = 0
       const bg = this.add.image(gameWidth / 2, 0, 'background');
+      bg.setOrigin(0.5, 1);
+      bg.setY(gameHeight);
 
       // Ensure the background image scales properly and maintains the aspect ratio
       const bgAspectRatio = bg.width / bg.height;
@@ -778,7 +780,7 @@ function openShop() {
   monkey.y = -windowHeight * 0.25; // Set position of the monkey
 
   // Stop the camera from following the monkey
-  camera.stopFollow(); 
+  camera.stopFollow();
 }
 
 function closeShop() {
@@ -1104,7 +1106,7 @@ const growTree = (task) => {
         branch.body.updateFromGameObject();
         scene.branches.push(branch);
         scene.tree.add(branch);
-        
+
 
         scene.tweens.add({
           targets: branch,
@@ -1146,7 +1148,7 @@ const growTree = (task) => {
               banana.body.updateFromGameObject();
               scene.tree.add(banana);
             }
-            
+
             scene.branchSide = scene.branchSide === "left" ? "right" : "left";
             setTreeState({height: newHeight, branches: scene.branches, bananas: scene.bananas})
           }
@@ -1165,7 +1167,7 @@ const growTree = (task) => {
 
   const zoomInHandler = () => {
     const camera = game.scene.getScene('Tree')?.cameras?.main;
-    if (camera && camera.zoom < 2) {
+    if (camera && camera.zoom < 1.5) {
       camera.zoom += 0.1;
     } else {
       console.error('Camera or Game is not defined');
@@ -1510,7 +1512,8 @@ const growTree = (task) => {
             <ul>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Use the arrow keys to move the monkey</li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Click "Add Task" to create new tasks</li>
-              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>To find a task, climb the tree or click "Show All Tasks", then click the task</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>To find a task, climb the tree or click "Show All Tasks"</li>
+              <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Navigate monkey to bananas to update and complete tasks</li>
               <li style={{ marginBottom: windowWidth * (10 / 1494) }}>Completing tasks gives you bananas which can be used in the shop to customize your monkey</li>
               <li>Have fun!</li>
             </ul>
@@ -1543,7 +1546,7 @@ const growTree = (task) => {
     }}
   >
     <h1>Customization Shop</h1>
-    
+
     {/* Monkey Display */}
     <div
       style={{
