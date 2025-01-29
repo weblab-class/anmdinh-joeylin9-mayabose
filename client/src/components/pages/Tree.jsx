@@ -493,7 +493,7 @@ console.log("Branches:", this.branches);
       camera = this.cameras.main;
       camera.startFollow(monkey, true, 0.1, 0.1); // Smooth follow
       camera.setFollowOffset(0, windowHeight * (200/765)); // Offset the camera to be 200 pixels higher
-      camera.setBounds(-4*windowWidth/3, -5000, Infinity, Infinity);
+      camera.setBounds(-4*windowWidth/3, -5000, windowWidth*2.8, Infinity);
       camera.setZoom(1); // Set initial zoom level (normal zoom)
 
       this.physics.add.overlap(monkey, market, () => {
