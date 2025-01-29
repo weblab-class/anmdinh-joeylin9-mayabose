@@ -60,6 +60,7 @@ const Popup = ({
         {/* Input field */}
         <textarea
           type="text"
+          maxLength='30'
           style={{fontSize: "1vw"}}
           value={base} // Controlled input
           onChange={handleChange} // Update state on change

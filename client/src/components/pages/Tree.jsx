@@ -386,7 +386,7 @@ for (let i = 0; i < bananaCount; i++) {
     "banana"
   );
   banana.setOrigin(0.5, 0.5);
-  banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50));
+  banana.setDisplaySize(windowHeight * (4 / 50), windowHeight * (4 / 50));
   banana.setDepth(10);
   this.physics.add.existing(banana, true);
   this.bananas.push(banana);
@@ -1153,7 +1153,7 @@ if (treeObj && treeObj.body) {
             "banana"
           );
           banana.setOrigin(0.5, 0.5);
-          banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50)); // Adjust the size as needed
+          banana.setDisplaySize(windowHeight * (4 / 50), windowHeight * (4 / 50)); // Adjust the size as needed
           banana.setDepth(10); // Ensure it appears in front of other objects
 
           scene.physics.add.existing(banana);
