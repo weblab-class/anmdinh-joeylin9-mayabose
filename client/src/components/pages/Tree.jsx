@@ -21,6 +21,7 @@ import settings_icon from "../../assets/settings-icon.png";
 import showalltasks_icon from "../../assets/showalltasks-icon.png";
 import bananacount_icon from "../../assets/bananacount-icon.png";
 import background from "../../assets/background.png";
+import treetrunk from "../../assets/treetrunk.png";
 import "./Tree.css";
 
 //sounds
@@ -72,7 +73,7 @@ const Tree = () => {
       navigate("/"); // Redirect to homepage if userId is not available
       return;
     }
-    
+
     const getGameInfo = async () => {
       try {
         const data = await fetchGameInfo(userId);
@@ -89,7 +90,7 @@ const Tree = () => {
         setLoading(false);
       }
     };
-  
+
     getGameInfo();
   }, [userId, navigate, scene]);
 
@@ -155,7 +156,7 @@ const Tree = () => {
         pauseOnBlur: false, // Disable pausing when the window loses focus
       },
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH
       },
       input: {
@@ -219,6 +220,7 @@ const Tree = () => {
       this.load.image("showalltasks_icon", showalltasks_icon);
       this.load.image("bananacount_icon", bananacount_icon);
       this.load.image("background", background);
+      this.load.image("treetrunk", treetrunk);
       this.load.spritesheet('monkey1', default_monkey, {
         frameWidth: 224,  // width of each frame in the spritesheet
         frameHeight: 228 // height of each frame in the spritesheet
@@ -292,39 +294,57 @@ const Tree = () => {
       //console.log('Creating shop and game elements');
 
 // Tree setup based on tasks length
-const treeBaseHeight = windowHeight * (150 / 765);
-const treeWidth = windowHeight * (90 / 765);
-const treeHeight = treeBaseHeight + tasks.length * 100;
+const treeBaseHeight = windowHeight * (150 / 765); // Height of each tree trunk segment
+const treeWidth = windowHeight * (90 / 765);      // Width of the tree trunk
 
-// Create the tree
-const tree = this.add.rectangle(
-  windowWidth / 2,
-  windowHeight * 0.9,
-  treeWidth,
-  treeHeight,
-  0x4a3d36
-);
-tree.setOrigin(0.5, 1);
-tree.setPosition(0, 0)
-this.physics.add.existing(tree, true);
+// Initialize tree (this will hold all tree parts)
+this.tree = this.add.group(); // Create a group for the tree
 
-// Save references for use in growTree
-this.tree = tree;
+// Initialize trunk array and other arrays
+this.treeTrunks = [];
 this.branches = [];
 this.bananas = [];
 this.branchSide = "left"; // Start with left side
 
-// Initialize branches with tasks
-//console.log("Tasks:", tasks);
+// Add the base trunk at the bottom of the screen
+const baseTrunk = this.add.image(
+  windowWidth / 2,  // Center horizontally
+  0,     // Start at the bottom of the screen
+  "treetrunk"       // Texture key for the tree trunk image
+);
+
+baseTrunk.setOrigin(0.5, 1); // Align the bottom of the image to its y-coordinate
+baseTrunk.setDisplaySize(treeWidth, treeBaseHeight);
+this.physics.add.existing(baseTrunk, true);
+this.tree.add(baseTrunk); // Add base trunk to the tree group
+this.treeTrunks.push(baseTrunk); // Add base trunk to the trunk array
+
+// Iterate over tasks and add trunk segments
 tasks.forEach((task, index) => {
-  const treeObj = this.tree;
+  const previousTrunk = this.treeTrunks[this.treeTrunks.length - 1]; // Get the last added trunk
+
+  // Calculate the new trunk's position
+  const newTrunkY = previousTrunk.y - treeBaseHeight;
+
+  // Create the new trunk segment
+  const newTrunk = this.add.image(
+    windowWidth / 2,
+    newTrunkY,
+    "treetrunk"
+  );
+
+  newTrunk.setOrigin(0.5, 1); // Align the bottom of the image to its y-coordinate
+  newTrunk.setDisplaySize(treeWidth, treeBaseHeight);
+  this.physics.add.existing(newTrunk, true);
+  this.tree.add(newTrunk); // Add new trunk to the tree group
+  this.treeTrunks.push(newTrunk); // Add the new trunk to the trunk array
 
   // Calculate branch position
-  const branchY = treeObj.y - treeObj.height + windowHeight * (10 / 765) + index * 100;
+  const branchY = newTrunkY - treeBaseHeight * 0.5;
   const branchX =
     task.side === "left"
-      ? treeObj.x - treeObj.displayWidth / 2 - windowWidth * (100 / 1494)
-      : treeObj.x + treeObj.displayWidth / 2 + windowWidth * (100 / 1494);
+      ? newTrunk.x - newTrunk.displayWidth / 2 - windowWidth * (100 / 1494)
+      : newTrunk.x + newTrunk.displayWidth / 2 + windowWidth * (100 / 1494);
 
   // Create the branch
   const branch = this.add.rectangle(
@@ -335,10 +355,10 @@ tasks.forEach((task, index) => {
     0x4a3d36
   );
 
-  // Add the branch to the branches array and physics world
-  this.branches.push(branch);
   this.physics.add.existing(branch, true);
   branch.body.updateFromGameObject();
+  this.branches.push(branch); // Add the branch to the branches array
+  this.tree.add(branch); // Add branch to the tree group
 
   // Add task text to the branch
   const taskName = task.name || "Default Task";
@@ -350,7 +370,6 @@ tasks.forEach((task, index) => {
       font: `${windowWidth * (20 / 1494)}px Courier New`,
       fill: "#000",
       align: "center",
-      fontWeight: `${windowWidth * (80 / 1494)}`,
     }
   );
 
@@ -367,11 +386,16 @@ tasks.forEach((task, index) => {
     banana.setDisplaySize(windowHeight * (3.5 / 50), windowHeight * (3.5 / 50));
     banana.setDepth(10);
     this.bananas.push(banana);
+    this.tree.add(banana); // Add banana to the tree group
   }
 
   // Alternate branch side for the next branch
   this.branchSide = this.branchSide === "left" ? "right" : "left";
-  });
+});
+
+// Debugging: Log tree trunks and branches
+console.log("Tree trunks:", this.treeTrunks);
+console.log("Branches:", this.branches);
 
       //` SHOP SCENE
 
@@ -398,7 +422,7 @@ tasks.forEach((task, index) => {
         -windowWidth * 0.33,
         -windowHeight * 0.25,
         monkeysAvailable[selectedMonkey] || monkeysAvailable[0]
-      );      
+      );
       monkey.setDisplaySize(windowWidth*.075, windowHeight*.15);
 
       ground = this.add.image(0, 0, 'ground');
@@ -643,6 +667,8 @@ function update() {
 
   // Flag to track if the popup should be show
   for (const branch of this.branches) {
+    console.log("branch.x: ", branch.x)
+    console.log("tree.x: ", this.tree.x)
     const isLeftBranch = branch.x < this.tree.x; // Example condition for left branch
     const monkeyBounds = monkey.getBounds(); // Get monkey's bounds
     const branchBounds = branch.getBounds(); // Get branch's bounds
