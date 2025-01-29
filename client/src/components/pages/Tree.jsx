@@ -57,6 +57,7 @@ const Tree = () => {
   const [loading, setLoading] = useState(true); // Track loading state for tasks
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false); // State for settings popup
+  const [showShop, setShowShop] = setState(false);
   const [musicVolume, setMusicVolume] = useState(1);
   const [soundEffectsVolume, setSoundEffectsVolume] = useState(1);
   const [selectedTaskName, setSelectedTaskName] = useState("")
@@ -372,8 +373,6 @@ tasks.forEach((task, index) => {
   // Alternate branch side for the next branch
   this.branchSide = this.branchSide === "left" ? "right" : "left";
   });
-
-      //` SHOP SCENE
 
       const welcomeText = this.add.text(windowWidth * 1.5 , windowHeight / 2, 'The Shop', {
         fontSize: windowWidth*(32/1494),
