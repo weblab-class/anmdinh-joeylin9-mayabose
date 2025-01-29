@@ -51,7 +51,7 @@ const Homepage = () => {
           />
         )}
       </div>
-      <h1 id='names'>Created by Joey Lin, An Dinh, Maya Bose</h1>
+      <h1 class='names'>Created by Joey Lin, An Dinh, Maya Bose</h1>
     </div>
   );
 };
