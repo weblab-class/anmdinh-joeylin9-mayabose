@@ -950,125 +950,111 @@ const handleCollectBananas = (taskName) => {
 
 const moveBranchesDown = (taskName) => {
   // Improved text search logic
-  //console.log('taskname', taskName)
   const textToRemove = scene.children.list.find(child => {
     return child instanceof Phaser.GameObjects.Text && child.text === String(taskName);
   });
 
-  //console.log('text', textToRemove);
   if (textToRemove) {
-    const textloc = textToRemove.y
-    const loc = textloc + windowHeight*(50/765);
+    const textloc = textToRemove.y;
+    const loc = textloc + windowHeight * (50 / 765);
     const bananaY = loc;
     textToRemove.destroy();
-    //console.log('destoryed text')
-    // Iterate through all children in the scene to find and remove the corresponding items
 
-      // Remove bananas corresponding to the task
-      const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
-      //console.log('bananas', bananasToRemove)
-      bananasToRemove.forEach(banana => {
-        scene.bananas = scene.bananas.filter(b => b !== banana);  // Remove from bananas array
-        banana.destroy();  // Destroy the banana
-      });
+    // Remove bananas corresponding to the task
+    const bananasToRemove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && Math.abs(child.y - bananaY) < 50);
+    bananasToRemove.forEach(banana => {
+      scene.bananas = scene.bananas.filter(b => b !== banana);  // Remove from bananas array
+      banana.destroy();  // Destroy the banana
+    });
 
-      let highestBranchIndex = 0;
-          let highestBranchY = Infinity; // Start with the maximum possible value
+    // Remove the topmost branch
+    let highestBranchIndex = 0;
+    let highestBranchY = Infinity; // Start with the maximum possible value
+    scene.branches.forEach((branch, index) => {
+      if (branch.y < highestBranchY) {
+        highestBranchY = branch.y;
+        highestBranchIndex = index;
+      }
+    });
+    const branchToRemove = scene.branches.splice(highestBranchIndex, 1)[0];
+    if (branchToRemove) {
+      branchToRemove.destroy(); // Destroy the branch in the game
+    }
 
-          scene.branches.forEach((branch, index) => {
-            if (branch.y < highestBranchY) {
-              highestBranchY = branch.y;
-              highestBranchIndex = index;
-            }
-          });
+    // Remove the topmost trunk from the tree
+    const treeObj = scene.treeTrunks[scene.treeTrunks.length - 1];
+    scene.treeTrunks.pop(); // Remove the last trunk from the array
+    treeObj.destroy(); // Destroy the trunk in the game
 
-          // Remove the branch from the branches array
-          const branchToRemove = scene.branches.splice(highestBranchIndex, 1)[0];
+    const shrinkAmount = windowHeight * (150 / 765); // Fixed shrink height for the trunk
+    const newHeight = Math.max(scene.tree.height - shrinkAmount, 50); // Prevent shrinking below minimum height
 
-          if (branchToRemove) {
-            branchToRemove.destroy(); // Destroy the branch in the game
-            //console.log('Removed branch:', branchToRemove);
-          }
-
-      const shrinkAmount = windowHeight * (150 / 765); // Increased height growth for a more noticeable change
-      const treeObj = scene.tree;
-      const newHeight = Math.max(treeObj.height - shrinkAmount, 50); // Prevent shrinking below minimum height
-
-      const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
-      console.log('bananamove', bananasMove)
-      bananasMove.forEach((banana) => {
-        scene.tweens.add({
-          targets: banana,
-          x: banana.x * -1,
-          y: banana.y + shrinkAmount,
-          duration: 500,
-          ease: "Linear",
-          onComplete: () => {
-            // Ensure physics body is finalized at the new position
-            if (banana.body) {
-              banana.body.updateFromGameObject();
-            }
-          }
-        });
-      });
-
-      const textMove = scene.children.list.filter(
-        (child) => child instanceof Phaser.GameObjects.Text && child.y < textloc
-      );
-      textMove.forEach((text) => {
-        scene.tweens.add({
-          targets: text,
-          x: text.x * -1,
-          y: text.y + shrinkAmount,
-          duration: 500,
-          ease: "Linear",
-          onComplete: () => {
-            // Ensure physics body is finalized at the new position
-            if (text.body) {
-              text.body.updateFromGameObject();
-            }
-          }
-        });
-      });
-
+    // Move the remaining bananas and branches down
+    const bananasMove = scene.children.list.filter(child => child.texture && child.texture.key === "banana" && child.y < bananaY);
+    bananasMove.forEach((banana) => {
       scene.tweens.add({
-        targets: treeObj,
-        height: newHeight,
+        targets: banana,
+        x: -1 * banana.x,
+        y: banana.y + shrinkAmount,
         duration: 500,
         ease: "Linear",
-        onUpdate: () => {
-          // Update the tree's size and physics body
-          console.log(treeObj);  // Check what treeObj is
-if (treeObj && treeObj.setSize) {
-  treeObj.setSize(treeWidth, newHeight);
-}
-          treeObj.body.updateFromGameObject();
-        },
         onComplete: () => {
-
-          if (scene.branches.length === 0) {
-            //console.log('No branches left, resetting state...');
-            setPopupVisible(false); // Ensure popup is closed
-            setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
+          // Ensure physics body is updated for bananas
+          if (banana.body) {
+            banana.body.updateFromGameObject();
           }
-          // Save the updated tree state
-          const updatedTreeState = {
-            height: treeObj.height, // Updated height of the tree
-            branches: scene.branches, // Remaining branches on the tree
-            bananas: scene.bananas,
-          };
-          scene.branchSide = scene.branchSide === "left" ? "right" : "left";
-          setTreeState(updatedTreeState);
-
-
-          // Alternate the branch side for the next branch
-
-        },
+        }
       });
+    });
 
+    const textMove = scene.children.list.filter(
+      (child) => child instanceof Phaser.GameObjects.Text && child.y < textloc
+    );
+    textMove.forEach((text) => {
+      scene.tweens.add({
+        targets: text,
+        x: -1 * text.x,
+        y: text.y + shrinkAmount,  // Only update the y-position for text
+        duration: 500,
+        ease: "Linear"
+      });
+    });
 
-    }
-}
+    scene.tweens.add({
+      targets: scene.tree,
+      height: newHeight,
+      y: scene.tree.y + shrinkAmount, // Move the tree down by the same fixed amount
+      duration: 500,
+      ease: "Linear",
+      onUpdate: () => {
+        if (scene.tree && scene.tree.setSize) {
+          scene.tree.setSize(treeWidth, newHeight); // Adjust the tree size
+        }
+
+        // Update physics body if needed
+        if (scene.tree && scene.tree.body) {
+          scene.tree.body.updateFromGameObject();
+        }
+      },
+      onComplete: () => {
+        if (scene.treeTrunks.length === 0) {
+          setPopupVisible(false); // Close the popup if no trunks are left
+          setTreeState({ height: scene.tree.height, branches: [], bananas: [] });
+        }
+
+        // Save the updated tree state
+        const updatedTreeState = {
+          height: scene.tree.height, // Updated height of the tree
+          branches: scene.branches, // Remaining branches
+          bananas: scene.bananas,
+        };
+        scene.branchSide = scene.branchSide === "left" ? "right" : "left";
+        setTreeState(updatedTreeState);
+      },
+    });
+  }
+};
+
 
 
 const growTree = (task) => {
