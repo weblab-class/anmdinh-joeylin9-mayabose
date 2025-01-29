@@ -17,7 +17,7 @@ const Homepage = () => {
       setLoading(true); // Start loading when button is clicked
       setTimeout(() => {
         navigate("/tree");
-      }, 2000); // Simulate loading time (2 seconds for demo)
+      }, 3000); // Simulate loading time (2 seconds for demo)
     } else {
       console.error("Cannot navigate: userId is undefined.");
     }
@@ -51,6 +51,7 @@ const Homepage = () => {
           />
         )}
       </div>
+      <h1>Created by Joey Lin, An Dinh, Maya Bose</h1>
     </div>
   );
 };
