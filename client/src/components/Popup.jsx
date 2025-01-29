@@ -11,6 +11,7 @@ const Popup = ({
   const [base, setBase] = useState(defaultValue); // Initialize task input state
   const [buttonText, setButtonText] = useState("Save");
   const [visible, setVisible] = useState(true);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   // Handle input change without autosave
   const handleChange = (e) => {
@@ -23,9 +24,15 @@ const Popup = ({
     if (onSubmit) onSubmit(base); // Call the parent save function to persist data
   };
 
-  // Button click handler for "Collect Bananas!"
   const handleButtonClick = (param) => {
-    if (handleCollect) handleCollect(param); // Trigger the "Collect Bananas!" action
+    if (isButtonDisabled) return; // Prevent multiple clicks
+
+    if (handleCollect) handleCollect(param);
+    
+    setIsButtonDisabled(true); // Disable button
+    setTimeout(() => {
+      setIsButtonDisabled(false); // Re-enable after 2 seconds
+    }, 2000);
   };
 
   const handleClose = () => setVisible(false);
@@ -60,7 +67,7 @@ const Popup = ({
         {/* Input field */}
         <textarea
           type="text"
-          maxLength='30'
+          maxLength='20'
           style={{fontSize: "1vw"}}
           value={base} // Controlled input
           onChange={handleChange} // Update state on change
