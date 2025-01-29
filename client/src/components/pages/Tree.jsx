@@ -454,8 +454,6 @@ for (let i = 0; i < bananaCount; i++) {
   this.branchSide = this.branchSide === "left" ? "right" : "left";
 });
 // Debugging: Log tree trunks and branches
-console.log("Tree trunks:", this.treeTrunks);
-console.log("Branches:", this.branches);
 
       market = this.add.image(windowWidth, 0, 'market');
       market.setDisplaySize(windowWidth/3, windowHeight/2);
@@ -658,9 +656,6 @@ function update() {
 
     // Check if the monkey is currently overlapping with the branch
     const isOverlapping = this.physics.overlap(monkey, branch);
-    if (isOverlapping) {
-      console.log('monkey and branch', monkey.y, branch.y)
-    }
     if (isOverlapping && Math.abs(Math.abs(monkey.y) - Math.abs(branch.y)) < 60) {
       // If the monkey is overlapping, we need to display the popup for this branch
       let popupShown = false;
@@ -699,7 +694,6 @@ function update() {
         monkeyBounds.left >= branchBounds.left + branchBounds.width / 2 && // Within the right half
         monkeyBounds.left <= branchBounds.right // Monkey's left side touches branch's right
       ) {
-        console.log('right', monkey.x, this.tree.x)
         if (!popupShown) {
           setPopupVisible(true); // Show the popup
 
